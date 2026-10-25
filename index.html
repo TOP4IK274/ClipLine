@@ -69,7 +69,7 @@
         </div>
         <span class="font-bold text-sm tracking-tight text-[#18221E]">ClipLine</span>
         <span id="syncBadge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">
-          ● Live PostgreSQL Connected
+          ● Live PostgreSQL Connected (UTC+5)
         </span>
       </div>
 
@@ -138,7 +138,6 @@
           <div>
             <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Barber</label>
             <select id="barberInput" onchange="updateLiveSummary()" class="input-field w-full px-3.5 py-3 text-sm text-[#18221E] font-medium cursor-pointer">
-              <option value="1" data-barber="Daniyar">Any available barber (Daniyar)</option>
               <option value="1" data-barber="Daniyar">Daniyar · Master Barber</option>
               <option value="2" data-barber="Arman">Arman · Beard Specialist</option>
               <option value="3" data-barber="Marcus">Marcus · Classic Cuts</option>
@@ -149,56 +148,44 @@
           <div>
             <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Date</label>
             <select id="dateInput" onchange="updateLiveSummary()" class="input-field w-full px-3.5 py-3 text-sm text-[#18221E] font-medium cursor-pointer">
-              <option value="2026-10-20" data-label="20 Oct" data-full="20 October 2026">Tuesday, 20 October 2026</option>
-              <option value="2026-10-21" data-label="21 Oct" data-full="21 October 2026">Wednesday, 21 October 2026</option>
-              <option value="2026-10-22" data-label="22 Oct" data-full="22 October 2026">Thursday, 22 October 2026</option>
+              <option value="2026-10-25" data-label="25 Oct" data-full="25 October 2026">Sunday, 25 October 2026</option>
+              <option value="2026-10-26" data-label="26 Oct" data-full="26 October 2026">Monday, 26 October 2026</option>
+              <option value="2026-10-27" data-label="27 Oct" data-full="27 October 2026">Tuesday, 27 October 2026</option>
             </select>
           </div>
 
           <!-- Available Times Pill Selector -->
           <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Available times</label>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Available times (Astana Time)</label>
             <div class="grid grid-cols-3 gap-2.5" id="timeButtonsContainer">
-              <button type="button" onclick="selectTimeSlot('10:00')" data-time="10:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">
-                10:00
-              </button>
-              <button type="button" onclick="selectTimeSlot('11:00')" data-time="11:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#165B40] bg-[#165B40] text-white transition">
-                11:00 ✓
-              </button>
-              <button type="button" onclick="selectTimeSlot('14:00')" data-time="14:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">
-                14:00
-              </button>
-              <button type="button" onclick="selectTimeSlot('15:00')" data-time="15:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">
-                15:00
-              </button>
-              <button type="button" onclick="selectTimeSlot('16:00')" data-time="16:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">
-                16:00
-              </button>
-              <button type="button" onclick="selectTimeSlot('17:00')" data-time="17:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">
-                17:00
-              </button>
+              <button type="button" onclick="selectTimeSlot('10:00')" data-time="10:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">10:00</button>
+              <button type="button" onclick="selectTimeSlot('11:00')" data-time="11:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">11:00</button>
+              <button type="button" onclick="selectTimeSlot('14:00')" data-time="14:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">14:00</button>
+              <button type="button" onclick="selectTimeSlot('15:00')" data-time="15:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">15:00</button>
+              <button type="button" onclick="selectTimeSlot('16:00')" data-time="16:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#165B40] bg-[#165B40] text-white transition">16:00 ✓</button>
+              <button type="button" onclick="selectTimeSlot('17:00')" data-time="17:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">17:00</button>
             </div>
             <p id="selectedTimeSubtext" class="text-[11px] text-[#64706B] mt-1.5">
-              11:00 selected · All times are local
+              16:00 selected · Astana Time (UTC+5)
             </p>
           </div>
 
           <!-- Your Name -->
           <div>
             <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Your name</label>
-            <input id="clientNameInput" type="text" value="Alex" required placeholder="Enter your name" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
+            <input id="clientNameInput" type="text" value="Ansar" required placeholder="Enter your name" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
           </div>
 
-          <!-- Phone Number (Masked for KZ Law No. 94-V Data Minimization) -->
+          <!-- Phone Number -->
           <div>
             <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Phone number</label>
-            <input id="clientPhoneInput" type="text" value="+7 7•• ••• •• ••" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" title="Masked per KZ Law No. 94-V Data Minimization" />
+            <input id="clientPhoneInput" type="text" value="+7 777 ••• •• ••" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
           </div>
 
           <!-- Sage Green Summary Box -->
           <div class="sage-box rounded-xl p-4 mt-2">
             <div id="summaryLine1" class="text-sm font-bold text-[#18221E]">
-              Haircut · 20 Oct · 11:00
+              Haircut · 25 Oct · 16:00
             </div>
             <div id="summaryLine2" class="text-xs text-[#52635B] mt-0.5">
               45 minutes · Total: 5,000 ₸ · Pay at the shop
@@ -218,13 +205,11 @@
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 02: CLIENT / CONFIRMATION (You're booked.)                   -->
+    <!-- SCREEN 02: CLIENT / CONFIRMATION                                    -->
     <!-- =================================================================== -->
     <div id="screen02Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
       <div class="text-xs font-medium text-stone-500 mb-2 pl-1">02 / Booking confirmation</div>
       <section class="figma-card p-7 sm:p-8">
-
-        <!-- Logo + Brand Name -->
         <div class="flex items-center gap-3 mb-5">
           <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -248,17 +233,15 @@
           Your appointment is confirmed. We'll see you soon.
         </p>
 
-        <!-- Green Confirmation Box -->
         <div class="sage-box rounded-2xl p-4 mb-5">
           <div class="text-base font-bold text-[#165B40] flex items-center gap-1.5">
             <span>✓</span> Booking confirmed
           </div>
           <div id="confReference" class="text-xs text-[#52635B] mt-1">
-            Reference: CL-1020
+            Reference: CL-1025
           </div>
         </div>
 
-        <!-- White Receipt Details Card -->
         <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] space-y-4 mb-6">
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">SERVICE</div>
@@ -266,21 +249,17 @@
           </div>
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">WHEN</div>
-            <div id="confWhen" class="text-base font-bold text-[#18221E] mt-0.5">20 October 2026 · 11:00</div>
+            <div id="confWhen" class="text-base font-bold text-[#18221E] mt-0.5">25 October 2026 · 16:00</div>
           </div>
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">BARBER</div>
-            <div id="confBarber" class="text-base font-bold text-[#18221E] mt-0.5">Daniyar</div>
+            <div id="confBarber" class="text-base font-bold text-[#18221E] mt-0.5">Marcus</div>
           </div>
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">TOTAL</div>
             <div id="confTotal" class="text-base font-bold text-[#18221E] mt-0.5">5,000 ₸ · Pay at the shop</div>
           </div>
         </div>
-
-        <p class="text-xs text-[#64706B] mb-3">
-          Need a different time? You can change your booking below.
-        </p>
 
         <div class="space-y-2.5">
           <button type="button" onclick="openChangeModal()" class="w-full py-3.5 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-[#18221E] font-semibold text-sm transition">
@@ -290,21 +269,15 @@
             Book another appointment
           </button>
         </div>
-
-        <p class="text-[11px] text-[#7A8681] mt-4">
-          Live PostgreSQL confirmation · Synced across all devices.
-        </p>
       </section>
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 03: ADMIN / DAILY SCHEDULE (Today's appointments)            -->
+    <!-- SCREEN 03: ADMIN / DAILY SCHEDULE                                   -->
     <!-- =================================================================== -->
     <div id="screen03Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
       <div class="text-xs font-medium text-stone-500 mb-2 pl-1">03 / Admin daily schedule</div>
       <section class="figma-card p-7 sm:p-8">
-
-        <!-- Logo + Brand Name -->
         <div class="flex items-center justify-between mb-5">
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
@@ -330,59 +303,43 @@
           Today’s appointments
         </h2>
         <p class="text-sm text-[#64706B] mb-5">
-          Tuesday, 20 October 2026
+          Sunday, 25 October 2026
         </p>
 
-        <!-- Stats Summary Bar -->
         <div class="sage-box rounded-xl p-4 mb-5 flex items-baseline gap-4">
-          <span id="statTotalBookings" class="text-lg font-bold text-[#18221E]">3 bookings</span>
-          <span id="statCompletedBookings" class="text-sm font-medium text-[#165B40]">1 completed</span>
+          <span id="statTotalBookings" class="text-lg font-bold text-[#18221E]">1 bookings</span>
+          <span id="statCompletedBookings" class="text-sm font-medium text-[#165B40]">0 completed</span>
         </div>
 
-        <!-- Search Clients Input -->
         <div class="mb-4">
           <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Search clients</label>
           <input id="searchClientInput" oninput="renderAdminCards()" type="text" placeholder="Search by client name" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
         </div>
 
-        <!-- Filter Tabs: All / Upcoming / Completed -->
         <div class="grid grid-cols-3 gap-2 mb-5">
-          <button type="button" onclick="setAdminFilter('all')" id="filterBtnAll" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-[#165B40] text-white transition">
-            All (3)
-          </button>
-          <button type="button" onclick="setAdminFilter('confirmed')" id="filterBtnUpcoming" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">
-            Upcoming
-          </button>
-          <button type="button" onclick="setAdminFilter('completed')" id="filterBtnCompleted" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">
-            Completed
-          </button>
+          <button type="button" onclick="setAdminFilter('all')" id="filterBtnAll" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-[#165B40] text-white transition">All</button>
+          <button type="button" onclick="setAdminFilter('confirmed')" id="filterBtnUpcoming" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Upcoming</button>
+          <button type="button" onclick="setAdminFilter('completed')" id="filterBtnCompleted" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Completed</button>
         </div>
 
-        <!-- Dynamic Appointment Cards List -->
         <div id="adminCardsContainer" class="space-y-3.5"></div>
-
-        <p class="text-[11px] text-[#7A8681] mt-5">
-          Demo data · Status is shown in words as well as colour.
-        </p>
       </section>
     </div>
 
   </main>
 
-  <!-- ===================================================================== -->
-  <!-- INTERACTIVE POPUP MODAL FOR "VIEW / CHANGE APPOINTMENT"               -->
-  <!-- ===================================================================== -->
+  <!-- Modal & Toast -->
   <div id="appointmentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">MANAGE APPOINTMENT</span>
         <button onclick="closeAppointmentModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
-      <h3 id="modalTitle" class="text-xl font-bold text-[#18221E]">11:00 · Alex</h3>
-      <p id="modalSubtitle" class="text-sm text-[#64706B]">Haircut · Daniyar · Ref: CL-1020</p>
+      <h3 id="modalTitle" class="text-xl font-bold text-[#18221E]">16:00 · Ansar</h3>
+      <p id="modalSubtitle" class="text-sm text-[#64706B]">Haircut · Marcus</p>
 
-      <div class="pt-1">
-        <label class="block text-xs font-semibold text-[#18221E] mb-1">Change Time Slot (R6 Reschedule)</label>
+      <div>
+        <label class="block text-xs font-semibold text-[#18221E] mb-1">Change Time Slot</label>
         <select id="modalNewTime" class="input-field w-full px-3 py-2.5 text-sm font-medium">
           <option value="10:00">10:00</option>
           <option value="11:00">11:00</option>
@@ -394,46 +351,33 @@
       </div>
 
       <div class="space-y-2 pt-2">
-        <button onclick="saveModalReschedule()" class="btn-primary w-full py-2.5 rounded-xl text-xs font-semibold">
-          Save New Time Slot
-        </button>
+        <button onclick="saveModalReschedule()" class="btn-primary w-full py-2.5 rounded-xl text-xs font-semibold">Save New Time Slot</button>
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="changeModalStatus('completed')" class="py-2.5 rounded-xl bg-[#E2EFE8] hover:bg-[#d0e6da] text-[#165B40] text-xs font-bold transition">
-            ✓ Mark Completed
-          </button>
-          <button onclick="changeModalStatus('cancelled')" class="py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold transition">
-            ✕ Cancel Booking
-          </button>
+          <button onclick="changeModalStatus('completed')" class="py-2.5 rounded-xl bg-[#E2EFE8] hover:bg-[#d0e6da] text-[#165B40] text-xs font-bold transition">✓ Complete</button>
+          <button onclick="changeModalStatus('cancelled')" class="py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold transition">✕ Cancel</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- BOTTOM POP-UP NOTIFICATION TOAST (SLIDES UP ON SUCCESS / ERROR)       -->
-  <!-- ===================================================================== -->
   <div id="bottomPopupToast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
     <div id="toastIcon" class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">✓</div>
     <div class="flex-1 text-xs">
-      <div id="toastHeading" class="font-bold text-sm">Appointment Confirmed!</div>
-      <div id="toastBody" class="mt-0.5 opacity-90">Your booking has been saved to the live database.</div>
+      <div id="toastHeading" class="font-bold text-sm">Confirmed!</div>
+      <div id="toastBody" class="mt-0.5 opacity-90">Booking saved.</div>
     </div>
     <button onclick="hidePopupToast()" class="opacity-70 hover:opacity-100 font-bold text-sm px-1">✕</button>
   </div>
 
   <script>
-    // =========================================================================
-    // PRE-CONNECTED TO ALIBEK'S LIVE SUPABASE POSTGRESQL INSTANCE
-    // =========================================================================
     const SUPABASE_URL = "https://puwscvrzqgzfgywnjijh.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1d3NjdnJ6cWd6Zmd5d25qaWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTA4NjgsImV4cCI6MjEwODQyNjg2OH0.yel7zvopvuGZDp-4hcS7hoIf5Z6TvSsPBQjIonnZFf4";
 
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    let selectedTime = "11:00";
+    let selectedTime = "16:00";
     let currentFilter = "all";
-    let activeBookingId = 2;
-    let currentScreenMode = "all"; // Shows all 3 screens on desktop or single on mobile
+    let activeBookingId = 1;
 
     const BARBER_NAMES = { 1: "Daniyar", 2: "Arman", 3: "Marcus" };
     const SERVICE_CATALOG = {
@@ -443,14 +387,8 @@
       4: { name: "Beard trim", duration: 30, price: "3,500 ₸" }
     };
 
-    // Initial schedule matching Figma Screen 03 (Miras 10:00 Completed, Alex 11:00 Confirmed, Timur 14:00 Confirmed)
-    let scheduleList = [
-      { appointment_id: 1019, time: "10:00", date: "2026-10-20", client_name: "Miras", barber_id: 1, service_id: 1, status: "completed" },
-      { appointment_id: 1020, time: "11:00", date: "2026-10-20", client_name: "Alex", barber_id: 1, service_id: 1, status: "confirmed" },
-      { appointment_id: 1021, time: "14:00", date: "2026-10-20", client_name: "Timur", barber_id: 2, service_id: 4, status: "confirmed" }
-    ];
+    let scheduleList = [];
 
-    // Show bottom pop-up toast notification
     let toastTimer = null;
     function showPopupToast(title, message, isError = false) {
       const toast = document.getElementById("bottomPopupToast");
@@ -459,7 +397,7 @@
       const body = document.getElementById("toastBody");
 
       toast.classList.remove("hidden", "toast-animate");
-      void toast.offsetWidth; // trigger reflow
+      void toast.offsetWidth;
       toast.classList.add("toast-animate");
 
       if (isError) {
@@ -483,9 +421,7 @@
       document.getElementById("bottomPopupToast").classList.add("hidden");
     }
 
-    // Screen Navigation (Single vs All 3 Side-by-Side)
     function setScreenMode(mode) {
-      currentScreenMode = mode;
       const s1 = document.getElementById("screen01Wrapper");
       const s2 = document.getElementById("screen02Wrapper");
       const s3 = document.getElementById("screen03Wrapper");
@@ -514,7 +450,7 @@
           btn.textContent = btn.dataset.time;
         }
       });
-      document.getElementById("selectedTimeSubtext").textContent = `${timeStr} selected · All times are local`;
+      document.getElementById("selectedTimeSubtext").textContent = `${timeStr} selected · Astana Time (UTC+5)`;
       updateLiveSummary();
     }
 
@@ -528,7 +464,7 @@
       document.getElementById("summaryLine2").textContent = `${sOpt.dataset.duration} minutes · Total: ${sOpt.dataset.price} · Pay at the shop`;
     }
 
-    // Load live records from Alibek's Supabase PostgreSQL database
+    // FIXED: Correctly convert Supabase UTC timestamps to Astana Local Time (UTC+5)
     async function fetchScheduleFromDB(showToast = false) {
       if (!supabaseClient) return;
       try {
@@ -542,24 +478,23 @@
 
         const userMap = {};
         (uRes.data || []).forEach(u => {
-          // Display clean first name to match Figma ("Alex", "Miras", "Timur")
           userMap[u.user_id] = u.full_name.split(" ")[0];
         });
 
         const servMap = {};
         (asRes.data || []).forEach(r => { servMap[r.appointment_id] = r.service_id; });
 
-        if (aRes.data && aRes.data.length > 0) {
+        if (aRes.data) {
           scheduleList = aRes.data.map(a => {
-            const rawTime = a.starts_at.includes("T")
-              ? a.starts_at.split("T")[1].substring(0, 5)
-              : a.starts_at.split(" ")[1].substring(0, 5);
-            const rawDate = a.starts_at.substring(0, 10);
+            const dateObj = new Date(a.starts_at);
+            // Convert UTC DB timestamp to Astana Time (Asia/Almaty UTC+5)
+            const rawTime = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' });
+            const rawDate = dateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
             return {
               appointment_id: a.appointment_id,
               time: rawTime,
               date: rawDate,
-              client_name: userMap[a.customer_id] || "Alex",
+              client_name: userMap[a.customer_id] || "Client",
               barber_id: a.barber_id,
               service_id: servMap[a.appointment_id] || 1,
               status: a.status
@@ -571,12 +506,11 @@
           showPopupToast("Synced with Cloud PostgreSQL", "Latest appointments loaded from Supabase.", false);
         }
       } catch (err) {
-        console.warn("Using local fallback schedule:", err.message);
+        console.warn("Fetch error:", err.message);
         renderAdminCards();
       }
     }
 
-    // Submit Booking (Screen 01 -> Writes to Supabase -> Updates Screen 02 & Screen 03 + Shows Bottom Popup)
     async function submitBooking(e) {
       e.preventDefault();
       const service_id = parseInt(document.getElementById("serviceInput").value);
@@ -584,15 +518,15 @@
       const dateVal = document.getElementById("dateInput").value;
       const dateSel = document.getElementById("dateInput");
       const fullDateText = dateSel.options[dateSel.selectedIndex].dataset.full;
-      const clientName = document.getElementById("clientNameInput").value.trim() || "Alex";
+      const clientName = document.getElementById("clientNameInput").value.trim() || "Ansar";
 
+      // Send ISO timestamp with Astana offset (+05:00)
       const starts_at_iso = `${dateVal}T${selectedTime}:00+05:00`;
       const sInfo = SERVICE_CATALOG[service_id];
       const bName = BARBER_NAMES[barber_id];
 
       if (supabaseClient) {
         try {
-          // 1. Find or create customer in `users` table so their exact name shows on all devices
           let customer_id = 1;
           const { data: existingUsers } = await supabaseClient
             .from("users")
@@ -609,7 +543,7 @@
               .insert([{
                 full_name: clientName,
                 email: randomEmail,
-                password_hash: "pbkdf2_sha256$210000$salted_client_hash",
+                password_hash: "pbkdf2_sha256$210000$hash",
                 role: "customer"
               }])
               .select()
@@ -617,7 +551,6 @@
             if (newUser) customer_id = newUser.user_id;
           }
 
-          // 2. Parameterized INSERT into `appointments` (enforces uq_active_barber_start)
           const { data: apptRow, error: apptErr } = await supabaseClient
             .from("appointments")
             .insert([{
@@ -631,7 +564,6 @@
 
           if (apptErr) throw apptErr;
 
-          // 3. Parameterized INSERT into `appointment_services` junction table
           await supabaseClient
             .from("appointment_services")
             .insert([{ appointment_id: apptRow.appointment_id, service_id }]);
@@ -639,7 +571,6 @@
           activeBookingId = apptRow.appointment_id;
           const refCode = `CL-${1000 + apptRow.appointment_id}`;
 
-          // Populate Screen 02 (Confirmation)
           document.getElementById("confReference").textContent = `Reference: ${refCode}`;
           document.getElementById("confService").textContent = `${sInfo.name} · ${sInfo.duration} minutes`;
           document.getElementById("confWhen").textContent = `${fullDateText} · ${selectedTime}`;
@@ -648,11 +579,13 @@
 
           await fetchScheduleFromDB(false);
 
-          if (currentScreenMode === "01") setScreenMode("02");
+          if (document.getElementById("screen01Wrapper").classList.contains("hidden") === false && window.innerWidth < 1024) {
+            setScreenMode("02");
+          }
 
           showPopupToast(
             `Booking Confirmed! (${refCode})`,
-            `${clientName} booked ${sInfo.name} with ${bName} at ${selectedTime}. Synced across all devices!`,
+            `${clientName} booked ${sInfo.name} with ${bName} at ${selectedTime}. Synced to Supabase!`,
             false
           );
           return;
@@ -660,7 +593,7 @@
           if (err.message.includes("uq_active_barber_start") || err.message.includes("duplicate key")) {
             showPopupToast(
               "Time Slot Already Booked!",
-              `Database constraint (uq_active_barber_start) blocked double-booking: ${bName} is already booked at ${selectedTime}. Please pick another time!`,
+              `Database constraint blocked double-booking: ${bName} is already booked at ${selectedTime}!`,
               true
             );
           } else {
@@ -702,7 +635,7 @@
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] text-center text-xs text-[#64706B]">
-            No appointments match your filter.
+            No appointments found.
           </div>
         `;
         return;
@@ -710,7 +643,7 @@
 
       container.innerHTML = filtered.map(item => {
         const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
-        const bName = BARBER_NAMES[item.barber_id] || "Daniyar";
+        const bName = BARBER_NAMES[item.barber_id] || "Marcus";
         const isCompleted = item.status === "completed";
 
         return `
@@ -742,7 +675,7 @@
       const item = scheduleList.find(a => a.appointment_id === id) || scheduleList[0];
       if (!item) return;
       const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
-      const bName = BARBER_NAMES[item.barber_id] || "Daniyar";
+      const bName = BARBER_NAMES[item.barber_id] || "Marcus";
 
       document.getElementById("modalTitle").textContent = `${item.time} · ${item.client_name}`;
       document.getElementById("modalSubtitle").textContent = `${s.name} · ${bName} · Ref: CL-${1000 + item.appointment_id}`;
@@ -761,7 +694,7 @@
     async function saveModalReschedule() {
       const newTime = document.getElementById("modalNewTime").value;
       const item = scheduleList.find(a => a.appointment_id === activeBookingId);
-      const datePart = item ? item.date : "2026-10-20";
+      const datePart = item ? item.date : "2026-10-25";
 
       if (supabaseClient) {
         const { error } = await supabaseClient
@@ -770,15 +703,14 @@
           .eq("appointment_id", activeBookingId);
 
         if (error) {
-          showPopupToast("Reschedule Blocked!", "That barber already has a confirmed booking at " + newTime, true);
+          showPopupToast("Reschedule Blocked!", "That barber is already booked at " + newTime, true);
           return;
         }
       }
       if (item) item.time = newTime;
-      document.getElementById("confWhen").textContent = `20 October 2026 · ${newTime}`;
       closeAppointmentModal();
       await fetchScheduleFromDB(false);
-      showPopupToast("Appointment Rescheduled!", `Updated booking #CL-${1000 + activeBookingId} to ${newTime}.`, false);
+      showPopupToast("Rescheduled!", `Updated appointment to ${newTime}.`, false);
     }
 
     async function changeModalStatus(newStatus) {
@@ -792,15 +724,9 @@
       if (item) item.status = newStatus;
       closeAppointmentModal();
       await fetchScheduleFromDB(false);
-
-      if (newStatus === "completed") {
-        showPopupToast("Marked as Completed!", `Booking #CL-${1000 + activeBookingId} is now completed.`, false);
-      } else {
-        showPopupToast("Appointment Cancelled", `Booking #CL-${1000 + activeBookingId} was cancelled and the time slot is now free.`, false);
-      }
+      showPopupToast("Status Updated", `Appointment marked as ${newStatus}.`, false);
     }
 
-    // Initialize Real-Time WebSocket Listener + Responsive View Mode
     window.addEventListener("DOMContentLoaded", () => {
       if (window.innerWidth < 1024) {
         setScreenMode("01");
