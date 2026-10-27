@@ -4,7 +4,7 @@ Live Web Application & Relational Database System for ICT Assignment 3.
 
 ## 🔗 Project Links
 - **Figma UI/UX Design (Stage 1 & 2):** [View Figma Board (node-id=4-176)](https://www.figma.com/design/yrTc2frLZ37fe8FxlI36Q5/ICT?node-id=4-176&p=f&t=l3t7K6tnkXCDFj0X-0)
-- **Database Engine:** PostgreSQL 18 (Cloud Realtime via Supabase) + Local Offline SQLite Mirror (`clipline_gui.py`)
+- **Database Engine:** PostgreSQL 18 (Cloud Realtime via Supabase)
 
 ## 🛡️ Architecture & Security Highlights
 1. **3NF Relational Schema:** 6 normalized tables (`users`, `barbers`, `services`, `appointments`, `appointment_services`, `favorites`).
