@@ -23,11 +23,15 @@
       color: #FFFFFF;
       transition: all 0.18s ease;
     }
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       background-color: #114732;
     }
-    .btn-primary:active {
+    .btn-primary:active:not(:disabled) {
       transform: scale(0.99);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     .sage-box {
       background-color: #E2EFE8;
@@ -50,16 +54,35 @@
     .toast-animate {
       animation: slideUpToast 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    @keyframes barberPoleStripe {
+      0% { background-position: 0 0; }
+      100% { background-position: 40px 40px; }
+    }
+    .barber-pole-anim {
+      background: repeating-linear-gradient(
+        45deg,
+        #165B40,
+        #165B40 10px,
+        #E2EFE8 10px,
+        #E2EFE8 20px
+      );
+      background-size: 28px 28px;
+      animation: barberPoleStripe 1.5s linear infinite;
+    }
   </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="min-h-screen pb-28">
 
-  <!-- Top Presentation Control Bar -->
-  <header class="bg-white/90 backdrop-blur border-b border-stone-300 sticky top-0 z-40">
+  <!-- ===================================================================== -->
+  <!-- TOP NAVIGATION, DEVICE CLOCK, MULTIMEDIA AUDIO TOGGLE & PROFILE BAR   -->
+  <!-- ===================================================================== -->
+  <header class="bg-white/95 backdrop-blur border-b border-stone-300 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand Logo (SVG Vector Asset) & Live Device Clock -->
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-[#165B40] flex items-center justify-center text-white">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-9 h-9 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-xs">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="ClipLine Scissors Logo">
             <circle cx="6" cy="6" r="3"></circle>
             <circle cx="6" cy="18" r="3"></circle>
             <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
@@ -67,66 +90,110 @@
             <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
           </svg>
         </div>
-        <span class="font-bold text-sm tracking-tight text-[#18221E]">ClipLine</span>
-        <span id="syncBadge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">
-          ● Live PostgreSQL Connected (UTC+5)
-        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm tracking-tight text-[#18221E]">ClipLine</span>
+            <span id="roleBadgeHeader" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#165B40] text-white">
+              Customer
+            </span>
+          </div>
+          <div id="liveDeviceClock" class="text-[11px] font-medium text-[#64706B]">
+            Syncing device calendar...
+          </div>
+        </div>
       </div>
 
       <!-- Screen Switcher Tabs -->
-      <div class="flex items-center bg-stone-200/80 p-1 rounded-xl text-xs font-semibold">
-        <button onclick="setScreenMode('01')" id="nav01" class="px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition">
+      <div class="flex items-center bg-stone-200/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
+        <button onclick="setScreenMode('01')" id="nav01" class="px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition whitespace-nowrap">
           01 / Book
         </button>
-        <button onclick="setScreenMode('02')" id="nav02" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition">
+        <button onclick="setScreenMode('02')" id="nav02" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
           02 / Confirmation
         </button>
-        <button onclick="setScreenMode('03')" id="nav03" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition">
-          03 / Admin Schedule
+        <button onclick="setScreenMode('03')" id="nav03" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
+          03 / Role Workspace
         </button>
-        <button onclick="setScreenMode('all')" id="navAll" class="hidden md:inline-block px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition">
-          ⊞ All 3 Screens (Figma View)
+        <button onclick="setScreenMode('04')" id="nav04" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
+          04 / Media & Reviews
+        </button>
+        <button onclick="setScreenMode('all')" id="navAll" class="hidden xl:inline-block px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
+          ⊞ Figma Canvas
         </button>
       </div>
+
+      <!-- Right Controls: Sound Toggle, Quick Role Switcher & User Account Pill -->
+      <div class="flex items-center gap-2">
+        <!-- Accessible Audio Toggle (No Auto-Play) -->
+        <button onclick="toggleSoundEffects()" id="soundToggleBtn" title="Toggle UI Sound Chimes" class="px-2.5 py-1.5 rounded-xl border border-[#D5DDD8] bg-white text-xs font-semibold text-[#18221E] hover:border-[#165B40] transition flex items-center gap-1">
+          <span id="soundIcon">🔔</span> <span class="hidden sm:inline" id="soundStatusText">Sound On</span>
+        </button>
+
+        <!-- Defense Quick Role Switcher -->
+        <select id="quickRoleSelect" onchange="switchDemoRole(this.value)" aria-label="Switch Role Rank" class="px-2.5 py-1.5 rounded-xl border border-[#D5DDD8] bg-[#F4F7F4] text-xs font-semibold text-[#165B40] cursor-pointer">
+          <option value="customer">👤 Rank: Customer</option>
+          <option value="barber_1">✂️ Rank: Barber (Daniyar)</option>
+          <option value="barber_2">✂️ Rank: Barber (Arman)</option>
+          <option value="barber_3">✂️ Rank: Barber (Marcus)</option>
+          <option value="admin">🛡️ Rank: Admin (Master)</option>
+        </select>
+
+        <!-- Personal Profile Button (Yandex/YouTube Style) -->
+        <button onclick="openAuthProfileModal()" class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-[#E2EFE8] hover:bg-[#d2e5dc] text-[#165B40] transition border border-[#165B40]/20">
+          <div id="headerAvatar" class="w-6 h-6 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">
+            A
+          </div>
+          <span id="headerUserName" class="text-xs font-bold max-w-[90px] truncate">Ansar</span>
+        </button>
+      </div>
+
     </div>
   </header>
 
-  <!-- Main Figma Canvas Container -->
-  <main id="canvasContainer" class="max-w-7xl mx-auto px-4 pt-6 flex flex-col lg:flex-row items-start justify-center gap-8">
+  <!-- ===================================================================== -->
+  <!-- MAIN FIGMA CANVAS CONTAINER                                           -->
+  <!-- ===================================================================== -->
+  <main id="canvasContainer" class="max-w-7xl mx-auto px-4 pt-6 flex flex-col lg:flex-row flex-wrap items-start justify-center gap-7">
 
     <!-- =================================================================== -->
-    <!-- SCREEN 01: CLIENT / BOOKING (01 / Book an appointment)              -->
+    <!-- SCREEN 01: CLIENT / BOOKING (Dynamic Device Calendar & Barber Cards)-->
     <!-- =================================================================== -->
     <div id="screen01Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0">
-      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">01 / Book an appointment</div>
-      <section class="figma-card p-7 sm:p-8">
+      <div class="text-xs font-medium text-stone-500 mb-2 pl-1 flex justify-between items-center">
+        <span>01 / Book an appointment</span>
+        <span class="text-[11px] text-[#165B40] font-semibold">● Device Time Synced</span>
+      </div>
+      <section class="figma-card p-6 sm:p-7">
 
-        <!-- Scissors & Comb Icon -->
-        <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white mb-5 shadow-sm">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="6" cy="6" r="3"></circle>
-            <circle cx="6" cy="18" r="3"></circle>
-            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
-            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
-          </svg>
+        <!-- Animated Barber Pole Accent Bar + Header -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="6" cy="6" r="3"></circle>
+              <circle cx="6" cy="18" r="3"></circle>
+              <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+              <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+              <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div class="h-2.5 w-24 rounded-full barber-pole-anim border border-[#165B40]/20" title="CSS Time-Based Animation"></div>
         </div>
 
-        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1.5">
+        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
           CLIENT / BOOKING
         </div>
-        <h1 class="text-[28px] leading-tight font-bold text-[#18221E] mb-2">
+        <h1 class="text-[26px] leading-tight font-bold text-[#18221E] mb-1.5">
           Your next fresh cut.
         </h1>
-        <p class="text-sm text-[#64706B] mb-6">
-          Choose your service, barber and a time that works for you.
+        <p class="text-sm text-[#64706B] mb-5">
+          Choose your service, rated master barber, and a live available slot.
         </p>
 
         <form id="bookingForm" onsubmit="submitBooking(event)" class="space-y-4">
           <!-- Service Dropdown -->
           <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Service</label>
-            <select id="serviceInput" onchange="updateLiveSummary()" class="input-field w-full px-3.5 py-3 text-sm text-[#18221E] font-medium cursor-pointer">
+            <label for="serviceInput" class="block text-xs font-semibold text-[#18221E] mb-1.5">Service</label>
+            <select id="serviceInput" onchange="updateLiveSummary()" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E] font-medium cursor-pointer">
               <option value="1" data-name="Haircut" data-duration="45" data-price="5,000 ₸">Haircut · 45 min · 5,000 ₸</option>
               <option value="4" data-name="Beard trim" data-duration="30" data-price="3,500 ₸">Beard trim · 30 min · 3,500 ₸</option>
               <option value="2" data-name="Fade cut" data-duration="45" data-price="5,500 ₸">Fade cut · 45 min · 5,500 ₸</option>
@@ -134,58 +201,62 @@
             </select>
           </div>
 
-          <!-- Barber Dropdown -->
+          <!-- Interactive Barber Cards with WebP Portraits & Live Star Ratings -->
           <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Barber</label>
-            <select id="barberInput" onchange="updateLiveSummary()" class="input-field w-full px-3.5 py-3 text-sm text-[#18221E] font-medium cursor-pointer">
-              <option value="1" data-barber="Daniyar">Daniyar · Master Barber</option>
-              <option value="2" data-barber="Arman">Arman · Beard Specialist</option>
-              <option value="3" data-barber="Marcus">Marcus · Classic Cuts</option>
-            </select>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-[#18221E]">Select Barber (with live ratings)</label>
+              <button type="button" onclick="setScreenMode('04')" class="text-[11px] font-semibold text-[#165B40] hover:underline">
+                Read reviews →
+              </button>
+            </div>
+            <input type="hidden" id="barberInput" value="1" />
+            <div id="barberSelectorCards" class="grid grid-cols-3 gap-2">
+              <!-- Populated dynamically with WebP images, alt attributes, and live star ratings -->
+            </div>
           </div>
 
-          <!-- Date Input -->
+          <!-- FEATURE 1: Dynamic Device Calendar Date Picker (Past Dates Blocked) -->
           <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Date</label>
-            <select id="dateInput" onchange="updateLiveSummary()" class="input-field w-full px-3.5 py-3 text-sm text-[#18221E] font-medium cursor-pointer">
-              <option value="2026-10-25" data-label="25 Oct" data-full="25 October 2026">Sunday, 25 October 2026</option>
-              <option value="2026-10-26" data-label="26 Oct" data-full="26 October 2026">Monday, 26 October 2026</option>
-              <option value="2026-10-27" data-label="27 Oct" data-full="27 October 2026">Tuesday, 27 October 2026</option>
-            </select>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="dateInput" class="block text-xs font-semibold text-[#18221E]">Date (Past dates locked)</label>
+              <span id="dateStatusLabel" class="text-[11px] font-medium text-[#165B40]">Today</span>
+            </div>
+            <!-- Quick 5-Day Rolling Pill Strip -->
+            <div id="rollingDatePills" class="grid grid-cols-5 gap-1.5 mb-2"></div>
+            <!-- Native Device Calendar Input -->
+            <input id="dateInput" type="date" onchange="onDateInputChange()" class="input-field w-full px-3.5 py-2 text-sm text-[#18221E] font-medium cursor-pointer" required />
           </div>
 
-          <!-- Available Times Pill Selector -->
+          <!-- Available Times Pill Selector (Auto-locks past times & booked slots) -->
           <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Available times (Astana Time)</label>
-            <div class="grid grid-cols-3 gap-2.5" id="timeButtonsContainer">
-              <button type="button" onclick="selectTimeSlot('10:00')" data-time="10:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">10:00</button>
-              <button type="button" onclick="selectTimeSlot('11:00')" data-time="11:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">11:00</button>
-              <button type="button" onclick="selectTimeSlot('14:00')" data-time="14:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">14:00</button>
-              <button type="button" onclick="selectTimeSlot('15:00')" data-time="15:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">15:00</button>
-              <button type="button" onclick="selectTimeSlot('16:00')" data-time="16:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#165B40] bg-[#165B40] text-white transition">16:00 ✓</button>
-              <button type="button" onclick="selectTimeSlot('17:00')" data-time="17:00" class="time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition">17:00</button>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-[#18221E]">Available times (Device local time)</label>
+              <span id="slotsAvailableCount" class="text-[11px] text-[#64706B]">Checking...</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2" id="timeButtonsContainer">
+              <!-- Generated dynamically based on device clock & database bookings -->
             </div>
             <p id="selectedTimeSubtext" class="text-[11px] text-[#64706B] mt-1.5">
-              16:00 selected · Astana Time (UTC+5)
+              Past hours & taken slots close automatically.
             </p>
           </div>
 
-          <!-- Your Name -->
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Your name</label>
-            <input id="clientNameInput" type="text" value="Ansar" required placeholder="Enter your name" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
-          </div>
-
-          <!-- Phone Number -->
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Phone number</label>
-            <input id="clientPhoneInput" type="text" value="+7 777 ••• •• ••" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
+          <!-- Client Details (Auto-filled from Logged-In Profile) -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label for="clientNameInput" class="block text-xs font-semibold text-[#18221E] mb-1">Your name</label>
+              <input id="clientNameInput" type="text" value="Ansar" required placeholder="Your name" class="input-field w-full px-3 py-2 text-sm text-[#18221E]" />
+            </div>
+            <div>
+              <label for="clientPhoneInput" class="block text-xs font-semibold text-[#18221E] mb-1">Phone number</label>
+              <input id="clientPhoneInput" type="tel" value="+7 777 123 45 67" class="input-field w-full px-3 py-2 text-sm text-[#18221E]" />
+            </div>
           </div>
 
           <!-- Sage Green Summary Box -->
-          <div class="sage-box rounded-xl p-4 mt-2">
+          <div class="sage-box rounded-xl p-3.5">
             <div id="summaryLine1" class="text-sm font-bold text-[#18221E]">
-              Haircut · 25 Oct · 16:00
+              Haircut · Today · 16:00
             </div>
             <div id="summaryLine2" class="text-xs text-[#52635B] mt-0.5">
               45 minutes · Total: 5,000 ₸ · Pay at the shop
@@ -193,26 +264,22 @@
           </div>
 
           <!-- Confirm Booking Submit Button -->
-          <button type="submit" id="confirmBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm shadow-sm mt-2">
+          <button type="submit" id="confirmBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm shadow-sm">
             Confirm booking
           </button>
         </form>
-
-        <p class="text-[11px] text-[#7A8681] mt-4">
-          Demo content · No payment is taken online.
-        </p>
       </section>
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 02: CLIENT / CONFIRMATION                                    -->
+    <!-- SCREEN 02: CLIENT / CONFIRMATION & DEVICE CALENDAR SYNC (.ICS)      -->
     <!-- =================================================================== -->
     <div id="screen02Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
       <div class="text-xs font-medium text-stone-500 mb-2 pl-1">02 / Booking confirmation</div>
-      <section class="figma-card p-7 sm:p-8">
+      <section class="figma-card p-6 sm:p-7">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="6" cy="6" r="3"></circle>
               <circle cx="6" cy="18" r="3"></circle>
               <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
@@ -223,17 +290,17 @@
           <span class="text-2xl font-bold tracking-tight text-[#18221E]">ClipLine</span>
         </div>
 
-        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1.5">
+        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
           CLIENT / CONFIRMATION
         </div>
-        <h2 class="text-[28px] leading-tight font-bold text-[#18221E] mb-2">
+        <h2 class="text-[26px] leading-tight font-bold text-[#18221E] mb-1.5">
           You’re booked.
         </h2>
-        <p class="text-sm text-[#64706B] mb-6">
-          Your appointment is confirmed. We'll see you soon.
+        <p class="text-sm text-[#64706B] mb-5">
+          Saved to your personal account history and ready for your calendar.
         </p>
 
-        <div class="sage-box rounded-2xl p-4 mb-5">
+        <div class="sage-box rounded-2xl p-4 mb-4">
           <div class="text-base font-bold text-[#165B40] flex items-center gap-1.5">
             <span>✓</span> Booking confirmed
           </div>
@@ -242,18 +309,18 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] space-y-4 mb-6">
+        <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-3.5 mb-5">
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">SERVICE</div>
             <div id="confService" class="text-base font-bold text-[#18221E] mt-0.5">Haircut · 45 minutes</div>
           </div>
           <div>
-            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">WHEN</div>
-            <div id="confWhen" class="text-base font-bold text-[#18221E] mt-0.5">25 October 2026 · 16:00</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">WHEN (DEVICE LOCAL TIME)</div>
+            <div id="confWhen" class="text-base font-bold text-[#18221E] mt-0.5">Today · 16:00</div>
           </div>
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">BARBER</div>
-            <div id="confBarber" class="text-base font-bold text-[#18221E] mt-0.5">Marcus</div>
+            <div id="confBarber" class="text-base font-bold text-[#18221E] mt-0.5">Daniyar</div>
           </div>
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">TOTAL</div>
@@ -261,11 +328,26 @@
           </div>
         </div>
 
-        <div class="space-y-2.5">
-          <button type="button" onclick="openChangeModal()" class="w-full py-3.5 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-[#18221E] font-semibold text-sm transition">
-            Change appointment
+        <!-- FEATURE 1B: Direct Connection to Device Calendar (.ics + Google Calendar) -->
+        <div class="sage-box rounded-xl p-3.5 mb-4 space-y-2">
+          <div class="text-xs font-bold text-[#165B40] uppercase tracking-wider">
+            📅 Sync with Your Device Calendar
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="downloadICSFile()" class="py-2 px-3 rounded-lg bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition flex items-center justify-center gap-1.5">
+              <span>📲</span> Apple / Outlook (.ics)
+            </button>
+            <button type="button" onclick="openGoogleCalendarLink()" class="py-2 px-3 rounded-lg bg-white border border-[#165B40]/30 text-[#165B40] text-xs font-semibold hover:bg-stone-50 transition flex items-center justify-center gap-1.5">
+              <span>🌐</span> Google Calendar
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button type="button" onclick="openAuthProfileModal()" class="w-full py-3 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-[#18221E] font-semibold text-sm transition">
+            View in My Profile History
           </button>
-          <button type="button" onclick="setScreenMode('01')" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm">
+          <button type="button" onclick="setScreenMode('01')" class="btn-primary w-full py-3 rounded-xl font-semibold text-sm">
             Book another appointment
           </button>
         </div>
@@ -273,62 +355,323 @@
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 03: ADMIN / DAILY SCHEDULE                                   -->
+    <!-- SCREEN 03: RANK-BASED WORKSPACE (Customer / Barber / Admin)         -->
     <!-- =================================================================== -->
     <div id="screen03Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
-      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">03 / Admin daily schedule</div>
-      <section class="figma-card p-7 sm:p-8">
-        <div class="flex items-center justify-between mb-5">
+      <div class="text-xs font-medium text-stone-500 mb-2 pl-1 flex justify-between">
+        <span id="screen03TopLabel">03 / Role-Based Schedule</span>
+        <button onclick="fetchScheduleFromDB(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Cloud Sync</button>
+      </div>
+      <section class="figma-card p-6 sm:p-7">
+        
+        <!-- Dynamic Role Header -->
+        <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="6" cy="6" r="3"></circle>
-                <circle cx="6" cy="18" r="3"></circle>
-                <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-                <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
-                <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
             </div>
-            <span class="text-2xl font-bold tracking-tight text-[#18221E]">ClipLine</span>
+            <div>
+              <div id="workspaceRoleOverline" class="text-[11px] font-bold tracking-wider uppercase text-[#165B40]">
+                ADMIN / MASTER SCHEDULE
+              </div>
+              <h2 id="workspaceTitle" class="text-2xl leading-tight font-bold text-[#18221E]">
+                All Appointments
+              </h2>
+            </div>
           </div>
-          <button onclick="fetchScheduleFromDB(true)" class="text-xs font-semibold text-[#165B40] hover:underline">
-            ↻ Sync
-          </button>
         </div>
 
-        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1.5">
-          ADMIN / DAILY SCHEDULE
-        </div>
-        <h2 class="text-[28px] leading-tight font-bold text-[#18221E] mb-1">
-          Today’s appointments
-        </h2>
-        <p class="text-sm text-[#64706B] mb-5">
-          Sunday, 25 October 2026
+        <p id="workspaceDescription" class="text-xs text-[#64706B] mb-4">
+          Full administrative privileges: inspect clients, reassign barbers, mark completed, or cancel bookings.
         </p>
 
-        <div class="sage-box rounded-xl p-4 mb-5 flex items-baseline gap-4">
-          <span id="statTotalBookings" class="text-lg font-bold text-[#18221E]">1 bookings</span>
-          <span id="statCompletedBookings" class="text-sm font-medium text-[#165B40]">0 completed</span>
+        <!-- Role Switcher Pills right inside Screen 03 for clear visibility -->
+        <div class="bg-white border border-[#D5DDD8] rounded-xl p-2 mb-4">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B] px-1 mb-1.5">
+            Active Rank Mode (Click to test permissions):
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-xs font-semibold">
+            <button type="button" onclick="switchDemoRole('customer')" id="rankBtnCustomer" class="py-1.5 px-2 rounded-lg border text-center transition">
+              👤 Customer
+            </button>
+            <button type="button" onclick="switchDemoRole('barber_1')" id="rankBtnBarber" class="py-1.5 px-2 rounded-lg border text-center transition">
+              ✂️ Barber
+            </button>
+            <button type="button" onclick="switchDemoRole('admin')" id="rankBtnAdmin" class="py-1.5 px-2 rounded-lg border text-center transition">
+              🛡️ Admin
+            </button>
+          </div>
+          <!-- Sub-selector when in Barber Rank -->
+          <div id="barberRankSubSelector" class="hidden mt-2 pt-2 border-t border-stone-200 flex items-center justify-between text-xs">
+            <span class="font-semibold text-[#18221E]">Logged in Barber:</span>
+            <select id="activeBarberIdentity" onchange="switchDemoRole('barber_' + this.value)" class="border border-[#D5DDD8] rounded-lg px-2 py-1 bg-[#F4F7F4] font-bold text-[#165B40]">
+              <option value="1">Daniyar (Master Barber)</option>
+              <option value="2">Arman (Beard Specialist)</option>
+              <option value="3">Marcus (Classic Cuts)</option>
+            </select>
+          </div>
         </div>
 
-        <div class="mb-4">
-          <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Search clients</label>
-          <input id="searchClientInput" oninput="renderAdminCards()" type="text" placeholder="Search by client name" class="input-field w-full px-3.5 py-2.5 text-sm text-[#18221E]" />
+        <!-- Live Stats Box -->
+        <div class="sage-box rounded-xl p-3.5 mb-4 flex items-center justify-between">
+          <div>
+            <span id="statTotalBookings" class="text-base font-bold text-[#18221E]">0 bookings</span>
+            <span id="statCompletedBookings" class="text-xs font-semibold text-[#165B40] ml-2">0 completed</span>
+          </div>
+          <span id="barberPersonalRatingBadge" class="hidden text-xs font-bold bg-[#165B40] text-white px-2.5 py-1 rounded-lg">
+            ★ 5.0
+          </span>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 mb-5">
-          <button type="button" onclick="setAdminFilter('all')" id="filterBtnAll" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-[#165B40] text-white transition">All</button>
-          <button type="button" onclick="setAdminFilter('confirmed')" id="filterBtnUpcoming" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Upcoming</button>
-          <button type="button" onclick="setAdminFilter('completed')" id="filterBtnCompleted" class="py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Completed</button>
+        <!-- Search & Status Filter -->
+        <div class="mb-3">
+          <input id="searchClientInput" oninput="renderWorkspaceCards()" type="text" placeholder="Search by client or barber name..." aria-label="Search appointments" class="input-field w-full px-3.5 py-2 text-sm text-[#18221E]" />
         </div>
 
-        <div id="adminCardsContainer" class="space-y-3.5"></div>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <button type="button" onclick="setAdminFilter('all')" id="filterBtnAll" class="py-2 px-2.5 rounded-[10px] text-xs font-semibold bg-[#165B40] text-white transition">All</button>
+          <button type="button" onclick="setAdminFilter('confirmed')" id="filterBtnUpcoming" class="py-2 px-2.5 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Upcoming</button>
+          <button type="button" onclick="setAdminFilter('completed')" id="filterBtnCompleted" class="py-2 px-2.5 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Completed</button>
+        </div>
+
+        <!-- Dynamic Cards List -->
+        <div id="adminCardsContainer" class="space-y-3 max-h-[460px] overflow-y-auto pr-1"></div>
+      </section>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- SCREEN 04: MULTIMEDIA SHOWCASE & BARBER REVIEWS (Assignment 4 B/C)  -->
+    <!-- =================================================================== -->
+    <div id="screen04Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
+      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">04 / Multimedia & Barber Reviews</div>
+      <section class="figma-card p-6 sm:p-7 space-y-5">
+        
+        <div>
+          <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
+            MULTIMEDIA & SOCIAL PROOF
+          </div>
+          <h2 class="text-2xl leading-tight font-bold text-[#18221E]">
+            Studio Media & Reviews
+          </h2>
+          <p class="text-xs text-[#64706B] mt-1">
+            Optimised WebP lookbook, captioned studio tour video, and verified client ratings.
+          </p>
+        </div>
+
+        <!-- Time-Based Media Element: HTML5 Video with WebVTT Captions Track -->
+        <div class="bg-white rounded-2xl p-3.5 border border-[#E1E7E3]">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-[#18221E]">🎬 How ClipLine Works (MP4 + Captions)</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#E2EFE8] text-[#165B40]">CC Subtitles On</span>
+          </div>
+          <video id="promoVideoPlayer" controls preload="metadata" poster="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80&fm=webp" class="w-full rounded-xl bg-stone-900 aspect-video object-cover">
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
+            <track id="enCaptionsTrack" kind="captions" srclang="en" label="English Captions" default />
+            Your browser does not support HTML5 video.
+          </video>
+          <p class="text-[11px] text-[#64706B] mt-2">
+            <strong>Transcript:</strong> Welcome to ClipLine Astana. Select your master barber, pick a real-time available slot synced with your device calendar, and rate your haircut after completion.
+          </p>
+        </div>
+
+        <!-- Optimised WebP Raster Lookbook Gallery (Accessible alt attributes) -->
+        <div>
+          <div class="text-xs font-bold text-[#18221E] mb-2">
+            ✂️ Signature Styles (Optimised WebP Gallery)
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <figure class="bg-white rounded-xl p-1.5 border border-[#E1E7E3]">
+              <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Skin Fade haircut with sharp hairline by Master Barber Daniyar" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
+              <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Skin Fade</figcaption>
+            </figure>
+            <figure class="bg-white rounded-xl p-1.5 border border-[#E1E7E3]">
+              <img src="https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Precision beard trim and hot towel shaping by Barber Arman" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
+              <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Beard Sculpt</figcaption>
+            </figure>
+            <figure class="bg-white rounded-xl p-1.5 border border-[#E1E7E3]">
+              <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Classic executive scissor cut styled by Barber Marcus" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
+              <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Classic Cut</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <!-- FEATURE 3: Verified Client Reviews & Barber Ratings Leaderboard -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-[#18221E]">⭐ Verified Barber Reviews</span>
+            <select id="reviewFilterBarber" onchange="renderReviewsSection()" aria-label="Filter reviews by barber" class="text-xs border border-[#D5DDD8] rounded-lg px-2 py-1 bg-white font-semibold text-[#165B40]">
+              <option value="all">All Barbers</option>
+              <option value="1">Daniyar</option>
+              <option value="2">Arman</option>
+              <option value="3">Marcus</option>
+            </select>
+          </div>
+          <div id="reviewsListContainer" class="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
       </section>
     </div>
 
   </main>
 
-  <!-- Modal & Toast -->
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: PERSONAL ACCOUNT, AUTHENTICATION & BOOKING HISTORY           -->
+  <!-- ===================================================================== -->
+  <div id="authProfileModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIP-ID PERSONAL ACCOUNT</span>
+        <button onclick="closeAuthProfileModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+      </div>
+
+      <!-- VIEW A: LOGGED-IN PERSONAL PROFILE (Yandex / YouTube Style) -->
+      <div id="profileLoggedInView" class="space-y-4">
+        <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex items-center gap-3.5">
+          <div id="profileBigAvatar" class="w-14 h-14 rounded-full bg-[#165B40] text-white font-extrabold text-xl flex items-center justify-center shrink-0 shadow-sm">
+            A
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 id="profileDisplayName" class="text-lg font-bold text-[#18221E] truncate">Ansar</h3>
+              <span id="profileRoleBadge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">customer</span>
+            </div>
+            <p id="profileDisplayEmail" class="text-xs text-[#64706B] truncate">ansar@clipline.kz</p>
+            <p id="profileDisplayPhone" class="text-xs text-[#64706B]">+7 777 123 45 67</p>
+          </div>
+          <button onclick="showAuthSwitchForm('login')" class="text-xs font-semibold text-rose-700 hover:underline shrink-0">
+            Switch / Out
+          </button>
+        </div>
+
+        <!-- User Stats Strip -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="sage-box rounded-xl p-2.5">
+            <div id="profStatTotal" class="text-lg font-extrabold text-[#165B40]">0</div>
+            <div class="text-[10px] font-semibold text-[#52635B]">Total Cuts</div>
+          </div>
+          <div class="sage-box rounded-xl p-2.5">
+            <div id="profStatUpcoming" class="text-lg font-extrabold text-[#165B40]">0</div>
+            <div class="text-[10px] font-semibold text-[#52635B]">Upcoming</div>
+          </div>
+          <div class="sage-box rounded-xl p-2.5">
+            <div id="profStatReviews" class="text-lg font-extrabold text-[#165B40]">0</div>
+            <div class="text-[10px] font-semibold text-[#52635B]">Reviews Left</div>
+          </div>
+        </div>
+
+        <!-- Personal Appointment History List -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#18221E]">My Appointment History</h4>
+            <span class="text-[11px] text-[#64706B]">Rate completed visits ★</span>
+          </div>
+          <div id="profileHistoryList" class="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW B: LOGIN / REGISTRATION FORM -->
+      <div id="profileAuthFormView" class="hidden space-y-4">
+        <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" onclick="toggleAuthTab('login')" id="tabBtnLogin" class="flex-1 py-2 rounded-lg bg-[#165B40] text-white transition">Sign In</button>
+          <button type="button" onclick="toggleAuthTab('register')" id="tabBtnRegister" class="flex-1 py-2 rounded-lg text-stone-700 transition">Create Account</button>
+        </div>
+
+        <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+          <div id="regNameField" class="hidden">
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Full Name</label>
+            <input id="authFullName" type="text" placeholder="e.g. Arlan Shikibaev" class="input-field w-full px-3.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Email Address</label>
+            <input id="authEmail" type="email" required placeholder="name@clipline.kz" class="input-field w-full px-3.5 py-2 text-sm" />
+          </div>
+          <div id="regPhoneField" class="hidden">
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Phone Number</label>
+            <input id="authPhone" type="tel" placeholder="+7 777 000 00 00" class="input-field w-full px-3.5 py-2 text-sm" />
+          </div>
+          <div id="regRoleField" class="hidden">
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Account Rank / Role</label>
+            <select id="authRoleSelect" class="input-field w-full px-3.5 py-2 text-sm font-medium">
+              <option value="customer">Customer (Book & Review)</option>
+              <option value="barber">Barber (Manage Own Clients)</option>
+              <option value="admin">Admin (Full Salon Control)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Password (PBKDF2-SHA256 Protected)</label>
+            <input id="authPassword" type="password" required placeholder="••••••••" class="input-field w-full px-3.5 py-2 text-sm" />
+          </div>
+          <button type="submit" id="authSubmitBtn" class="btn-primary w-full py-3 rounded-xl font-semibold text-sm">
+            Sign In to ClipLine
+          </button>
+        </form>
+
+        <!-- Instant 1-Click Demo Accounts for Defense -->
+        <div class="pt-2 border-t border-stone-200">
+          <div class="text-[11px] font-semibold text-[#64706B] mb-2">Instant Demo Logins (For Defense):</div>
+          <div class="grid grid-cols-3 gap-1.5 text-xs">
+            <button type="button" onclick="quickLoginPreset('customer')" class="py-1.5 px-2 rounded-lg bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold">👤 Ansar</button>
+            <button type="button" onclick="quickLoginPreset('barber')" class="py-1.5 px-2 rounded-lg bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold">✂️ Daniyar</button>
+            <button type="button" onclick="quickLoginPreset('admin')" class="py-1.5 px-2 rounded-lg bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold">🛡️ Admin</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: LEAVE STAR RATING & REVIEW (For Completed Appointments)      -->
+  <!-- ===================================================================== -->
+  <div id="reviewModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">RATE YOUR BARBER</span>
+        <button onclick="closeReviewModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+      </div>
+      <div>
+        <h3 id="reviewModalTitle" class="text-xl font-bold text-[#18221E]">Rate Daniyar</h3>
+        <p id="reviewModalSubtitle" class="text-xs text-[#64706B]">Haircut · Completed Appointment</p>
+      </div>
+
+      <!-- Interactive 5-Star Selector -->
+      <div>
+        <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Your Rating</label>
+        <div class="flex items-center gap-2" id="starRatingButtons">
+          <button type="button" onclick="setReviewStars(1)" class="text-2xl transition hover:scale-110">★</button>
+          <button type="button" onclick="setReviewStars(2)" class="text-2xl transition hover:scale-110">★</button>
+          <button type="button" onclick="setReviewStars(3)" class="text-2xl transition hover:scale-110">★</button>
+          <button type="button" onclick="setReviewStars(4)" class="text-2xl transition hover:scale-110">★</button>
+          <button type="button" onclick="setReviewStars(5)" class="text-2xl transition hover:scale-110">★</button>
+          <span id="starRatingLabel" class="text-xs font-bold text-[#165B40] ml-2">5 / 5 Excellent</span>
+        </div>
+      </div>
+
+      <div>
+        <label for="reviewCommentInput" class="block text-xs font-semibold text-[#18221E] mb-1">Your Review</label>
+        <textarea id="reviewCommentInput" rows="3" required placeholder="How was the haircut and service?" class="input-field w-full p-3 text-sm text-[#18221E]"></textarea>
+      </div>
+
+      <button type="button" onclick="submitBarberReview()" class="btn-primary w-full py-3 rounded-xl text-xs font-semibold">
+        Submit Verified Review
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: MANAGE / RESCHEDULE APPOINTMENT (Admin / Barber / Customer)  -->
+  <!-- ===================================================================== -->
   <div id="appointmentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
@@ -336,31 +679,34 @@
         <button onclick="closeAppointmentModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
       <h3 id="modalTitle" class="text-xl font-bold text-[#18221E]">16:00 · Ansar</h3>
-      <p id="modalSubtitle" class="text-sm text-[#64706B]">Haircut · Marcus</p>
+      <p id="modalSubtitle" class="text-sm text-[#64706B]">Haircut · Daniyar</p>
 
       <div>
-        <label class="block text-xs font-semibold text-[#18221E] mb-1">Change Time Slot</label>
+        <label class="block text-xs font-semibold text-[#18221E] mb-1">Reschedule Time Slot</label>
         <select id="modalNewTime" class="input-field w-full px-3 py-2.5 text-sm font-medium">
           <option value="10:00">10:00</option>
           <option value="11:00">11:00</option>
+          <option value="12:00">12:00</option>
           <option value="14:00">14:00</option>
           <option value="15:00">15:00</option>
           <option value="16:00">16:00</option>
           <option value="17:00">17:00</option>
+          <option value="18:00">18:00</option>
         </select>
       </div>
 
       <div class="space-y-2 pt-2">
         <button onclick="saveModalReschedule()" class="btn-primary w-full py-2.5 rounded-xl text-xs font-semibold">Save New Time Slot</button>
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="changeModalStatus('completed')" class="py-2.5 rounded-xl bg-[#E2EFE8] hover:bg-[#d0e6da] text-[#165B40] text-xs font-bold transition">✓ Complete</button>
-          <button onclick="changeModalStatus('cancelled')" class="py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold transition">✕ Cancel</button>
+          <button id="modalCompleteBtn" onclick="changeModalStatus('completed')" class="py-2.5 rounded-xl bg-[#E2EFE8] hover:bg-[#d0e6da] text-[#165B40] text-xs font-bold transition">✓ Mark Completed</button>
+          <button onclick="changeModalStatus('cancelled')" class="py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold transition">✕ Cancel Booking</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="bottomPopupToast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
+  <!-- ACCESSIBLE VISUAL TOAST BANNER -->
+  <div id="bottomPopupToast" role="status" aria-live="polite" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
     <div id="toastIcon" class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">✓</div>
     <div class="flex-1 text-xs">
       <div id="toastHeading" class="font-bold text-sm">Confirmed!</div>
@@ -369,17 +715,40 @@
     <button onclick="hidePopupToast()" class="opacity-70 hover:opacity-100 font-bold text-sm px-1">✕</button>
   </div>
 
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT ENGINE                                         -->
+  <!-- ===================================================================== -->
   <script>
+    // 1. SUPABASE CLOUD INITIALIZATION
     const SUPABASE_URL = "https://puwscvrzqgzfgywnjijh.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1d3NjdnJ6cWd6Zmd5d25qaWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTA4NjgsImV4cCI6MjEwODQyNjg2OH0.yel7zvopvuGZDp-4hcS7hoIf5Z6TvSsPBQjIonnZFf4";
-
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    let selectedTime = "16:00";
-    let currentFilter = "all";
-    let activeBookingId = 1;
+    // 2. CATALOGS & MULTIMEDIA RASTER ASSETS (WebP Portraits)
+    const BARBERS = {
+      1: {
+        id: 1,
+        name: "Daniyar",
+        specialty: "Master Barber",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Master Barber Daniyar"
+      },
+      2: {
+        id: 2,
+        name: "Arman",
+        specialty: "Beard Specialist",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Beard Specialist Barber Arman"
+      },
+      3: {
+        id: 3,
+        name: "Marcus",
+        specialty: "Classic Cuts",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Classic Cuts Barber Marcus"
+      }
+    };
 
-    const BARBER_NAMES = { 1: "Daniyar", 2: "Arman", 3: "Marcus" };
     const SERVICE_CATALOG = {
       1: { name: "Haircut", duration: 45, price: "5,000 ₸" },
       2: { name: "Fade cut", duration: 45, price: "5,500 ₸" },
@@ -387,10 +756,882 @@
       4: { name: "Beard trim", duration: 30, price: "3,500 ₸" }
     };
 
-    let scheduleList = [];
+    const ALL_TIME_SLOTS = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
+    // 3. STATE MANAGEMENT
+    let selectedBarberId = 1;
+    let selectedDateISO = ""; // YYYY-MM-DD from user's device
+    let selectedTime = "16:00";
+    let currentFilter = "all";
+    let activeBookingId = null;
+    let lastConfirmedBooking = null;
+    let soundEnabled = true;
+
+    // Active User & Rank State (Customer, Barber, Admin)
+    let currentUser = JSON.parse(localStorage.getItem("clipline_user")) || {
+      user_id: 1,
+      full_name: "Ansar",
+      email: "ansar@clipline.kz",
+      phone: "+7 777 123 45 67",
+      role: "customer", // 'customer' | 'barber' | 'admin'
+      barber_id: null
+    };
+
+    // Reviews State (Synced with localStorage + Supabase)
+    let reviewsList = JSON.parse(localStorage.getItem("clipline_reviews_v2")) || [
+      { id: 101, appointment_id: 901, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar gave the cleanest skin fade in Astana! Sharp line-up.", date: "2026-10-27" },
+      { id: 102, appointment_id: 902, barber_id: 2, client_name: "Talshyn", rating: 5, comment: "Great studio atmosphere and super easy booking experience.", date: "2026-10-27" },
+      { id: 103, appointment_id: 903, barber_id: 3, client_name: "Timur", rating: 4, comment: "Marcus is very precise with classic scissor cuts. On time!", date: "2026-10-28" }
+    ];
+
+    let scheduleList = [];
+    let reviewTargetApptId = null;
+    let selectedReviewStars = 5;
+    let currentAuthTab = "login";
+
+    // =====================================================================
+    // FEATURE 5: ACCESSIBLE AUDIO SYNTHESIZER & WEBVTT VIDEO SUBTITLES
+    // =====================================================================
+    function playNotificationChime(isError = false) {
+      if (!soundEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (isError) {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(220, ctx.currentTime);
+          osc.frequency.setValueAtTime(180, ctx.currentTime + 0.12);
+        } else {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+        }
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {
+        // Ignore audio context restrictions if un-interacted
+      }
+    }
+
+    function toggleSoundEffects() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("soundIcon").textContent = soundEnabled ? "🔔" : "🔕";
+      document.getElementById("soundStatusText").textContent = soundEnabled ? "Sound On" : "Muted";
+      showPopupToast(
+        soundEnabled ? "Audio Chimes Enabled" : "Audio Muted (Silent Mode)",
+        "All notifications continue to display visually for full accessibility.",
+        false
+      );
+    }
+
+    function initVideoWebVTTCaptions() {
+      const vttContent = `WEBVTT
+
+00:00.000 --> 00:04.000
+Welcome to ClipLine — Smart Barbershop Booking in Astana.
+
+00:04.001 --> 00:09.000
+Choose your service, check real barber ratings, and lock in a live time slot.
+
+00:09.001 --> 00:15.000
+Synced directly with your device calendar and cloud PostgreSQL database.`;
+      const blob = new Blob([vttContent], { type: "text/vtt" });
+      const trackEl = document.getElementById("enCaptionsTrack");
+      if (trackEl) trackEl.src = URL.createObjectURL(blob);
+    }
+
+    // =====================================================================
+    // FEATURE 1: DYNAMIC DEVICE CLOCK & PAST DATE/TIME AUTO-LOCKING
+    // =====================================================================
+    function getDeviceTodayISO() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function updateDeviceClockDisplay() {
+      const now = new Date();
+      const formatted = now.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      }) + " · " + now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+      const clockEl = document.getElementById("liveDeviceClock");
+      if (clockEl) clockEl.textContent = `Device Clock: ${formatted}`;
+
+      // Enforce minimum date on date picker so past dates cannot be chosen
+      const todayISO = getDeviceTodayISO();
+      const dateInput = document.getElementById("dateInput");
+      if (dateInput) {
+        if (dateInput.min !== todayISO) dateInput.min = todayISO;
+        if (!selectedDateISO || selectedDateISO < todayISO) {
+          selectedDateISO = todayISO;
+          dateInput.value = todayISO;
+          renderRollingDatePills();
+        }
+      }
+    }
+
+    function renderRollingDatePills() {
+      const container = document.getElementById("rollingDatePills");
+      if (!container) return;
+      const today = new Date();
+      let html = "";
+
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        const iso = `${yyyy}-${mm}-${dd}`;
+        const dayName = i === 0 ? "Today" : i === 1 ? "Tmrw" : d.toLocaleDateString("en-GB", { weekday: "short" });
+        const dayNum = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+        const isSelected = iso === selectedDateISO;
+
+        html += `
+          <button type="button" onclick="selectDateISO('${iso}')" class="py-1.5 px-1 rounded-xl border text-center transition ${
+            isSelected
+              ? "bg-[#165B40] text-white border-[#165B40] font-bold shadow-xs"
+              : "bg-white text-[#18221E] border-[#D5DDD8] hover:border-[#165B40]"
+          }">
+            <div class="text-[10px] opacity-85">${dayName}</div>
+            <div class="text-xs font-bold">${dayNum}</div>
+          </button>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function selectDateISO(iso) {
+      const todayISO = getDeviceTodayISO();
+      if (iso < todayISO) {
+        showPopupToast("Past Date Blocked", "You cannot book appointments on dates in the past.", true);
+        return;
+      }
+      selectedDateISO = iso;
+      document.getElementById("dateInput").value = iso;
+      document.getElementById("dateStatusLabel").textContent = iso === todayISO ? "Today (Live time check active)" : iso;
+      renderRollingDatePills();
+      renderTimeSlotButtons();
+      updateLiveSummary();
+    }
+
+    function onDateInputChange() {
+      const val = document.getElementById("dateInput").value;
+      selectDateISO(val);
+    }
+
+    function isTimeSlotInPastOnDevice(dateISO, timeStr) {
+      const todayISO = getDeviceTodayISO();
+      if (dateISO < todayISO) return true;
+      if (dateISO > todayISO) return false;
+
+      const now = new Date();
+      const [slotH, slotM] = timeStr.split(":").map(Number);
+      const currentH = now.getHours();
+      const currentM = now.getMinutes();
+
+      if (slotH < currentH) return true;
+      if (slotH === currentH && slotM <= currentM) return true;
+      return false;
+    }
+
+    function isTimeSlotBookedInDB(dateISO, timeStr, barberId) {
+      return scheduleList.some(
+        a => a.date === dateISO && a.time === timeStr && a.barber_id === barberId && a.status !== "cancelled"
+      );
+    }
+
+    function renderTimeSlotButtons() {
+      const container = document.getElementById("timeButtonsContainer");
+      if (!container) return;
+
+      let availableCount = 0;
+      let firstAvailableSlot = null;
+
+      // Check if current selectedTime is still valid
+      const currentValid =
+        !isTimeSlotInPastOnDevice(selectedDateISO, selectedTime) &&
+        !isTimeSlotBookedInDB(selectedDateISO, selectedTime, selectedBarberId);
+
+      const buttonsHTML = ALL_TIME_SLOTS.map(slot => {
+        const isPast = isTimeSlotInPastOnDevice(selectedDateISO, slot);
+        const isBooked = isTimeSlotBookedInDB(selectedDateISO, slot, selectedBarberId);
+        const disabled = isPast || isBooked;
+
+        if (!disabled) {
+          availableCount++;
+          if (!firstAvailableSlot) firstAvailableSlot = slot;
+        }
+
+        const isSelected = !disabled && (currentValid ? slot === selectedTime : slot === firstAvailableSlot);
+        if (isSelected) selectedTime = slot;
+
+        if (isPast) {
+          return `
+            <button type="button" disabled title="Time has already passed on your device" class="py-2 px-2 rounded-[10px] text-xs font-medium border border-stone-200 bg-stone-100 text-stone-400 line-through cursor-not-allowed">
+              ${slot} Past
+            </button>
+          `;
+        }
+        if (isBooked) {
+          return `
+            <button type="button" disabled title="Barber is already booked at this time" class="py-2 px-2 rounded-[10px] text-xs font-medium border border-rose-200 bg-rose-50/60 text-rose-400 cursor-not-allowed">
+              ${slot} Taken
+            </button>
+          `;
+        }
+        return `
+          <button type="button" onclick="selectTimeSlot('${slot}')" class="py-2 px-2.5 rounded-[10px] text-xs font-semibold border transition ${
+            isSelected
+              ? "border-[#165B40] bg-[#165B40] text-white shadow-xs"
+              : "border-[#D5DDD8] bg-white text-[#18221E] hover:border-[#165B40]"
+          }">
+            ${slot} ${isSelected ? "✓" : ""}
+          </button>
+        `;
+      }).join("");
+
+      container.innerHTML = buttonsHTML;
+      document.getElementById("slotsAvailableCount").textContent = `${availableCount} slots open`;
+
+      const confirmBtn = document.getElementById("confirmBtn");
+      if (availableCount === 0) {
+        selectedTime = null;
+        document.getElementById("selectedTimeSubtext").textContent =
+          "All slots for today have passed or are booked. Pick tomorrow!";
+        if (confirmBtn) confirmBtn.disabled = true;
+      } else {
+        document.getElementById("selectedTimeSubtext").textContent =
+          `${selectedTime} selected · Verified available on device clock`;
+        if (confirmBtn) confirmBtn.disabled = false;
+      }
+    }
+
+    function selectTimeSlot(slot) {
+      if (isTimeSlotInPastOnDevice(selectedDateISO, slot)) {
+        showPopupToast("Slot Closed", "That time has already passed today.", true);
+        renderTimeSlotButtons();
+        return;
+      }
+      selectedTime = slot;
+      renderTimeSlotButtons();
+      updateLiveSummary();
+    }
+
+    // =====================================================================
+    // FEATURE 1B: EXPORT TO DEVICE CALENDAR (.ICS & GOOGLE CALENDAR)
+    // =====================================================================
+    function getActiveBookingForCalendar() {
+      if (lastConfirmedBooking) return lastConfirmedBooking;
+      const sOpt = document.getElementById("serviceInput").options[document.getElementById("serviceInput").selectedIndex];
+      return {
+        refCode: "CL-1025",
+        serviceName: sOpt ? sOpt.dataset.name : "Haircut",
+        duration: sOpt ? parseInt(sOpt.dataset.duration) : 45,
+        barberName: BARBERS[selectedBarberId].name,
+        dateISO: selectedDateISO || getDeviceTodayISO(),
+        timeStr: selectedTime || "16:00",
+        price: sOpt ? sOpt.dataset.price : "5,000 ₸"
+      };
+    }
+
+    function downloadICSFile() {
+      const b = getActiveBookingForCalendar();
+      const [year, month, day] = b.dateISO.split("-").map(Number);
+      const [hour, minute] = b.timeStr.split(":").map(Number);
+
+      const startDate = new Date(year, month - 1, day, hour, minute, 0);
+      const endDate = new Date(startDate.getTime() + b.duration * 60000);
+
+      const toICSFormat = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+      const icsLines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//ClipLine Astana//Barbershop Booking//EN",
+        "BEGIN:VEVENT",
+        `UID:${b.refCode}-${Date.now()}@clipline.kz`,
+        `DTSTAMP:${toICSFormat(new Date())}`,
+        `DTSTART:${toICSFormat(startDate)}`,
+        `DTEND:${toICSFormat(endDate)}`,
+        `SUMMARY:ClipLine: ${b.serviceName} with ${b.barberName}`,
+        `DESCRIPTION:Booking Ref: ${b.refCode}. Total: ${b.price} (Pay at shop).`,
+        "LOCATION:ClipLine Barbershop, Astana, Kazakhstan",
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ].join("\r\n");
+
+      const blob = new Blob([icsLines], { type: "text/calendar;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `ClipLine-${b.refCode}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showPopupToast("Calendar File Downloaded (.ics)", "Open the file to add this appointment to your phone or laptop calendar.", false);
+    }
+
+    function openGoogleCalendarLink() {
+      const b = getActiveBookingForCalendar();
+      const [year, month, day] = b.dateISO.split("-").map(Number);
+      const [hour, minute] = b.timeStr.split(":").map(Number);
+
+      const startDate = new Date(year, month - 1, day, hour, minute, 0);
+      const endDate = new Date(startDate.getTime() + b.duration * 60000);
+      const fmt = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+      const title = encodeURIComponent(`ClipLine: ${b.serviceName} with ${b.barberName}`);
+      const details = encodeURIComponent(`Reference: ${b.refCode} | Total: ${b.price}`);
+      const location = encodeURIComponent("ClipLine Barbershop, Astana");
+
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${details}&location=${location}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    // =====================================================================
+    // FEATURE 3: BARBER RATING & REVIEW ENGINE
+    // =====================================================================
+    function getBarberRatingStats(barberId) {
+      const list = reviewsList.filter(r => Number(r.barber_id) === Number(barberId));
+      if (list.length === 0) return { avg: "5.0", count: 0 };
+      const sum = list.reduce((acc, r) => acc + Number(r.rating), 0);
+      return {
+        avg: (sum / list.length).toFixed(1),
+        count: list.length
+      };
+    }
+
+    function renderBarberSelectorCards() {
+      const container = document.getElementById("barberSelectorCards");
+      if (!container) return;
+
+      container.innerHTML = Object.values(BARBERS).map(b => {
+        const stats = getBarberRatingStats(b.id);
+        const isSelected = b.id === selectedBarberId;
+        return `
+          <button type="button" onclick="selectBarberCard(${b.id})" class="p-2.5 rounded-2xl border text-left transition flex flex-col items-center text-center ${
+            isSelected
+              ? "border-[#165B40] bg-[#E2EFE8]/70 ring-2 ring-[#165B40]/20"
+              : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
+          }">
+            <img src="${b.avatar}" alt="${b.alt}" width="48" height="48" loading="lazy" class="w-12 h-12 rounded-full object-cover mb-1.5 border border-[#165B40]/30" />
+            <div class="text-xs font-bold text-[#18221E] truncate w-full">${b.name}</div>
+            <div class="text-[10px] text-[#64706B] truncate w-full">${b.specialty}</div>
+            <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#165B40] text-white text-[10px] font-bold">
+              <span>★ ${stats.avg}</span>
+              <span class="opacity-80">(${stats.count})</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function selectBarberCard(barberId) {
+      selectedBarberId = barberId;
+      document.getElementById("barberInput").value = String(barberId);
+      renderBarberSelectorCards();
+      renderTimeSlotButtons();
+      updateLiveSummary();
+    }
+
+    function renderReviewsSection() {
+      const container = document.getElementById("reviewsListContainer");
+      if (!container) return;
+      const filterVal = document.getElementById("reviewFilterBarber").value;
+
+      const filtered = reviewsList.filter(r => filterVal === "all" || String(r.barber_id) === filterVal);
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No reviews yet for this filter.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.slice().reverse().map(r => {
+        const b = BARBERS[r.barber_id] || BARBERS[1];
+        const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+        return `
+          <div class="bg-white rounded-xl p-3.5 border border-[#E1E7E3] space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#18221E]">${r.client_name} <span class="font-normal text-[#64706B]">→ ${b.name}</span></span>
+              <span class="text-xs font-bold text-amber-500">${stars}</span>
+            </div>
+            <p class="text-xs text-[#52635B]">"${r.comment}"</p>
+            <div class="text-[10px] text-[#7A8681]">${r.date || "Verified Completed Cut"}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function openReviewModal(appointmentId) {
+      reviewTargetApptId = appointmentId;
+      const appt = scheduleList.find(a => a.appointment_id === appointmentId);
+      const b = BARBERS[appt ? appt.barber_id : 1] || BARBERS[1];
+      const s = SERVICE_CATALOG[appt ? appt.service_id : 1] || SERVICE_CATALOG[1];
+
+      document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
+      document.getElementById("reviewModalSubtitle").textContent = `${s.name} · Completed on ${appt ? appt.date : getDeviceTodayISO()}`;
+      document.getElementById("reviewCommentInput").value = "";
+      setReviewStars(5);
+      document.getElementById("reviewModal").classList.remove("hidden");
+    }
+
+    function closeReviewModal() {
+      document.getElementById("reviewModal").classList.add("hidden");
+    }
+
+    function setReviewStars(num) {
+      selectedReviewStars = num;
+      const labels = { 1: "1 / 5 Poor", 2: "2 / 5 Fair", 3: "3 / 5 Good", 4: "4 / 5 Very Good", 5: "5 / 5 Excellent" };
+      document.getElementById("starRatingLabel").textContent = labels[num];
+      const btns = document.querySelectorAll("#starRatingButtons button");
+      btns.forEach((btn, idx) => {
+        btn.className = idx < num ? "text-2xl text-amber-500 transition hover:scale-110" : "text-2xl text-stone-300 transition hover:scale-110";
+      });
+    }
+
+    async function submitBarberReview() {
+      const comment = document.getElementById("reviewCommentInput").value.trim();
+      if (!comment) {
+        showPopupToast("Review Required", "Please write a short comment about your haircut.", true);
+        return;
+      }
+
+      const appt = scheduleList.find(a => a.appointment_id === reviewTargetApptId);
+      const barber_id = appt ? appt.barber_id : selectedBarberId;
+      const client_name = appt ? appt.client_name : currentUser.full_name;
+
+      const newReview = {
+        id: Date.now(),
+        appointment_id: reviewTargetApptId,
+        barber_id,
+        client_name,
+        rating: selectedReviewStars,
+        comment,
+        date: getDeviceTodayISO()
+      };
+
+      reviewsList.push(newReview);
+      localStorage.setItem("clipline_reviews_v2", JSON.stringify(reviewsList));
+
+      // Attempt optional cloud write if 'reviews' table exists in Supabase
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from("reviews").insert([{
+            appointment_id: reviewTargetApptId,
+            barber_id,
+            rating: selectedReviewStars,
+            comment
+          }]);
+        } catch (e) {
+          // Graceful fallback if table isn't created yet
+        }
+      }
+
+      closeReviewModal();
+      renderBarberSelectorCards();
+      renderReviewsSection();
+      renderWorkspaceCards();
+      renderProfileModalData();
+
+      showPopupToast("Review Published! ★", `Thank you! Your ${selectedReviewStars}-star review for ${BARBERS[barber_id].name} is live.`, false);
+    }
+
+    // =====================================================================
+    // FEATURE 2: PERSONAL ACCOUNT, PBKDF2 HASHING & PROFILE HISTORY
+    // =====================================================================
+    async function hashPasswordPBKDF2(password) {
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
+      const salt = enc.encode("clipline_astana_salt_2026");
+      const derivedBits = await window.crypto.subtle.deriveBits(
+        { name: "PBKDF2", salt, iterations: 10000, hash: "SHA-256" },
+        keyMaterial,
+        256
+      );
+      const hex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, "0")).join("");
+      return `pbkdf2_sha256$10000$${hex.slice(0, 32)}`;
+    }
+
+    function syncUserHeaderUI() {
+      const initial = (currentUser.full_name || "U").charAt(0).toUpperCase();
+      document.getElementById("headerAvatar").textContent = initial;
+      document.getElementById("headerUserName").textContent = currentUser.full_name;
+
+      const roleText = currentUser.role === "barber"
+        ? `Barber (${BARBERS[currentUser.barber_id || 1].name})`
+        : currentUser.role.toUpperCase();
+      document.getElementById("roleBadgeHeader").textContent = roleText;
+
+      // Auto-fill booking form with logged-in customer details
+      const nameInp = document.getElementById("clientNameInput");
+      const phoneInp = document.getElementById("clientPhoneInput");
+      if (nameInp && currentUser.role === "customer") nameInp.value = currentUser.full_name;
+      if (phoneInp && currentUser.phone) phoneInp.value = currentUser.phone;
+    }
+
+    function openAuthProfileModal() {
+      renderProfileModalData();
+      document.getElementById("profileLoggedInView").classList.remove("hidden");
+      document.getElementById("profileAuthFormView").classList.add("hidden");
+      document.getElementById("authProfileModal").classList.remove("hidden");
+    }
+
+    function closeAuthProfileModal() {
+      document.getElementById("authProfileModal").classList.add("hidden");
+    }
+
+    function showAuthSwitchForm(tab = "login") {
+      document.getElementById("profileLoggedInView").classList.add("hidden");
+      document.getElementById("profileAuthFormView").classList.remove("hidden");
+      toggleAuthTab(tab);
+    }
+
+    function toggleAuthTab(tab) {
+      currentAuthTab = tab;
+      const isReg = tab === "register";
+      document.getElementById("regNameField").classList.toggle("hidden", !isReg);
+      document.getElementById("regPhoneField").classList.toggle("hidden", !isReg);
+      document.getElementById("regRoleField").classList.toggle("hidden", !isReg);
+
+      document.getElementById("tabBtnLogin").className = !isReg
+        ? "flex-1 py-2 rounded-lg bg-[#165B40] text-white transition"
+        : "flex-1 py-2 rounded-lg text-stone-700 transition";
+      document.getElementById("tabBtnRegister").className = isReg
+        ? "flex-1 py-2 rounded-lg bg-[#165B40] text-white transition"
+        : "flex-1 py-2 rounded-lg text-stone-700 transition";
+      document.getElementById("authSubmitBtn").textContent = isReg ? "Create Clip-ID Account" : "Sign In to ClipLine";
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById("authEmail").value.trim().toLowerCase();
+      const pass = document.getElementById("authPassword").value;
+      const fullName = document.getElementById("authFullName").value.trim() || email.split("@")[0];
+      const phone = document.getElementById("authPhone").value.trim() || "+7 777 123 45 67";
+      const role = currentAuthTab === "register" ? document.getElementById("authRoleSelect").value : "customer";
+
+      const hashedPassword = await hashPasswordPBKDF2(pass);
+
+      if (supabaseClient) {
+        try {
+          if (currentAuthTab === "register") {
+            const { data: inserted } = await supabaseClient
+              .from("users")
+              .insert([{ full_name: fullName, email, password_hash: hashedPassword, role: role === "barber" ? "barber" : role }])
+              .select()
+              .single();
+
+            currentUser = {
+              user_id: inserted ? inserted.user_id : Date.now(),
+              full_name: fullName,
+              email,
+              phone,
+              role,
+              barber_id: role === "barber" ? 1 : null
+            };
+          } else {
+            const { data: found } = await supabaseClient
+              .from("users")
+              .select("*")
+              .ilike("email", email)
+              .limit(1);
+
+            if (found && found.length > 0) {
+              currentUser = {
+                user_id: found[0].user_id,
+                full_name: found[0].full_name,
+                email: found[0].email,
+                phone,
+                role: found[0].role || "customer",
+                barber_id: found[0].role === "barber" ? 1 : null
+              };
+            } else {
+              currentUser = { user_id: Date.now(), full_name: fullName, email, phone, role: "customer", barber_id: null };
+            }
+          }
+        } catch (err) {
+          currentUser = { user_id: Date.now(), full_name: fullName, email, phone, role, barber_id: role === "barber" ? 1 : null };
+        }
+      }
+
+      localStorage.setItem("clipline_user", JSON.stringify(currentUser));
+      syncUserHeaderUI();
+      applyRoleToWorkspaceUI();
+      renderProfileModalData();
+      document.getElementById("profileAuthFormView").classList.add("hidden");
+      document.getElementById("profileLoggedInView").classList.remove("hidden");
+      showPopupToast(`Welcome, ${currentUser.full_name}!`, `Logged in with PBKDF2-SHA256 verified session (${currentUser.role}).`, false);
+    }
+
+    function quickLoginPreset(preset) {
+      if (preset === "customer") {
+        currentUser = { user_id: 1, full_name: "Ansar", email: "ansar@clipline.kz", phone: "+7 777 123 45 67", role: "customer", barber_id: null };
+        document.getElementById("quickRoleSelect").value = "customer";
+      } else if (preset === "barber") {
+        currentUser = { user_id: 10, full_name: "Daniyar", email: "daniyar@clipline.kz", phone: "+7 701 555 11 22", role: "barber", barber_id: 1 };
+        document.getElementById("quickRoleSelect").value = "barber_1";
+      } else {
+        currentUser = { user_id: 99, full_name: "Arlan (Admin)", email: "admin@clipline.kz", phone: "+7 700 999 88 77", role: "admin", barber_id: null };
+        document.getElementById("quickRoleSelect").value = "admin";
+      }
+      localStorage.setItem("clipline_user", JSON.stringify(currentUser));
+      syncUserHeaderUI();
+      applyRoleToWorkspaceUI();
+      closeAuthProfileModal();
+      showPopupToast(`Switched Account to ${currentUser.full_name}`, `Active Role Rank: ${currentUser.role.toUpperCase()}`, false);
+    }
+
+    function renderProfileModalData() {
+      document.getElementById("profileBigAvatar").textContent = (currentUser.full_name || "U").charAt(0).toUpperCase();
+      document.getElementById("profileDisplayName").textContent = currentUser.full_name;
+      document.getElementById("profileRoleBadge").textContent = currentUser.role;
+      document.getElementById("profileDisplayEmail").textContent = currentUser.email || "user@clipline.kz";
+      document.getElementById("profileDisplayPhone").textContent = currentUser.phone || "+7 777 123 45 67";
+
+      const myBookings = scheduleList.filter(
+        a => a.client_name.toLowerCase() === currentUser.full_name.split(" ")[0].toLowerCase()
+      );
+      const myUpcoming = myBookings.filter(a => a.status === "confirmed");
+      const myReviews = reviewsList.filter(
+        r => r.client_name.toLowerCase() === currentUser.full_name.split(" ")[0].toLowerCase()
+      );
+
+      document.getElementById("profStatTotal").textContent = myBookings.length;
+      document.getElementById("profStatUpcoming").textContent = myUpcoming.length;
+      document.getElementById("profStatReviews").textContent = myReviews.length;
+
+      const listEl = document.getElementById("profileHistoryList");
+      if (myBookings.length === 0) {
+        listEl.innerHTML = `<div class="bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No appointments in your history yet. Book your first fresh cut!</div>`;
+        return;
+      }
+
+      listEl.innerHTML = myBookings.slice().reverse().map(item => {
+        const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
+        const b = BARBERS[item.barber_id] || BARBERS[1];
+        const alreadyReviewed = reviewsList.some(r => r.appointment_id === item.appointment_id);
+
+        return `
+          <div class="bg-white rounded-xl p-3.5 border border-[#E1E7E3] flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-[#18221E]">${s.name} with ${b.name}</div>
+              <div class="text-[11px] text-[#64706B]">${item.date} at ${item.time} · Ref: CL-${1000 + item.appointment_id}</div>
+              <span class="inline-block mt-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                item.status === "completed"
+                  ? "bg-[#E2EFE8] text-[#165B40]"
+                  : item.status === "cancelled"
+                  ? "bg-rose-100 text-rose-700"
+                  : "bg-amber-100 text-amber-800"
+              }">${item.status}</span>
+            </div>
+            <div>
+              ${
+                item.status === "completed" && !alreadyReviewed
+                  ? `<button onclick="closeAuthProfileModal(); openReviewModal(${item.appointment_id})" class="px-2.5 py-1.5 rounded-lg bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732] transition">★ Rate</button>`
+                  : item.status === "completed" && alreadyReviewed
+                  ? `<span class="text-[11px] font-bold text-[#165B40]">✓ Reviewed</span>`
+                  : item.status === "confirmed"
+                  ? `<button onclick="closeAuthProfileModal(); openAppointmentModal(${item.appointment_id})" class="px-2.5 py-1.5 rounded-lg border border-[#D5DDD8] text-xs font-semibold hover:border-[#165B40]">Manage</button>`
+                  : ``
+              }
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // =====================================================================
+    // FEATURE 4: 3-TIER ROLE RANK SYSTEM (CUSTOMER / BARBER / ADMIN)
+    // =====================================================================
+    function switchDemoRole(val) {
+      document.getElementById("quickRoleSelect").value = val;
+
+      if (val === "customer") {
+        currentUser.role = "customer";
+        currentUser.barber_id = null;
+        if (currentUser.full_name.includes("Admin") || BARBERS[1].name === currentUser.full_name) {
+          currentUser.full_name = "Ansar";
+        }
+      } else if (val.startsWith("barber_")) {
+        const bId = parseInt(val.split("_")[1]);
+        currentUser.role = "barber";
+        currentUser.barber_id = bId;
+        currentUser.full_name = BARBERS[bId].name;
+        document.getElementById("activeBarberIdentity").value = String(bId);
+      } else if (val === "admin") {
+        currentUser.role = "admin";
+        currentUser.barber_id = null;
+        currentUser.full_name = "Arlan (Admin)";
+      }
+
+      localStorage.setItem("clipline_user", JSON.stringify(currentUser));
+      syncUserHeaderUI();
+      applyRoleToWorkspaceUI();
+    }
+
+    function applyRoleToWorkspaceUI() {
+      const role = currentUser.role;
+      const activeCls = "py-1.5 px-2 rounded-lg border border-[#165B40] bg-[#165B40] text-white text-center transition";
+      const idleCls = "py-1.5 px-2 rounded-lg border border-[#D5DDD8] bg-[#F4F7F4] text-[#18221E] hover:border-[#165B40] text-center transition";
+
+      document.getElementById("rankBtnCustomer").className = role === "customer" ? activeCls : idleCls;
+      document.getElementById("rankBtnBarber").className = role === "barber" ? activeCls : idleCls;
+      document.getElementById("rankBtnAdmin").className = role === "admin" ? activeCls : idleCls;
+
+      const barberSub = document.getElementById("barberRankSubSelector");
+      const ratingBadge = document.getElementById("barberPersonalRatingBadge");
+
+      if (role === "customer") {
+        barberSub.classList.add("hidden");
+        ratingBadge.classList.add("hidden");
+        document.getElementById("workspaceRoleOverline").textContent = `CUSTOMER / PERSONAL CABINET (${currentUser.full_name})`;
+        document.getElementById("workspaceTitle").textContent = "My Appointments";
+        document.getElementById("workspaceDescription").textContent =
+          "Customer Rank: View your personal bookings, cancel upcoming visits, or rate your barber after completion.";
+      } else if (role === "barber") {
+        const bId = currentUser.barber_id || 1;
+        const b = BARBERS[bId];
+        const stats = getBarberRatingStats(bId);
+        barberSub.classList.remove("hidden");
+        ratingBadge.classList.remove("hidden");
+        ratingBadge.textContent = `★ ${stats.avg} (${stats.count} reviews)`;
+        document.getElementById("workspaceRoleOverline").textContent = `BARBER WORKSPACE / ${b.name.toUpperCase()}`;
+        document.getElementById("workspaceTitle").textContent = `${b.name}’s Clients`;
+        document.getElementById("workspaceDescription").textContent =
+          `Barber Rank: Showing only clients booked with ${b.name}. Mark appointments as Completed when finished.`;
+      } else {
+        barberSub.classList.add("hidden");
+        ratingBadge.classList.add("hidden");
+        document.getElementById("workspaceRoleOverline").textContent = "ADMIN / MASTER SCHEDULE";
+        document.getElementById("workspaceTitle").textContent = "All Salon Bookings";
+        document.getElementById("workspaceDescription").textContent =
+          "Admin Rank: Full control over all clients and barbers. Inspect, reschedule, complete, or cancel any booking.";
+      }
+
+      renderWorkspaceCards();
+    }
+
+    function renderWorkspaceCards() {
+      const container = document.getElementById("adminCardsContainer");
+      if (!container) return;
+      const query = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
+      const role = currentUser.role;
+
+      // Filter list according to Role Rank permissions
+      let roleScopedList = scheduleList.filter(a => a.status !== "cancelled");
+      if (role === "customer") {
+        const firstName = currentUser.full_name.split(" ")[0].toLowerCase();
+        roleScopedList = roleScopedList.filter(a => a.client_name.toLowerCase() === firstName);
+      } else if (role === "barber") {
+        const bId = currentUser.barber_id || 1;
+        roleScopedList = roleScopedList.filter(a => Number(a.barber_id) === Number(bId));
+      }
+
+      const completedCount = roleScopedList.filter(a => a.status === "completed").length;
+      document.getElementById("statTotalBookings").textContent = `${roleScopedList.length} bookings`;
+      document.getElementById("statCompletedBookings").textContent = `${completedCount} completed`;
+      document.getElementById("filterBtnAll").textContent = `All (${roleScopedList.length})`;
+
+      const filtered = roleScopedList.filter(item => {
+        const bName = (BARBERS[item.barber_id] ? BARBERS[item.barber_id].name : "").toLowerCase();
+        const matchesFilter = currentFilter === "all" || item.status === currentFilter;
+        const matchesSearch = item.client_name.toLowerCase().includes(query) || bName.includes(query);
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] text-center text-xs text-[#64706B]">
+            No appointments match this view (${role.toUpperCase()} mode).
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
+        const b = BARBERS[item.barber_id] || BARBERS[1];
+        const isCompleted = item.status === "completed";
+        const alreadyReviewed = reviewsList.some(r => r.appointment_id === item.appointment_id);
+
+        // Role-specific action buttons
+        let actionsHTML = "";
+        if (role === "admin" || role === "barber") {
+          if (!isCompleted) {
+            actionsHTML = `
+              <div class="pt-2 grid grid-cols-2 gap-2">
+                <button onclick="quickChangeStatus(${item.appointment_id}, 'completed')" class="py-2 rounded-xl bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
+                  ✓ Mark Completed
+                </button>
+                <button onclick="openAppointmentModal(${item.appointment_id})" class="py-2 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-xs font-semibold text-[#18221E] transition">
+                  Manage / Cancel
+                </button>
+              </div>
+            `;
+          }
+        } else if (role === "customer") {
+          if (isCompleted && !alreadyReviewed) {
+            actionsHTML = `
+              <div class="pt-2">
+                <button onclick="openReviewModal(${item.appointment_id})" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-xs">
+                  ★ Leave Rating & Review for ${b.name}
+                </button>
+              </div>
+            `;
+          } else if (isCompleted && alreadyReviewed) {
+            actionsHTML = `<div class="pt-1 text-[11px] font-bold text-[#165B40]">★ You reviewed this appointment</div>`;
+          } else {
+            actionsHTML = `
+              <div class="pt-2">
+                <button onclick="quickChangeStatus(${item.appointment_id}, 'cancelled')" class="w-full py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition">
+                  Cancel My Appointment
+                </button>
+              </div>
+            `;
+          }
+        }
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-1.5 transition hover:border-[#165B40]/40">
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-bold text-[#18221E]">
+                <span class="text-[#165B40] mr-1.5">${item.time}</span> · ${item.client_name}
+              </div>
+              <span class="text-[11px] font-medium text-[#64706B]">${item.date}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-[#64706B]">
+              <span>✂️ ${s.name} (${s.price})</span>
+              <span class="font-semibold text-[#18221E]">Barber: ${b.name}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-[#165B40] pt-0.5">
+              <span class="w-2 h-2 rounded-full ${isCompleted ? "bg-[#165B40]" : "bg-amber-500"} inline-block"></span>
+              <span>${isCompleted ? "Completed" : "Confirmed (Upcoming)"}</span>
+            </div>
+            ${actionsHTML}
+          </div>
+        `;
+      }).join("");
+    }
+
+    // =====================================================================
+    // CORE UI & SUPABASE CRUD FUNCTIONS
+    // =====================================================================
     let toastTimer = null;
     function showPopupToast(title, message, isError = false) {
+      playNotificationChime(isError);
       const toast = document.getElementById("bottomPopupToast");
       const icon = document.getElementById("toastIcon");
       const heading = document.getElementById("toastHeading");
@@ -425,46 +1666,33 @@
       const s1 = document.getElementById("screen01Wrapper");
       const s2 = document.getElementById("screen02Wrapper");
       const s3 = document.getElementById("screen03Wrapper");
+      const s4 = document.getElementById("screen04Wrapper");
 
       s1.classList.toggle("hidden", mode !== "01" && mode !== "all");
       s2.classList.toggle("hidden", mode !== "02" && mode !== "all");
       s3.classList.toggle("hidden", mode !== "03" && mode !== "all");
+      s4.classList.toggle("hidden", mode !== "04" && mode !== "all");
 
-      const activeBtn = "px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition";
-      const idleBtn = "px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition";
+      const activeBtn = "px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition whitespace-nowrap";
+      const idleBtn = "px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap";
 
       document.getElementById("nav01").className = mode === "01" ? activeBtn : idleBtn;
       document.getElementById("nav02").className = mode === "02" ? activeBtn : idleBtn;
       document.getElementById("nav03").className = mode === "03" ? activeBtn : idleBtn;
-      document.getElementById("navAll").className = (mode === "all" ? activeBtn : idleBtn) + " hidden md:inline-block";
-    }
-
-    function selectTimeSlot(timeStr) {
-      selectedTime = timeStr;
-      document.querySelectorAll(".time-pill").forEach(btn => {
-        if (btn.dataset.time === timeStr) {
-          btn.className = "time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#165B40] bg-[#165B40] text-white transition";
-          btn.textContent = `${timeStr} ✓`;
-        } else {
-          btn.className = "time-pill py-2.5 px-3 rounded-[10px] text-sm font-semibold border border-[#D5DDD8] bg-white text-[#18221E] transition";
-          btn.textContent = btn.dataset.time;
-        }
-      });
-      document.getElementById("selectedTimeSubtext").textContent = `${timeStr} selected · Astana Time (UTC+5)`;
-      updateLiveSummary();
+      document.getElementById("nav04").className = mode === "04" ? activeBtn : idleBtn;
+      document.getElementById("navAll").className = (mode === "all" ? activeBtn : idleBtn) + " hidden xl:inline-block";
     }
 
     function updateLiveSummary() {
       const servSel = document.getElementById("serviceInput");
       const sOpt = servSel.options[servSel.selectedIndex];
-      const dateSel = document.getElementById("dateInput");
-      const dOpt = dateSel.options[dateSel.selectedIndex];
+      const b = BARBERS[selectedBarberId];
+      const timeLabel = selectedTime || "No slot open";
 
-      document.getElementById("summaryLine1").textContent = `${sOpt.dataset.name} · ${dOpt.dataset.label} · ${selectedTime}`;
+      document.getElementById("summaryLine1").textContent = `${sOpt.dataset.name} with ${b.name} · ${selectedDateISO} · ${timeLabel}`;
       document.getElementById("summaryLine2").textContent = `${sOpt.dataset.duration} minutes · Total: ${sOpt.dataset.price} · Pay at the shop`;
     }
 
-    // FIXED: Correctly convert Supabase UTC timestamps to Astana Local Time (UTC+5)
     async function fetchScheduleFromDB(showToast = false) {
       if (!supabaseClient) return;
       try {
@@ -487,9 +1715,8 @@
         if (aRes.data) {
           scheduleList = aRes.data.map(a => {
             const dateObj = new Date(a.starts_at);
-            // Convert UTC DB timestamp to Astana Time (Asia/Almaty UTC+5)
-            const rawTime = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' });
-            const rawDate = dateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+            const rawTime = dateObj.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Almaty" });
+            const rawDate = dateObj.toLocaleDateString("en-CA", { timeZone: "Asia/Almaty" });
             return {
               appointment_id: a.appointment_id,
               time: rawTime,
@@ -501,33 +1728,39 @@
             };
           });
         }
-        renderAdminCards();
+        renderTimeSlotButtons();
+        renderWorkspaceCards();
         if (showToast) {
-          showPopupToast("Synced with Cloud PostgreSQL", "Latest appointments loaded from Supabase.", false);
+          showPopupToast("Synced with Cloud PostgreSQL", "Latest appointments and availability loaded.", false);
         }
       } catch (err) {
         console.warn("Fetch error:", err.message);
-        renderAdminCards();
+        renderTimeSlotButtons();
+        renderWorkspaceCards();
       }
     }
 
     async function submitBooking(e) {
       e.preventDefault();
-      const service_id = parseInt(document.getElementById("serviceInput").value);
-      const barber_id = parseInt(document.getElementById("barberInput").value);
-      const dateVal = document.getElementById("dateInput").value;
-      const dateSel = document.getElementById("dateInput");
-      const fullDateText = dateSel.options[dateSel.selectedIndex].dataset.full;
-      const clientName = document.getElementById("clientNameInput").value.trim() || "Ansar";
 
-      // Send ISO timestamp with Astana offset (+05:00)
-      const starts_at_iso = `${dateVal}T${selectedTime}:00+05:00`;
+      // Guard 1: Verify date and time against device clock right at submission
+      if (!selectedTime || isTimeSlotInPastOnDevice(selectedDateISO, selectedTime)) {
+        showPopupToast("Invalid Time Slot", "That date or time has already passed on your device clock.", true);
+        renderTimeSlotButtons();
+        return;
+      }
+
+      const service_id = parseInt(document.getElementById("serviceInput").value);
+      const barber_id = selectedBarberId;
+      const clientName = document.getElementById("clientNameInput").value.trim() || currentUser.full_name;
+
+      const starts_at_iso = `${selectedDateISO}T${selectedTime}:00+05:00`;
       const sInfo = SERVICE_CATALOG[service_id];
-      const bName = BARBER_NAMES[barber_id];
+      const bName = BARBERS[barber_id].name;
 
       if (supabaseClient) {
         try {
-          let customer_id = 1;
+          let customer_id = currentUser.user_id || 1;
           const { data: existingUsers } = await supabaseClient
             .from("users")
             .select("user_id, full_name")
@@ -537,7 +1770,7 @@
           if (existingUsers && existingUsers.length > 0) {
             customer_id = existingUsers[0].user_id;
           } else {
-            const randomEmail = `${clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Date.now().toString().slice(-4)}@clipline.kz`;
+            const randomEmail = `${clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
             const { data: newUser } = await supabaseClient
               .from("users")
               .insert([{
@@ -571,24 +1804,33 @@
           activeBookingId = apptRow.appointment_id;
           const refCode = `CL-${1000 + apptRow.appointment_id}`;
 
+          lastConfirmedBooking = {
+            refCode,
+            serviceName: sInfo.name,
+            duration: sInfo.duration,
+            barberName: bName,
+            dateISO: selectedDateISO,
+            timeStr: selectedTime,
+            price: sInfo.price
+          };
+
           document.getElementById("confReference").textContent = `Reference: ${refCode}`;
           document.getElementById("confService").textContent = `${sInfo.name} · ${sInfo.duration} minutes`;
-          document.getElementById("confWhen").textContent = `${fullDateText} · ${selectedTime}`;
+          document.getElementById("confWhen").textContent = `${selectedDateISO} · ${selectedTime}`;
           document.getElementById("confBarber").textContent = bName;
           document.getElementById("confTotal").textContent = `${sInfo.price} · Pay at the shop`;
 
           await fetchScheduleFromDB(false);
 
-          if (document.getElementById("screen01Wrapper").classList.contains("hidden") === false && window.innerWidth < 1024) {
+          if (window.innerWidth < 1280) {
             setScreenMode("02");
           }
 
           showPopupToast(
             `Booking Confirmed! (${refCode})`,
-            `${clientName} booked ${sInfo.name} with ${bName} at ${selectedTime}. Synced to Supabase!`,
+            `${clientName} booked ${sInfo.name} with ${bName} on ${selectedDateISO} at ${selectedTime}.`,
             false
           );
-          return;
         } catch (err) {
           if (err.message.includes("uq_active_barber_start") || err.message.includes("duplicate key")) {
             showPopupToast(
@@ -599,75 +1841,19 @@
           } else {
             showPopupToast("Booking Error", err.message, true);
           }
-          return;
         }
       }
     }
 
     function setAdminFilter(filter) {
       currentFilter = filter;
-      const activeCls = "py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-[#165B40] text-white transition";
-      const idleCls = "py-2.5 px-3 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition";
+      const activeCls = "py-2 px-2.5 rounded-[10px] text-xs font-semibold bg-[#165B40] text-white transition";
+      const idleCls = "py-2 px-2.5 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition";
 
       document.getElementById("filterBtnAll").className = filter === "all" ? activeCls : idleCls;
       document.getElementById("filterBtnUpcoming").className = filter === "confirmed" ? activeCls : idleCls;
       document.getElementById("filterBtnCompleted").className = filter === "completed" ? activeCls : idleCls;
-      renderAdminCards();
-    }
-
-    function renderAdminCards() {
-      const container = document.getElementById("adminCardsContainer");
-      const query = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
-
-      const activeList = scheduleList.filter(a => a.status !== "cancelled");
-      const completedCount = activeList.filter(a => a.status === "completed").length;
-
-      document.getElementById("statTotalBookings").textContent = `${activeList.length} bookings`;
-      document.getElementById("statCompletedBookings").textContent = `${completedCount} completed`;
-      document.getElementById("filterBtnAll").textContent = `All (${activeList.length})`;
-
-      const filtered = activeList.filter(item => {
-        const matchesFilter = currentFilter === "all" || item.status === currentFilter;
-        const matchesSearch = item.client_name.toLowerCase().includes(query);
-        return matchesFilter && matchesSearch;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] text-center text-xs text-[#64706B]">
-            No appointments found.
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(item => {
-        const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
-        const bName = BARBER_NAMES[item.barber_id] || "Marcus";
-        const isCompleted = item.status === "completed";
-
-        return `
-          <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] space-y-2 transition hover:border-[#165B40]/40">
-            <div class="text-base font-bold text-[#18221E]">
-              <span class="mr-2">${item.time}</span> ${item.client_name}
-            </div>
-            <div class="text-xs text-[#64706B]">
-              ${s.name} · ${bName}
-            </div>
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-[#165B40] pt-0.5">
-              <span class="w-2 h-2 rounded-full bg-[#165B40] inline-block"></span>
-              <span>${isCompleted ? "Completed" : "Confirmed"}</span>
-            </div>
-            ${!isCompleted ? `
-              <div class="pt-2">
-                <button onclick="openAppointmentModal(${item.appointment_id})" class="w-full py-2.5 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-xs font-semibold text-[#18221E] transition">
-                  View appointment
-                </button>
-              </div>
-            ` : ``}
-          </div>
-        `;
-      }).join("");
+      renderWorkspaceCards();
     }
 
     function openAppointmentModal(id) {
@@ -675,16 +1861,12 @@
       const item = scheduleList.find(a => a.appointment_id === id) || scheduleList[0];
       if (!item) return;
       const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
-      const bName = BARBER_NAMES[item.barber_id] || "Marcus";
+      const b = BARBERS[item.barber_id] || BARBERS[1];
 
       document.getElementById("modalTitle").textContent = `${item.time} · ${item.client_name}`;
-      document.getElementById("modalSubtitle").textContent = `${s.name} · ${bName} · Ref: CL-${1000 + item.appointment_id}`;
+      document.getElementById("modalSubtitle").textContent = `${s.name} · ${b.name} · ${item.date}`;
       document.getElementById("modalNewTime").value = item.time;
       document.getElementById("appointmentModal").classList.remove("hidden");
-    }
-
-    function openChangeModal() {
-      openAppointmentModal(activeBookingId);
     }
 
     function closeAppointmentModal() {
@@ -694,7 +1876,12 @@
     async function saveModalReschedule() {
       const newTime = document.getElementById("modalNewTime").value;
       const item = scheduleList.find(a => a.appointment_id === activeBookingId);
-      const datePart = item ? item.date : "2026-10-25";
+      const datePart = item ? item.date : getDeviceTodayISO();
+
+      if (isTimeSlotInPastOnDevice(datePart, newTime)) {
+        showPopupToast("Cannot Reschedule to Past", "That time slot has already passed on your device.", true);
+        return;
+      }
 
       if (supabaseClient) {
         const { error } = await supabaseClient
@@ -713,6 +1900,11 @@
       showPopupToast("Rescheduled!", `Updated appointment to ${newTime}.`, false);
     }
 
+    async function quickChangeStatus(id, newStatus) {
+      activeBookingId = id;
+      await changeModalStatus(newStatus);
+    }
+
     async function changeModalStatus(newStatus) {
       if (supabaseClient) {
         await supabaseClient
@@ -724,11 +1916,34 @@
       if (item) item.status = newStatus;
       closeAppointmentModal();
       await fetchScheduleFromDB(false);
-      showPopupToast("Status Updated", `Appointment marked as ${newStatus}.`, false);
+
+      if (newStatus === "completed") {
+        showPopupToast("Appointment Completed! ✓", "The customer can now leave a star rating & review for this cut.", false);
+      } else {
+        showPopupToast("Status Updated", `Appointment marked as ${newStatus}.`, false);
+      }
     }
 
+    // =====================================================================
+    // INITIALIZE APP ON LOAD + REAL-TIME DEVICE CLOCK INTERVAL
+    // =====================================================================
     window.addEventListener("DOMContentLoaded", () => {
-      if (window.innerWidth < 1024) {
+      initVideoWebVTTCaptions();
+      updateDeviceClockDisplay();
+      renderRollingDatePills();
+      renderBarberSelectorCards();
+      renderReviewsSection();
+      syncUserHeaderUI();
+      applyRoleToWorkspaceUI();
+      updateLiveSummary();
+
+      // Refresh device clock & auto-lock passing time slots every 15 seconds
+      setInterval(() => {
+        updateDeviceClockDisplay();
+        renderTimeSlotButtons();
+      }, 15000);
+
+      if (window.innerWidth < 1280) {
         setScreenMode("01");
       } else {
         setScreenMode("all");
