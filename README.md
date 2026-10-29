@@ -11,4 +11,4 @@ Live Web Application & Relational Database System for ICT Assignment 3.
 2. **Double-Booking Prevention:** Enforced at the database engine level via partial unique index `uq_active_barber_start` on `(barber_id, starts_at) WHERE status = 'confirmed'`.
 3. **Cryptographic Authentication:** Passwords hashed via `PBKDF2-HMAC-SHA256` with 210,000 iterations and unique salts.
 4. **SQL Injection Defense:** All database writes use strict parameterized queries.
-5. **Kazakhstan Law No. 94-V Compliance:** Enforces strict data minimization (excludes IIN, phone numbers, and credit card storage).
+5. **Kazakhstan Law No. 94-V Compliance:** Enforces strict data minimization (excludes IIN, phone numbers, and credit card storage). 
