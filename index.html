@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ClipLine — Barbershop Appointment Service</title>
+  <title>ClipLine Astana — Barbershop Network & Online Booking</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -71,18 +71,160 @@
     }
   </style>
 </head>
-<body class="min-h-screen pb-28">
+<body class="min-h-screen pb-24">
 
   <!-- ===================================================================== -->
-  <!-- TOP NAVIGATION, DEVICE CLOCK, MULTIMEDIA AUDIO TOGGLE & PROFILE BAR   -->
+  <!-- SIMULATED EMAIL / SMS OTP DISPATCH BANNER (For Live Verification)     -->
+  <!-- ===================================================================== -->
+  <div id="otpDispatchBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-[94%] max-w-lg bg-[#18221E] text-white rounded-2xl p-4 shadow-2xl border border-[#165B40]">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#165B40] flex items-center justify-center text-lg font-bold shrink-0">✉️</div>
+        <div class="text-xs">
+          <div class="font-bold text-[#E2EFE8] uppercase tracking-wider">ClipLine Security Gateway · Email & SMS Dispatch</div>
+          <div id="otpBannerMessage" class="mt-1 text-stone-200">Your verification code for Astana Clip-ID is:</div>
+          <div class="mt-1.5 flex items-center gap-2">
+            <span id="otpBannerCode" class="px-3 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40] font-extrabold text-base tracking-widest">849201</span>
+            <button onclick="copyOtpToInput()" class="text-[11px] font-semibold underline text-[#E2EFE8] hover:text-white">Auto-fill code</button>
+          </div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('otpDispatchBanner').classList.add('hidden')" class="text-stone-400 hover:text-white font-bold">✕</button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MANDATORY AUTHENTICATION GATE (Locks App Until Logged In/Verified)    -->
+  <!-- ===================================================================== -->
+  <div id="mandatoryAuthGate" class="fixed inset-0 bg-[#E6E9E6] z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-[440px] my-auto">
+      <section class="figma-card p-7 sm:p-8 border border-[#D5DDD8]">
+        
+        <!-- Brand Header -->
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="ClipLine Scissors Logo">
+                <circle cx="6" cy="6" r="3"></circle>
+                <circle cx="6" cy="18" r="3"></circle>
+                <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xl font-extrabold tracking-tight text-[#18221E]">ClipLine Astana</span>
+              <div class="text-[11px] font-semibold text-[#165B40]">● Anti-DoS Shield & OTP Active</div>
+            </div>
+          </div>
+          <div class="h-2.5 w-16 rounded-full barber-pole-anim"></div>
+        </div>
+
+        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
+          UNIFIED CLIENT & STAFF PORTAL
+        </div>
+        <h1 class="text-2xl font-bold text-[#18221E] mb-1.5">
+          Sign in to book your cut.
+        </h1>
+        <p class="text-xs text-[#64706B] mb-5">
+          New accounts are verified via Email OTP and assigned the <strong>Customer</strong> role by default. Staff and branch admins unlock workspaces via cryptographic invite keys.
+        </p>
+
+        <!-- Auth Mode Switcher -->
+        <div id="gateTabsContainer" class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold mb-4">
+          <button type="button" onclick="switchGateTab('login')" id="gateTabLogin" class="flex-1 py-2 rounded-lg bg-[#165B40] text-white transition">
+            Sign In
+          </button>
+          <button type="button" onclick="switchGateTab('register')" id="gateTabRegister" class="flex-1 py-2 rounded-lg text-stone-700 transition">
+            Register (Email OTP)
+          </button>
+        </div>
+
+        <!-- STEP 1: CREDENTIALS FORM -->
+        <form id="gateCredentialsForm" onsubmit="handleGateCredentialsSubmit(event)" class="space-y-3.5">
+          <div id="gateNameGroup" class="hidden">
+            <label for="gateFullName" class="block text-xs font-semibold text-[#18221E] mb-1">Full Name</label>
+            <input id="gateFullName" type="text" placeholder="e.g. Arlan Shikibaev" class="input-field w-full px-3.5 py-2.5 text-sm" />
+          </div>
+
+          <div>
+            <label for="gateEmail" class="block text-xs font-semibold text-[#18221E] mb-1">Verified Email Address</label>
+            <input id="gateEmail" type="email" required placeholder="name@domain.kz" class="input-field w-full px-3.5 py-2.5 text-sm" />
+          </div>
+
+          <div id="gatePhoneGroup" class="hidden">
+            <label for="gatePhone" class="block text-xs font-semibold text-[#18221E] mb-1">Kazakhstan Mobile Number (+7 7XX...)</label>
+            <input id="gatePhone" type="tel" oninput="formatKZPhoneInput(this)" placeholder="+7 777 123 45 67" class="input-field w-full px-3.5 py-2.5 text-sm" />
+            <p class="text-[10px] text-[#64706B] mt-1">Validates real KZ carrier codes (700, 701, 702, 705, 707, 708, 747, 771, 775, 777, 778).</p>
+          </div>
+
+          <div>
+            <label for="gatePassword" class="block text-xs font-semibold text-[#18221E] mb-1">Password (PBKDF2-SHA256 Encrypted)</label>
+            <input id="gatePassword" type="password" required minlength="6" placeholder="Minimum 6 characters" class="input-field w-full px-3.5 py-2.5 text-sm" />
+          </div>
+
+          <button type="submit" id="gateSubmitBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm shadow-sm">
+            Sign In to ClipLine Network
+          </button>
+        </form>
+
+        <!-- STEP 2: 6-DIGIT EMAIL OTP VERIFICATION STEP (Hidden until Register clicked) -->
+        <form id="gateOtpForm" onsubmit="handleGateOtpVerify(event)" class="hidden space-y-4">
+          <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20">
+            <div class="text-xs font-bold text-[#165B40]">🔒 Email & Phone Anti-Bot Verification</div>
+            <p id="otpTargetLabel" class="text-xs text-[#52635B] mt-1">
+              We sent a 6-digit confirmation code to your email and KZ phone number.
+            </p>
+          </div>
+
+          <div>
+            <label for="gateOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">Enter 6-Digit Verification Code</label>
+            <input id="gateOtpInput" type="text" maxlength="6" pattern="\d{6}" required placeholder="••••••" class="input-field w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] text-[#165B40]" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="cancelOtpStep()" class="py-3 rounded-xl bg-white border border-[#D5DDD8] text-xs font-semibold text-[#18221E]">
+              ← Edit Info
+            </button>
+            <button type="submit" class="btn-primary py-3 rounded-xl text-xs font-semibold">
+              Verify & Create Account
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick Verified Accounts for Fast Defense Demonstration -->
+        <div class="mt-5 pt-4 border-t border-stone-200/90">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">Quick Verified Sessions (Defense Testing)</span>
+            <span class="text-[10px] text-[#165B40] font-semibold">Rate-Limiter Ready</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-[11px]">
+            <button type="button" onclick="instantVerifiedLogin('customer')" class="py-2 px-2 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold text-[#18221E] transition">
+              👤 Ansar (Customer)
+            </button>
+            <button type="button" onclick="instantVerifiedLogin('barber_1')" class="py-2 px-2 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold text-[#18221E] transition">
+              ✂️ Daniyar (Esil)
+            </button>
+            <button type="button" onclick="instantVerifiedLogin('admin_1')" class="py-2 px-2 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold text-[#18221E] transition">
+              🛡️ Esil Admin
+            </button>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PRODUCTION NAVIGATION BAR                                             -->
   <!-- ===================================================================== -->
   <header class="bg-white/95 backdrop-blur border-b border-stone-300 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
       
-      <!-- Brand Logo (SVG Vector Asset) & Live Device Clock -->
+      <!-- Brand Logo & Active Astana Branch Indicator -->
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-xs">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="ClipLine Scissors Logo">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="ClipLine Scissors Icon">
             <circle cx="6" cy="6" r="3"></circle>
             <circle cx="6" cy="18" r="3"></circle>
             <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
@@ -92,58 +234,52 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-bold text-sm tracking-tight text-[#18221E]">ClipLine</span>
+            <span class="font-bold text-sm tracking-tight text-[#18221E]">ClipLine Astana</span>
             <span id="roleBadgeHeader" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#165B40] text-white">
-              Customer
+              CUSTOMER
             </span>
           </div>
           <div id="liveDeviceClock" class="text-[11px] font-medium text-[#64706B]">
-            Syncing device calendar...
+            Syncing device clock...
           </div>
         </div>
       </div>
 
-      <!-- Screen Switcher Tabs -->
-      <div class="flex items-center bg-stone-200/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
+      <!-- Production App Navigation Tabs -->
+      <nav class="flex items-center bg-stone-200/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
         <button onclick="setScreenMode('01')" id="nav01" class="px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition whitespace-nowrap">
-          01 / Book
+          ✂️ Book Appointment
         </button>
         <button onclick="setScreenMode('02')" id="nav02" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
-          02 / Confirmation
+          🎫 Latest Ticket
         </button>
         <button onclick="setScreenMode('03')" id="nav03" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
-          03 / Role Workspace
+          📅 My Bookings / Workspace
         </button>
         <button onclick="setScreenMode('04')" id="nav04" class="px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
-          04 / Media & Reviews
+          🎬 Media & Reviews
         </button>
         <button onclick="setScreenMode('all')" id="navAll" class="hidden xl:inline-block px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap">
-          ⊞ Figma Canvas
+          ⊞ All Views
         </button>
-      </div>
+      </nav>
 
-      <!-- Right Controls: Sound Toggle, Quick Role Switcher & User Account Pill -->
+      <!-- Right Controls: Partner Onboarding, Staff Key, Audio & Profile -->
       <div class="flex items-center gap-2">
-        <!-- Accessible Audio Toggle (No Auto-Play) -->
-        <button onclick="toggleSoundEffects()" id="soundToggleBtn" title="Toggle UI Sound Chimes" class="px-2.5 py-1.5 rounded-xl border border-[#D5DDD8] bg-white text-xs font-semibold text-[#18221E] hover:border-[#165B40] transition flex items-center gap-1">
-          <span id="soundIcon">🔔</span> <span class="hidden sm:inline" id="soundStatusText">Sound On</span>
+        <button onclick="openPartnerModal()" class="px-3 py-1.5 rounded-xl bg-[#E2EFE8] hover:bg-[#d2e5dc] text-[#165B40] text-xs font-bold transition border border-[#165B40]/20 whitespace-nowrap">
+          + Connect Barbershop
         </button>
 
-        <!-- Defense Quick Role Switcher -->
-        <select id="quickRoleSelect" onchange="switchDemoRole(this.value)" aria-label="Switch Role Rank" class="px-2.5 py-1.5 rounded-xl border border-[#D5DDD8] bg-[#F4F7F4] text-xs font-semibold text-[#165B40] cursor-pointer">
-          <option value="customer">👤 Rank: Customer</option>
-          <option value="barber_1">✂️ Rank: Barber (Daniyar)</option>
-          <option value="barber_2">✂️ Rank: Barber (Arman)</option>
-          <option value="barber_3">✂️ Rank: Barber (Marcus)</option>
-          <option value="admin">🛡️ Rank: Admin (Master)</option>
-        </select>
+        <button onclick="toggleSoundEffects()" id="soundToggleBtn" title="Toggle UI Audio Chimes" class="px-2.5 py-1.5 rounded-xl border border-[#D5DDD8] bg-white text-xs font-semibold text-[#18221E] hover:border-[#165B40] transition">
+          <span id="soundIcon">🔔</span>
+        </button>
 
-        <!-- Personal Profile Button (Yandex/YouTube Style) -->
-        <button onclick="openAuthProfileModal()" class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-[#E2EFE8] hover:bg-[#d2e5dc] text-[#165B40] transition border border-[#165B40]/20">
+        <button onclick="openAuthProfileModal()" class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-white hover:bg-stone-50 text-[#18221E] transition border border-[#D5DDD8]">
           <div id="headerAvatar" class="w-6 h-6 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">
             A
           </div>
-          <span id="headerUserName" class="text-xs font-bold max-w-[90px] truncate">Ansar</span>
+          <span id="headerUserName" class="text-xs font-bold max-w-[95px] truncate">Ansar</span>
+          <span class="text-[10px] font-bold text-[#165B40] bg-[#E2EFE8] px-1.5 py-0.5 rounded">🔑 Key</span>
         </button>
       </div>
 
@@ -151,42 +287,45 @@
   </header>
 
   <!-- ===================================================================== -->
-  <!-- MAIN FIGMA CANVAS CONTAINER                                           -->
+  <!-- MAIN APPLICATION CONTAINER                                            -->
   <!-- ===================================================================== -->
   <main id="canvasContainer" class="max-w-7xl mx-auto px-4 pt-6 flex flex-col lg:flex-row flex-wrap items-start justify-center gap-7">
 
     <!-- =================================================================== -->
-    <!-- SCREEN 01: CLIENT / BOOKING (Dynamic Device Calendar & Barber Cards)-->
+    <!-- SCREEN 01: ASTANA BARBERSHOP SELECTOR & CLIENT BOOKING              -->
     <!-- =================================================================== -->
-    <div id="screen01Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0">
+    <div id="screen01Wrapper" class="w-full max-w-[440px] mx-auto lg:mx-0">
       <div class="text-xs font-medium text-stone-500 mb-2 pl-1 flex justify-between items-center">
-        <span>01 / Book an appointment</span>
-        <span class="text-[11px] text-[#165B40] font-semibold">● Device Time Synced</span>
+        <span>01 / Choose Astana Branch & Barber</span>
+        <span id="activeShopBadgeTop" class="text-[11px] text-[#165B40] font-bold">Esil District</span>
       </div>
       <section class="figma-card p-6 sm:p-7">
 
-        <!-- Animated Barber Pole Accent Bar + Header -->
-        <div class="flex items-center justify-between mb-4">
-          <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="6" cy="6" r="3"></circle>
-              <circle cx="6" cy="18" r="3"></circle>
-              <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-              <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
-              <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
-            </svg>
+        <!-- STEP 1: CHOOSE ASTANA BARBERSHOP BRANCH FIRST -->
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-[11px] font-bold tracking-wider uppercase text-[#165B40]">
+              1. SELECT ASTANA BARBERSHOP BRANCH
+            </label>
+            <button type="button" onclick="openPartnerModal()" class="text-[11px] font-semibold text-[#165B40] hover:underline">
+              + Add your salon
+            </button>
           </div>
-          <div class="h-2.5 w-24 rounded-full barber-pole-anim border border-[#165B40]/20" title="CSS Time-Based Animation"></div>
+          <div id="shopSelectorList" class="space-y-2">
+            <!-- Dynamically populated with Astana Barbershops -->
+          </div>
         </div>
 
+        <hr class="border-[#D5DDD8] my-4" />
+
         <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
-          CLIENT / BOOKING
+          2. CONFIGURE YOUR APPOINTMENT
         </div>
-        <h1 class="text-[26px] leading-tight font-bold text-[#18221E] mb-1.5">
-          Your next fresh cut.
-        </h1>
-        <p class="text-sm text-[#64706B] mb-5">
-          Choose your service, rated master barber, and a live available slot.
+        <h2 id="selectedShopHeading" class="text-2xl leading-tight font-bold text-[#18221E] mb-1">
+          ClipLine Esil Flagship
+        </h2>
+        <p id="selectedShopAddressSub" class="text-xs text-[#64706B] mb-4">
+          📍 Mangilik El Ave 52, Esil District · Open 10:00–20:00
         </p>
 
         <form id="bookingForm" onsubmit="submitBooking(event)" class="space-y-4">
@@ -201,55 +340,50 @@
             </select>
           </div>
 
-          <!-- Interactive Barber Cards with WebP Portraits & Live Star Ratings -->
+          <!-- Barbers Filtered Strictly by Selected Astana Barbershop -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-xs font-semibold text-[#18221E]">Select Barber (with live ratings)</label>
+              <label class="block text-xs font-semibold text-[#18221E]">Barbers working at this branch</label>
               <button type="button" onclick="setScreenMode('04')" class="text-[11px] font-semibold text-[#165B40] hover:underline">
-                Read reviews →
+                Branch reviews →
               </button>
             </div>
-            <input type="hidden" id="barberInput" value="1" />
-            <div id="barberSelectorCards" class="grid grid-cols-3 gap-2">
-              <!-- Populated dynamically with WebP images, alt attributes, and live star ratings -->
+            <div id="barberSelectorCards" class="grid grid-cols-2 gap-2.5">
+              <!-- Populated only with barbers belonging to selectedShopId -->
             </div>
           </div>
 
-          <!-- FEATURE 1: Dynamic Device Calendar Date Picker (Past Dates Blocked) -->
+          <!-- Dynamic Device Calendar Date Picker (Past Dates Blocked) -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label for="dateInput" class="block text-xs font-semibold text-[#18221E]">Date (Past dates locked)</label>
+              <label for="dateInput" class="block text-xs font-semibold text-[#18221E]">Date (Synced with device clock)</label>
               <span id="dateStatusLabel" class="text-[11px] font-medium text-[#165B40]">Today</span>
             </div>
-            <!-- Quick 5-Day Rolling Pill Strip -->
             <div id="rollingDatePills" class="grid grid-cols-5 gap-1.5 mb-2"></div>
-            <!-- Native Device Calendar Input -->
             <input id="dateInput" type="date" onchange="onDateInputChange()" class="input-field w-full px-3.5 py-2 text-sm text-[#18221E] font-medium cursor-pointer" required />
           </div>
 
-          <!-- Available Times Pill Selector (Auto-locks past times & booked slots) -->
+          <!-- Available Times Pill Selector -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-xs font-semibold text-[#18221E]">Available times (Device local time)</label>
+              <label class="block text-xs font-semibold text-[#18221E]">Available times</label>
               <span id="slotsAvailableCount" class="text-[11px] text-[#64706B]">Checking...</span>
             </div>
-            <div class="grid grid-cols-3 gap-2" id="timeButtonsContainer">
-              <!-- Generated dynamically based on device clock & database bookings -->
-            </div>
+            <div class="grid grid-cols-4 gap-2" id="timeButtonsContainer"></div>
             <p id="selectedTimeSubtext" class="text-[11px] text-[#64706B] mt-1.5">
               Past hours & taken slots close automatically.
             </p>
           </div>
 
-          <!-- Client Details (Auto-filled from Logged-In Profile) -->
+          <!-- Verified Client Identity (Locked to Logged-in Account) -->
           <div class="grid grid-cols-2 gap-2.5">
             <div>
-              <label for="clientNameInput" class="block text-xs font-semibold text-[#18221E] mb-1">Your name</label>
-              <input id="clientNameInput" type="text" value="Ansar" required placeholder="Your name" class="input-field w-full px-3 py-2 text-sm text-[#18221E]" />
+              <label for="clientNameInput" class="block text-xs font-semibold text-[#18221E] mb-1">Client Name</label>
+              <input id="clientNameInput" type="text" required class="input-field w-full px-3 py-2 text-sm text-[#18221E] bg-stone-50" />
             </div>
             <div>
-              <label for="clientPhoneInput" class="block text-xs font-semibold text-[#18221E] mb-1">Phone number</label>
-              <input id="clientPhoneInput" type="tel" value="+7 777 123 45 67" class="input-field w-full px-3 py-2 text-sm text-[#18221E]" />
+              <label for="clientPhoneInput" class="block text-xs font-semibold text-[#18221E] mb-1">Verified KZ Phone</label>
+              <input id="clientPhoneInput" type="tel" required oninput="formatKZPhoneInput(this)" class="input-field w-full px-3 py-2 text-sm text-[#18221E] bg-stone-50" />
             </div>
           </div>
 
@@ -259,23 +393,22 @@
               Haircut · Today · 16:00
             </div>
             <div id="summaryLine2" class="text-xs text-[#52635B] mt-0.5">
-              45 minutes · Total: 5,000 ₸ · Pay at the shop
+              ClipLine Esil Flagship · Total: 5,000 ₸
             </div>
           </div>
 
-          <!-- Confirm Booking Submit Button -->
           <button type="submit" id="confirmBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm shadow-sm">
-            Confirm booking
+            Confirm appointment
           </button>
         </form>
       </section>
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 02: CLIENT / CONFIRMATION & DEVICE CALENDAR SYNC (.ICS)      -->
+    <!-- SCREEN 02: BOOKING TICKET & DEVICE CALENDAR EXPORT                  -->
     <!-- =================================================================== -->
     <div id="screen02Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
-      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">02 / Booking confirmation</div>
+      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">02 / Digital Appointment Ticket</div>
       <section class="figma-card p-6 sm:p-7">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
@@ -287,65 +420,59 @@
               <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
             </svg>
           </div>
-          <span class="text-2xl font-bold tracking-tight text-[#18221E]">ClipLine</span>
+          <div>
+            <span class="text-xl font-bold tracking-tight text-[#18221E]">ClipLine Pass</span>
+            <div id="confShopDistrict" class="text-xs text-[#165B40] font-semibold">Astana Verified Booking</div>
+          </div>
         </div>
-
-        <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
-          CLIENT / CONFIRMATION
-        </div>
-        <h2 class="text-[26px] leading-tight font-bold text-[#18221E] mb-1.5">
-          You’re booked.
-        </h2>
-        <p class="text-sm text-[#64706B] mb-5">
-          Saved to your personal account history and ready for your calendar.
-        </p>
 
         <div class="sage-box rounded-2xl p-4 mb-4">
           <div class="text-base font-bold text-[#165B40] flex items-center gap-1.5">
-            <span>✓</span> Booking confirmed
+            <span>✓</span> Appointment Confirmed
           </div>
           <div id="confReference" class="text-xs text-[#52635B] mt-1">
             Reference: CL-1025
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-3.5 mb-5">
+        <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-3 mb-5">
           <div>
-            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">SERVICE</div>
-            <div id="confService" class="text-base font-bold text-[#18221E] mt-0.5">Haircut · 45 minutes</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">BARBERSHOP BRANCH</div>
+            <div id="confShopName" class="text-sm font-bold text-[#18221E] mt-0.5">ClipLine Esil Flagship</div>
+            <div id="confShopAddress" class="text-xs text-[#64706B]">Mangilik El Ave 52, Astana</div>
           </div>
           <div>
-            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">WHEN (DEVICE LOCAL TIME)</div>
-            <div id="confWhen" class="text-base font-bold text-[#18221E] mt-0.5">Today · 16:00</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">SERVICE & BARBER</div>
+            <div id="confService" class="text-sm font-bold text-[#18221E] mt-0.5">Haircut · Daniyar</div>
           </div>
           <div>
-            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">BARBER</div>
-            <div id="confBarber" class="text-base font-bold text-[#18221E] mt-0.5">Daniyar</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">DATE & LOCAL TIME</div>
+            <div id="confWhen" class="text-sm font-bold text-[#18221E] mt-0.5">Today · 16:00</div>
           </div>
           <div>
             <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B]">TOTAL</div>
-            <div id="confTotal" class="text-base font-bold text-[#18221E] mt-0.5">5,000 ₸ · Pay at the shop</div>
+            <div id="confTotal" class="text-sm font-bold text-[#165B40] mt-0.5">5,000 ₸ · Pay at the barbershop</div>
           </div>
         </div>
 
-        <!-- FEATURE 1B: Direct Connection to Device Calendar (.ics + Google Calendar) -->
+        <!-- Device Calendar Sync -->
         <div class="sage-box rounded-xl p-3.5 mb-4 space-y-2">
           <div class="text-xs font-bold text-[#165B40] uppercase tracking-wider">
-            📅 Sync with Your Device Calendar
+            📅 Add to Your Device Calendar
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button type="button" onclick="downloadICSFile()" class="py-2 px-3 rounded-lg bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition flex items-center justify-center gap-1.5">
-              <span>📲</span> Apple / Outlook (.ics)
+            <button type="button" onclick="downloadICSFile()" class="py-2 px-3 rounded-lg bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
+              📲 Apple / Outlook (.ics)
             </button>
-            <button type="button" onclick="openGoogleCalendarLink()" class="py-2 px-3 rounded-lg bg-white border border-[#165B40]/30 text-[#165B40] text-xs font-semibold hover:bg-stone-50 transition flex items-center justify-center gap-1.5">
-              <span>🌐</span> Google Calendar
+            <button type="button" onclick="openGoogleCalendarLink()" class="py-2 px-3 rounded-lg bg-white border border-[#165B40]/30 text-[#165B40] text-xs font-semibold hover:bg-stone-50 transition">
+              🌐 Google Calendar
             </button>
           </div>
         </div>
 
         <div class="space-y-2">
-          <button type="button" onclick="openAuthProfileModal()" class="w-full py-3 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-[#18221E] font-semibold text-sm transition">
-            View in My Profile History
+          <button type="button" onclick="setScreenMode('03')" class="w-full py-3 rounded-xl bg-white border border-[#D5DDD8] hover:border-[#165B40] text-[#18221E] font-semibold text-sm transition">
+            Manage in My Bookings
           </button>
           <button type="button" onclick="setScreenMode('01')" class="btn-primary w-full py-3 rounded-xl font-semibold text-sm">
             Book another appointment
@@ -355,66 +482,44 @@
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 03: RANK-BASED WORKSPACE (Customer / Barber / Admin)         -->
+    <!-- SCREEN 03: BRANCH-SCOPED WORKSPACE (Customer / Barber / Admin)      -->
     <!-- =================================================================== -->
-    <div id="screen03Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
+    <div id="screen03Wrapper" class="w-full max-w-[440px] mx-auto lg:mx-0 hidden">
       <div class="text-xs font-medium text-stone-500 mb-2 pl-1 flex justify-between">
-        <span id="screen03TopLabel">03 / Role-Based Schedule</span>
-        <button onclick="fetchScheduleFromDB(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Cloud Sync</button>
+        <span id="screen03TopLabel">03 / Role Workspace</span>
+        <button onclick="fetchScheduleFromDB(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Sync Cloud DB</button>
       </div>
       <section class="figma-card p-6 sm:p-7">
         
-        <!-- Dynamic Role Header -->
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
+        <!-- Dynamic Role & Assigned Shop Header -->
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div>
+            <div id="workspaceRoleOverline" class="text-[11px] font-bold tracking-wider uppercase text-[#165B40]">
+              CUSTOMER / PERSONAL HISTORY
             </div>
-            <div>
-              <div id="workspaceRoleOverline" class="text-[11px] font-bold tracking-wider uppercase text-[#165B40]">
-                ADMIN / MASTER SCHEDULE
-              </div>
-              <h2 id="workspaceTitle" class="text-2xl leading-tight font-bold text-[#18221E]">
-                All Appointments
-              </h2>
-            </div>
+            <h2 id="workspaceTitle" class="text-2xl leading-tight font-bold text-[#18221E]">
+              My Appointments
+            </h2>
           </div>
+          <button onclick="openAuthProfileModal()" class="text-[11px] font-bold px-2.5 py-1.5 rounded-xl bg-[#E2EFE8] text-[#165B40] hover:bg-[#d2e5dc] transition shrink-0">
+            🔑 Staff Key
+          </button>
         </div>
 
         <p id="workspaceDescription" class="text-xs text-[#64706B] mb-4">
-          Full administrative privileges: inspect clients, reassign barbers, mark completed, or cancel bookings.
+          Showing your personal appointments across all Astana ClipLine barbershops.
         </p>
 
-        <!-- Role Switcher Pills right inside Screen 03 for clear visibility -->
-        <div class="bg-white border border-[#D5DDD8] rounded-xl p-2 mb-4">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-[#64706B] px-1 mb-1.5">
-            Active Rank Mode (Click to test permissions):
+        <!-- Branch Admin Exclusive Panel: Generate Staff Keys & Add Barber to Branch -->
+        <div id="branchAdminToolsPanel" class="hidden bg-white border border-[#165B40]/30 rounded-2xl p-3.5 mb-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-[#165B40] uppercase tracking-wider">🛡️ Branch Admin Controls</span>
+            <span id="adminAssignedShopTag" class="text-[10px] font-bold bg-[#E2EFE8] text-[#165B40] px-2 py-0.5 rounded">Esil Branch Only</span>
           </div>
-          <div class="grid grid-cols-3 gap-1.5 text-xs font-semibold">
-            <button type="button" onclick="switchDemoRole('customer')" id="rankBtnCustomer" class="py-1.5 px-2 rounded-lg border text-center transition">
-              👤 Customer
-            </button>
-            <button type="button" onclick="switchDemoRole('barber_1')" id="rankBtnBarber" class="py-1.5 px-2 rounded-lg border text-center transition">
-              ✂️ Barber
-            </button>
-            <button type="button" onclick="switchDemoRole('admin')" id="rankBtnAdmin" class="py-1.5 px-2 rounded-lg border text-center transition">
-              🛡️ Admin
-            </button>
+          <div class="text-[11px] text-[#52635B]">
+            You are strictly assigned to manage this branch. Share invite keys below with your staff so they can unlock Barber access:
           </div>
-          <!-- Sub-selector when in Barber Rank -->
-          <div id="barberRankSubSelector" class="hidden mt-2 pt-2 border-t border-stone-200 flex items-center justify-between text-xs">
-            <span class="font-semibold text-[#18221E]">Logged in Barber:</span>
-            <select id="activeBarberIdentity" onchange="switchDemoRole('barber_' + this.value)" class="border border-[#D5DDD8] rounded-lg px-2 py-1 bg-[#F4F7F4] font-bold text-[#165B40]">
-              <option value="1">Daniyar (Master Barber)</option>
-              <option value="2">Arman (Beard Specialist)</option>
-              <option value="3">Marcus (Classic Cuts)</option>
-            </select>
-          </div>
+          <div id="adminStaffKeysBox" class="grid grid-cols-1 gap-1.5 text-[11px]"></div>
         </div>
 
         <!-- Live Stats Box -->
@@ -430,7 +535,7 @@
 
         <!-- Search & Status Filter -->
         <div class="mb-3">
-          <input id="searchClientInput" oninput="renderWorkspaceCards()" type="text" placeholder="Search by client or barber name..." aria-label="Search appointments" class="input-field w-full px-3.5 py-2 text-sm text-[#18221E]" />
+          <input id="searchClientInput" oninput="renderWorkspaceCards()" type="text" placeholder="Search client, service, or barber..." aria-label="Search appointments" class="input-field w-full px-3.5 py-2 text-sm text-[#18221E]" />
         </div>
 
         <div class="grid grid-cols-3 gap-2 mb-4">
@@ -439,81 +544,75 @@
           <button type="button" onclick="setAdminFilter('completed')" id="filterBtnCompleted" class="py-2 px-2.5 rounded-[10px] text-xs font-semibold bg-white border border-[#D5DDD8] text-[#18221E] transition">Completed</button>
         </div>
 
-        <!-- Dynamic Cards List -->
+        <!-- Scoped Cards List -->
         <div id="adminCardsContainer" class="space-y-3 max-h-[460px] overflow-y-auto pr-1"></div>
       </section>
     </div>
 
     <!-- =================================================================== -->
-    <!-- SCREEN 04: MULTIMEDIA SHOWCASE & BARBER REVIEWS (Assignment 4 B/C)  -->
+    <!-- SCREEN 04: MULTIMEDIA SHOWCASE & BRANCH BARBER REVIEWS              -->
     <!-- =================================================================== -->
     <div id="screen04Wrapper" class="w-full max-w-[430px] mx-auto lg:mx-0 hidden">
-      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">04 / Multimedia & Barber Reviews</div>
+      <div class="text-xs font-medium text-stone-500 mb-2 pl-1">04 / Studio Media & Verified Reviews</div>
       <section class="figma-card p-6 sm:p-7 space-y-5">
         
         <div>
           <div class="text-[11px] font-bold tracking-wider uppercase text-[#165B40] mb-1">
-            MULTIMEDIA & SOCIAL PROOF
+            ASTANA NETWORK MEDIA & RATINGS
           </div>
           <h2 class="text-2xl leading-tight font-bold text-[#18221E]">
-            Studio Media & Reviews
+            Lookbook & Reviews
           </h2>
           <p class="text-xs text-[#64706B] mt-1">
-            Optimised WebP lookbook, captioned studio tour video, and verified client ratings.
+            Optimised WebP gallery, captioned studio tour video, and verified client reviews per branch.
           </p>
         </div>
 
-        <!-- Time-Based Media Element: HTML5 Video with WebVTT Captions Track -->
+        <!-- HTML5 Video with WebVTT Captions Track -->
         <div class="bg-white rounded-2xl p-3.5 border border-[#E1E7E3]">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-[#18221E]">🎬 How ClipLine Works (MP4 + Captions)</span>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#E2EFE8] text-[#165B40]">CC Subtitles On</span>
+            <span class="text-xs font-bold text-[#18221E]">🎬 Astana Studio Tour (MP4 + WebVTT)</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#E2EFE8] text-[#165B40]">CC Subtitles</span>
           </div>
           <video id="promoVideoPlayer" controls preload="metadata" poster="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=600&q=80&fm=webp" class="w-full rounded-xl bg-stone-900 aspect-video object-cover">
             <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
             <track id="enCaptionsTrack" kind="captions" srclang="en" label="English Captions" default />
-            Your browser does not support HTML5 video.
           </video>
           <p class="text-[11px] text-[#64706B] mt-2">
-            <strong>Transcript:</strong> Welcome to ClipLine Astana. Select your master barber, pick a real-time available slot synced with your device calendar, and rate your haircut after completion.
+            <strong>Transcript:</strong> Welcome to ClipLine Astana. Choose your nearest branch in Esil, Turan, or Right Bank, pick a verified barber, and book in seconds.
           </p>
         </div>
 
-        <!-- Optimised WebP Raster Lookbook Gallery (Accessible alt attributes) -->
+        <!-- Optimised WebP Raster Lookbook Gallery -->
         <div>
           <div class="text-xs font-bold text-[#18221E] mb-2">
-            ✂️ Signature Styles (Optimised WebP Gallery)
+            ✂️ Signature Cuts (Optimised WebP)
           </div>
           <div class="grid grid-cols-3 gap-2">
             <figure class="bg-white rounded-xl p-1.5 border border-[#E1E7E3]">
-              <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Skin Fade haircut with sharp hairline by Master Barber Daniyar" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
+              <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Executive skin fade haircut styled at ClipLine Esil Flagship" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
               <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Skin Fade</figcaption>
             </figure>
             <figure class="bg-white rounded-xl p-1.5 border border-[#E1E7E3]">
-              <img src="https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Precision beard trim and hot towel shaping by Barber Arman" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
+              <img src="https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Hot towel beard sculpt at Blade and Nomad Turan" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
               <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Beard Sculpt</figcaption>
             </figure>
             <figure class="bg-white rounded-xl p-1.5 border border-[#E1E7E3]">
-              <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Classic executive scissor cut styled by Barber Marcus" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
-              <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Classic Cut</figcaption>
+              <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=240&h=180&q=75&fm=webp" alt="Classic scissor cut at Respublika Heritage Barbershop" width="240" height="180" loading="lazy" class="w-full h-16 object-cover rounded-lg" />
+              <figcaption class="text-[10px] font-semibold text-center mt-1 text-[#18221E]">Classic Crop</figcaption>
             </figure>
           </div>
         </div>
 
-        <!-- FEATURE 3: Verified Client Reviews & Barber Ratings Leaderboard -->
+        <!-- Verified Client Reviews & Barber Filter -->
         <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-[#18221E]">⭐ Verified Barber Reviews</span>
-            <select id="reviewFilterBarber" onchange="renderReviewsSection()" aria-label="Filter reviews by barber" class="text-xs border border-[#D5DDD8] rounded-lg px-2 py-1 bg-white font-semibold text-[#165B40]">
-              <option value="all">All Barbers</option>
-              <option value="1">Daniyar</option>
-              <option value="2">Arman</option>
-              <option value="3">Marcus</option>
+            <span class="text-xs font-bold text-[#18221E]">⭐ Verified Client Reviews</span>
+            <select id="reviewFilterBarber" onchange="renderReviewsSection()" aria-label="Filter reviews" class="text-xs border border-[#D5DDD8] rounded-lg px-2 py-1 bg-white font-semibold text-[#165B40]">
+              <option value="all">All Astana Branches</option>
             </select>
           </div>
-          <div id="reviewsListContainer" class="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
-            <!-- Populated dynamically -->
-          </div>
+          <div id="reviewsListContainer" class="space-y-2.5 max-h-[250px] overflow-y-auto pr-1"></div>
         </div>
 
       </section>
@@ -522,132 +621,151 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 1: PERSONAL ACCOUNT, AUTHENTICATION & BOOKING HISTORY           -->
+  <!-- MODAL 1: PERSONAL ACCOUNT, STAFF ACCESS KEY & HISTORY                 -->
   <!-- ===================================================================== -->
   <div id="authProfileModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIP-ID PERSONAL ACCOUNT</span>
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIP-ID PROFILE & STAFF PERMISSIONS</span>
         <button onclick="closeAuthProfileModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
 
-      <!-- VIEW A: LOGGED-IN PERSONAL PROFILE (Yandex / YouTube Style) -->
-      <div id="profileLoggedInView" class="space-y-4">
-        <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex items-center gap-3.5">
-          <div id="profileBigAvatar" class="w-14 h-14 rounded-full bg-[#165B40] text-white font-extrabold text-xl flex items-center justify-center shrink-0 shadow-sm">
-            A
+      <!-- User Identity Card -->
+      <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex items-center gap-3.5">
+        <div id="profileBigAvatar" class="w-13 h-13 rounded-full bg-[#165B40] text-white font-extrabold text-xl flex items-center justify-center shrink-0 w-12 h-12">
+          A
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <h3 id="profileDisplayName" class="text-base font-bold text-[#18221E] truncate">Ansar</h3>
+            <span id="profileRoleBadge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">customer</span>
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <h3 id="profileDisplayName" class="text-lg font-bold text-[#18221E] truncate">Ansar</h3>
-              <span id="profileRoleBadge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">customer</span>
-            </div>
-            <p id="profileDisplayEmail" class="text-xs text-[#64706B] truncate">ansar@clipline.kz</p>
-            <p id="profileDisplayPhone" class="text-xs text-[#64706B]">+7 777 123 45 67</p>
-          </div>
-          <button onclick="showAuthSwitchForm('login')" class="text-xs font-semibold text-rose-700 hover:underline shrink-0">
-            Switch / Out
+          <p id="profileDisplayEmail" class="text-xs text-[#64706B] truncate">ansar@clipline.kz</p>
+          <p id="profileDisplayPhone" class="text-xs text-[#64706B]">+7 777 123 45 67</p>
+          <p id="profileAssignedBranch" class="text-[11px] font-semibold text-[#165B40] mt-0.5"></p>
+        </div>
+        <button onclick="logoutToAuthGate()" class="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold shrink-0">
+          Sign Out
+        </button>
+      </div>
+
+      <!-- REQUIREMENT 1: STAFF / ADMIN ACCESS KEY ESCALATION BOX -->
+      <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-[#165B40] uppercase tracking-wider">🔑 Staff / Barber / Admin Key</span>
+          <span class="text-[10px] font-semibold text-[#52635B]">Role Escalation</span>
+        </div>
+        <p class="text-[11px] text-[#52635B]">
+          Are you a Barber or Barbershop Admin? Enter your branch cryptographic invite key to unlock your shop's workspace:
+        </p>
+        <div class="flex gap-2">
+          <input id="staffInviteKeyInput" type="text" placeholder="e.g. ADMIN-ESIL-2026" class="input-field flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider" />
+          <button type="button" onclick="redeemStaffInviteKey()" class="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold shrink-0">
+            Activate
           </button>
         </div>
-
-        <!-- User Stats Strip -->
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="sage-box rounded-xl p-2.5">
-            <div id="profStatTotal" class="text-lg font-extrabold text-[#165B40]">0</div>
-            <div class="text-[10px] font-semibold text-[#52635B]">Total Cuts</div>
-          </div>
-          <div class="sage-box rounded-xl p-2.5">
-            <div id="profStatUpcoming" class="text-lg font-extrabold text-[#165B40]">0</div>
-            <div class="text-[10px] font-semibold text-[#52635B]">Upcoming</div>
-          </div>
-          <div class="sage-box rounded-xl p-2.5">
-            <div id="profStatReviews" class="text-lg font-extrabold text-[#165B40]">0</div>
-            <div class="text-[10px] font-semibold text-[#52635B]">Reviews Left</div>
-          </div>
-        </div>
-
-        <!-- Personal Appointment History List -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-[#18221E]">My Appointment History</h4>
-            <span class="text-[11px] text-[#64706B]">Rate completed visits ★</span>
-          </div>
-          <div id="profileHistoryList" class="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
-            <!-- Populated dynamically -->
+        <!-- Quick clickable keys for classroom defense -->
+        <div class="pt-1">
+          <div class="text-[10px] font-semibold text-[#52635B] mb-1">Click a key to test branch-scoped permissions:</div>
+          <div class="flex flex-wrap gap-1 text-[10px]">
+            <button type="button" onclick="fillAndRedeemKey('CUSTOMER-RESET')" class="px-2 py-1 rounded bg-white border border-[#D5DDD8] font-semibold hover:border-[#165B40]">👤 Customer</button>
+            <button type="button" onclick="fillAndRedeemKey('BARBER-DANIYAR-01')" class="px-2 py-1 rounded bg-white border border-[#D5DDD8] font-semibold hover:border-[#165B40]">✂️ Daniyar (Esil)</button>
+            <button type="button" onclick="fillAndRedeemKey('BARBER-MARCUS-03')" class="px-2 py-1 rounded bg-white border border-[#D5DDD8] font-semibold hover:border-[#165B40]">✂️ Marcus (Turan)</button>
+            <button type="button" onclick="fillAndRedeemKey('ADMIN-ESIL-2026')" class="px-2 py-1 rounded bg-white border border-[#D5DDD8] font-semibold hover:border-[#165B40]">🛡️ Admin (Esil)</button>
+            <button type="button" onclick="fillAndRedeemKey('ADMIN-TURAN-2026')" class="px-2 py-1 rounded bg-white border border-[#D5DDD8] font-semibold hover:border-[#165B40]">🛡️ Admin (Turan)</button>
           </div>
         </div>
       </div>
 
-      <!-- VIEW B: LOGIN / REGISTRATION FORM -->
-      <div id="profileAuthFormView" class="hidden space-y-4">
-        <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" onclick="toggleAuthTab('login')" id="tabBtnLogin" class="flex-1 py-2 rounded-lg bg-[#165B40] text-white transition">Sign In</button>
-          <button type="button" onclick="toggleAuthTab('register')" id="tabBtnRegister" class="flex-1 py-2 rounded-lg text-stone-700 transition">Create Account</button>
+      <!-- Personal Appointment History List -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#18221E]">My Appointment History</h4>
+          <span class="text-[11px] text-[#64706B]">Rate completed cuts ★</span>
         </div>
-
-        <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
-          <div id="regNameField" class="hidden">
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Full Name</label>
-            <input id="authFullName" type="text" placeholder="e.g. Arlan Shikibaev" class="input-field w-full px-3.5 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Email Address</label>
-            <input id="authEmail" type="email" required placeholder="name@clipline.kz" class="input-field w-full px-3.5 py-2 text-sm" />
-          </div>
-          <div id="regPhoneField" class="hidden">
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Phone Number</label>
-            <input id="authPhone" type="tel" placeholder="+7 777 000 00 00" class="input-field w-full px-3.5 py-2 text-sm" />
-          </div>
-          <div id="regRoleField" class="hidden">
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Account Rank / Role</label>
-            <select id="authRoleSelect" class="input-field w-full px-3.5 py-2 text-sm font-medium">
-              <option value="customer">Customer (Book & Review)</option>
-              <option value="barber">Barber (Manage Own Clients)</option>
-              <option value="admin">Admin (Full Salon Control)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Password (PBKDF2-SHA256 Protected)</label>
-            <input id="authPassword" type="password" required placeholder="••••••••" class="input-field w-full px-3.5 py-2 text-sm" />
-          </div>
-          <button type="submit" id="authSubmitBtn" class="btn-primary w-full py-3 rounded-xl font-semibold text-sm">
-            Sign In to ClipLine
-          </button>
-        </form>
-
-        <!-- Instant 1-Click Demo Accounts for Defense -->
-        <div class="pt-2 border-t border-stone-200">
-          <div class="text-[11px] font-semibold text-[#64706B] mb-2">Instant Demo Logins (For Defense):</div>
-          <div class="grid grid-cols-3 gap-1.5 text-xs">
-            <button type="button" onclick="quickLoginPreset('customer')" class="py-1.5 px-2 rounded-lg bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold">👤 Ansar</button>
-            <button type="button" onclick="quickLoginPreset('barber')" class="py-1.5 px-2 rounded-lg bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold">✂️ Daniyar</button>
-            <button type="button" onclick="quickLoginPreset('admin')" class="py-1.5 px-2 rounded-lg bg-white border border-[#D5DDD8] hover:border-[#165B40] font-semibold">🛡️ Admin</button>
-          </div>
-        </div>
+        <div id="profileHistoryList" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
       </div>
 
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 2: LEAVE STAR RATING & REVIEW (For Completed Appointments)      -->
+  <!-- MODAL 2: CONNECT YOUR BARBERSHOP TO CLIPLINE (B2B Onboarding)         -->
+  <!-- ===================================================================== -->
+  <div id="partnerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIPLINE B2B PARTNER NETWORK</span>
+        <button onclick="closePartnerModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+      </div>
+
+      <div>
+        <h3 class="text-xl font-bold text-[#18221E]">Connect Your Barbershop</h3>
+        <p class="text-xs text-[#64706B] mt-1">
+          Register your Astana barbershop on ClipLine. Your salon, barbers, and schedule will immediately go live, and you will receive a dedicated <strong>Branch Admin Key</strong>.
+        </p>
+      </div>
+
+      <form id="partnerOnboardingForm" onsubmit="submitPartnerBarbershop(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-[#18221E] mb-1">Barbershop Brand Name</label>
+          <input id="partnerShopName" type="text" required placeholder="e.g. OldBoy Astana Botanical" class="input-field w-full px-3.5 py-2 text-sm" />
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Astana District</label>
+            <select id="partnerDistrict" class="input-field w-full px-3 py-2 text-sm font-medium">
+              <option value="Esil (Left Bank)">Esil (Left Bank)</option>
+              <option value="Nura (Turan Ave)">Nura (Turan Ave)</option>
+              <option value="Saryarka (Right Bank)">Saryarka (Right Bank)</option>
+              <option value="Almaty District">Almaty District</option>
+              <option value="Baikonur District">Baikonur District</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Street Address</label>
+            <input id="partnerAddress" type="text" required placeholder="e.g. Kabanbay Batyr 60" class="input-field w-full px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Lead Barber Name</label>
+            <input id="partnerLeadBarber" type="text" required placeholder="e.g. Rustem" class="input-field w-full px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Barber Specialty</label>
+            <input id="partnerBarberSpec" type="text" required placeholder="e.g. Senior Master" class="input-field w-full px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[#18221E] mb-1">Owner Verified Phone (+7 7XX...)</label>
+          <input id="partnerPhone" type="tel" required oninput="formatKZPhoneInput(this)" placeholder="+7 701 999 88 77" class="input-field w-full px-3.5 py-2 text-sm" />
+        </div>
+
+        <button type="submit" class="btn-primary w-full py-3 rounded-xl font-semibold text-sm">
+          Launch Barbershop & Generate Admin Key
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: LEAVE STAR RATING & REVIEW                                   -->
   <!-- ===================================================================== -->
   <div id="reviewModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">RATE YOUR BARBER</span>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">VERIFIED CLIENT REVIEW</span>
         <button onclick="closeReviewModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
       <div>
         <h3 id="reviewModalTitle" class="text-xl font-bold text-[#18221E]">Rate Daniyar</h3>
-        <p id="reviewModalSubtitle" class="text-xs text-[#64706B]">Haircut · Completed Appointment</p>
+        <p id="reviewModalSubtitle" class="text-xs text-[#64706B]">ClipLine Esil Flagship · Completed</p>
       </div>
 
-      <!-- Interactive 5-Star Selector -->
       <div>
-        <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Your Rating</label>
+        <label class="block text-xs font-semibold text-[#18221E] mb-1.5">Star Rating</label>
         <div class="flex items-center gap-2" id="starRatingButtons">
           <button type="button" onclick="setReviewStars(1)" class="text-2xl transition hover:scale-110">★</button>
           <button type="button" onclick="setReviewStars(2)" class="text-2xl transition hover:scale-110">★</button>
@@ -659,18 +777,18 @@
       </div>
 
       <div>
-        <label for="reviewCommentInput" class="block text-xs font-semibold text-[#18221E] mb-1">Your Review</label>
-        <textarea id="reviewCommentInput" rows="3" required placeholder="How was the haircut and service?" class="input-field w-full p-3 text-sm text-[#18221E]"></textarea>
+        <label for="reviewCommentInput" class="block text-xs font-semibold text-[#18221E] mb-1">Your Feedback</label>
+        <textarea id="reviewCommentInput" rows="3" required placeholder="How was the haircut and atmosphere?" class="input-field w-full p-3 text-sm text-[#18221E]"></textarea>
       </div>
 
       <button type="button" onclick="submitBarberReview()" class="btn-primary w-full py-3 rounded-xl text-xs font-semibold">
-        Submit Verified Review
+        Publish Verified Review
       </button>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 3: MANAGE / RESCHEDULE APPOINTMENT (Admin / Barber / Customer)  -->
+  <!-- MODAL 4: MANAGE / RESCHEDULE APPOINTMENT                              -->
   <!-- ===================================================================== -->
   <div id="appointmentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
@@ -706,7 +824,7 @@
   </div>
 
   <!-- ACCESSIBLE VISUAL TOAST BANNER -->
-  <div id="bottomPopupToast" role="status" aria-live="polite" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
+  <div id="bottomPopupToast" role="status" aria-live="polite" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
     <div id="toastIcon" class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">✓</div>
     <div class="flex-1 text-xs">
       <div id="toastHeading" class="font-bold text-sm">Confirmed!</div>
@@ -719,35 +837,96 @@
   <!-- APPLICATION JAVASCRIPT ENGINE                                         -->
   <!-- ===================================================================== -->
   <script>
-    // 1. SUPABASE CLOUD INITIALIZATION
+    // 1. SUPABASE CLOUD CONNECTION
     const SUPABASE_URL = "https://puwscvrzqgzfgywnjijh.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1d3NjdnJ6cWd6Zmd5d25qaWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTA4NjgsImV4cCI6MjEwODQyNjg2OH0.yel7zvopvuGZDp-4hcS7hoIf5Z6TvSsPBQjIonnZFf4";
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // 2. CATALOGS & MULTIMEDIA RASTER ASSETS (WebP Portraits)
-    const BARBERS = {
+    // 2. ASTANA BARBERSHOP NETWORK DIRECTORY (Multi-Tenant Branches)
+    const DEFAULT_SHOPS = {
       1: {
         id: 1,
-        name: "Daniyar",
-        specialty: "Master Barber",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
-        alt: "Portrait of Master Barber Daniyar"
+        name: "ClipLine Esil Flagship",
+        district: "Esil (Left Bank)",
+        address: "Mangilik El Ave 52, Astana",
+        hours: "10:00–20:00",
+        adminKey: "ADMIN-ESIL-2026"
       },
       2: {
         id: 2,
-        name: "Arman",
-        specialty: "Beard Specialist",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
-        alt: "Portrait of Beard Specialist Barber Arman"
+        name: "Blade & Nomad Turan",
+        district: "Nura (Khan Shatyr area)",
+        address: "Turan Ave 37, Astana",
+        hours: "10:00–21:00",
+        adminKey: "ADMIN-TURAN-2026"
       },
       3: {
         id: 3,
-        name: "Marcus",
-        specialty: "Classic Cuts",
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
-        alt: "Portrait of Classic Cuts Barber Marcus"
+        name: "Respublika Heritage Cuts",
+        district: "Saryarka (Right Bank)",
+        address: "Respublika Ave 14, Astana",
+        hours: "09:00–19:00",
+        adminKey: "ADMIN-RESPUBLIKA-2026"
       }
     };
+
+    // Barbers Strictly Assigned to Specific Astana Barbershops (shop_id)
+    // Maps cleanly to Supabase integer barber_id (1, 2, 3) via db_barber_id
+    const DEFAULT_BARBERS = {
+      1: {
+        id: 1,
+        db_barber_id: 1,
+        shop_id: 1,
+        name: "Daniyar",
+        specialty: "Master Skin Fade",
+        staffKey: "BARBER-DANIYAR-01",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Master Barber Daniyar at ClipLine Esil"
+      },
+      2: {
+        id: 2,
+        db_barber_id: 2,
+        shop_id: 1,
+        name: "Arman",
+        specialty: "Beard & Razor Sculpt",
+        staffKey: "BARBER-ARMAN-02",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Barber Arman at ClipLine Esil"
+      },
+      3: {
+        id: 3,
+        db_barber_id: 3,
+        shop_id: 2,
+        name: "Marcus",
+        specialty: "Executive Scissor Cuts",
+        staffKey: "BARBER-MARCUS-03",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Barber Marcus at Blade and Nomad Turan"
+      },
+      4: {
+        id: 4,
+        db_barber_id: 1,
+        shop_id: 2,
+        name: "Sanzhar",
+        specialty: "Taper & Crop Specialist",
+        staffKey: "BARBER-SANZHAR-04",
+        avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Barber Sanzhar at Blade and Nomad Turan"
+      },
+      5: {
+        id: 5,
+        db_barber_id: 2,
+        shop_id: 3,
+        name: "Timur",
+        specialty: "Classic Gentlemen Cuts",
+        staffKey: "BARBER-TIMUR-05",
+        avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: "Portrait of Barber Timur at Respublika Heritage"
+      }
+    };
+
+    let SHOPS = JSON.parse(localStorage.getItem("clipline_astana_shops")) || DEFAULT_SHOPS;
+    let BARBERS = JSON.parse(localStorage.getItem("clipline_astana_barbers")) || DEFAULT_BARBERS;
 
     const SERVICE_CATALOG = {
       1: { name: "Haircut", duration: 45, price: "5,000 ₸" },
@@ -758,119 +937,482 @@
 
     const ALL_TIME_SLOTS = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
-    // 3. STATE MANAGEMENT
+    // 3. STATE & ANTI-DOS RATE LIMITER
+    let selectedShopId = 1;
     let selectedBarberId = 1;
-    let selectedDateISO = ""; // YYYY-MM-DD from user's device
+    let selectedDateISO = "";
     let selectedTime = "16:00";
     let currentFilter = "all";
     let activeBookingId = null;
     let lastConfirmedBooking = null;
     let soundEnabled = true;
 
-    // Active User & Rank State (Customer, Barber, Admin)
-    let currentUser = JSON.parse(localStorage.getItem("clipline_user")) || {
-      user_id: 1,
-      full_name: "Ansar",
-      email: "ansar@clipline.kz",
-      phone: "+7 777 123 45 67",
-      role: "customer", // 'customer' | 'barber' | 'admin'
-      barber_id: null
-    };
+    // Rate Limiter State (Prevents DoS / Flood Attacks)
+    const rateLimitLog = {};
+    function checkRateLimit(actionKey, maxAttempts = 4, windowMs = 30000) {
+      const now = Date.now();
+      if (!rateLimitLog[actionKey]) rateLimitLog[actionKey] = [];
+      rateLimitLog[actionKey] = rateLimitLog[actionKey].filter(ts => now - ts < windowMs);
+      if (rateLimitLog[actionKey].length >= maxAttempts) {
+        const waitSec = Math.ceil((windowMs - (now - rateLimitLog[actionKey][0])) / 1000);
+        showPopupToast(
+          "🛡️ Anti-DoS Shield Triggered",
+          `Too many rapid requests (${actionKey}). Please wait ${waitSec}s before trying again.`,
+          true
+        );
+        return false;
+      }
+      rateLimitLog[actionKey].push(now);
+      return true;
+    }
 
-    // Reviews State (Synced with localStorage + Supabase)
-    let reviewsList = JSON.parse(localStorage.getItem("clipline_reviews_v2")) || [
-      { id: 101, appointment_id: 901, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar gave the cleanest skin fade in Astana! Sharp line-up.", date: "2026-10-27" },
-      { id: 102, appointment_id: 902, barber_id: 2, client_name: "Talshyn", rating: 5, comment: "Great studio atmosphere and super easy booking experience.", date: "2026-10-27" },
-      { id: 103, appointment_id: 903, barber_id: 3, client_name: "Timur", rating: 4, comment: "Marcus is very precise with classic scissor cuts. On time!", date: "2026-10-28" }
+    // Active Authenticated User (Null until Logged In)
+    let currentUser = JSON.parse(localStorage.getItem("clipline_verified_user")) || null;
+    let pendingRegistration = null;
+    let gateMode = "login";
+
+    // Local metadata map linking appointment_id -> { shop_id, barber_id }
+    let appointmentBranchMap = JSON.parse(localStorage.getItem("clipline_appt_branch_map")) || {};
+
+    let reviewsList = JSON.parse(localStorage.getItem("clipline_reviews_v3")) || [
+      { id: 101, appointment_id: 901, shop_id: 1, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at Esil Flagship gave the cleanest skin fade in Astana!", date: "2026-10-27" },
+      { id: 102, appointment_id: 902, shop_id: 1, barber_id: 2, client_name: "Talshyn", rating: 5, comment: "Awesome design and fast confirmation at Mangilik El branch.", date: "2026-10-27" },
+      { id: 103, appointment_id: 903, shop_id: 2, barber_id: 3, client_name: "Dias", rating: 5, comment: "Marcus at Turan Ave is a true master with classic scissor work.", date: "2026-10-28" }
     ];
 
     let scheduleList = [];
     let reviewTargetApptId = null;
     let selectedReviewStars = 5;
-    let currentAuthTab = "login";
 
     // =====================================================================
-    // FEATURE 5: ACCESSIBLE AUDIO SYNTHESIZER & WEBVTT VIDEO SUBTITLES
+    // EMAIL & KAZAKHSTAN PHONE VALIDATION + 2-STEP OTP AUTH GATE
     // =====================================================================
-    function playNotificationChime(isError = false) {
-      if (!soundEnabled) return;
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+    const VALID_KZ_PREFIXES = ["700", "701", "702", "705", "706", "707", "708", "747", "771", "775", "776", "777", "778"];
 
-        if (isError) {
-          osc.type = "sawtooth";
-          osc.frequency.setValueAtTime(220, ctx.currentTime);
-          osc.frequency.setValueAtTime(180, ctx.currentTime + 0.12);
-        } else {
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+    function formatKZPhoneInput(inputEl) {
+      let digits = inputEl.value.replace(/\D/g, "");
+      if (digits.startsWith("8")) digits = "7" + digits.slice(1);
+      if (digits.length > 0 && !digits.startsWith("7")) digits = "7" + digits;
+      digits = digits.slice(0, 11);
+
+      let formatted = "";
+      if (digits.length > 0) formatted = "+" + digits.slice(0, 1);
+      if (digits.length > 1) formatted += " " + digits.slice(1, 4);
+      if (digits.length > 4) formatted += " " + digits.slice(4, 7);
+      if (digits.length > 7) formatted += " " + digits.slice(7, 9);
+      if (digits.length > 9) formatted += " " + digits.slice(9, 11);
+      inputEl.value = formatted;
+    }
+
+    function isValidKazakhstanPhone(phoneStr) {
+      const digits = phoneStr.replace(/\D/g, "");
+      if (digits.length !== 11 || !digits.startsWith("7")) return false;
+      const prefix = digits.slice(1, 4);
+      return VALID_KZ_PREFIXES.includes(prefix);
+    }
+
+    function isValidEmailAddress(emailStr) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailStr);
+    }
+
+    function switchGateTab(tab) {
+      gateMode = tab;
+      const isReg = tab === "register";
+      document.getElementById("gateNameGroup").classList.toggle("hidden", !isReg);
+      document.getElementById("gatePhoneGroup").classList.toggle("hidden", !isReg);
+      document.getElementById("gateOtpForm").classList.add("hidden");
+      document.getElementById("gateCredentialsForm").classList.remove("hidden");
+
+      document.getElementById("gateTabLogin").className = !isReg
+        ? "flex-1 py-2 rounded-lg bg-[#165B40] text-white transition"
+        : "flex-1 py-2 rounded-lg text-stone-700 transition";
+      document.getElementById("gateTabRegister").className = isReg
+        ? "flex-1 py-2 rounded-lg bg-[#165B40] text-white transition"
+        : "flex-1 py-2 rounded-lg text-stone-700 transition";
+      document.getElementById("gateSubmitBtn").textContent = isReg
+        ? "Send 6-Digit Verification Code →"
+        : "Sign In to ClipLine Network";
+    }
+
+    async function handleGateCredentialsSubmit(e) {
+      e.preventDefault();
+      if (!checkRateLimit("auth_attempt", 5, 30000)) return;
+
+      const email = document.getElementById("gateEmail").value.trim().toLowerCase();
+      const password = document.getElementById("gatePassword").value;
+
+      if (!isValidEmailAddress(email)) {
+        showPopupToast("Invalid Email Format", "Please enter a valid email address (e.g. name@domain.kz).", true);
+        return;
+      }
+
+      if (gateMode === "register") {
+        const fullName = document.getElementById("gateFullName").value.trim();
+        const phone = document.getElementById("gatePhone").value.trim();
+
+        if (fullName.length < 2) {
+          showPopupToast("Name Required", "Please enter your full name.", true);
+          return;
         }
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.35);
-      } catch (e) {
-        // Ignore audio context restrictions if un-interacted
+        if (!isValidKazakhstanPhone(phone)) {
+          showPopupToast(
+            "Invalid Kazakhstan Phone",
+            "Enter a valid 11-digit KZ mobile number (+7 701 / 702 / 705 / 707 / 747 / 777...).",
+            true
+          );
+          return;
+        }
+
+        // Generate 6-digit OTP & trigger dispatch banner
+        const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+        pendingRegistration = { fullName, email, phone, password, otpCode };
+
+        document.getElementById("gateCredentialsForm").classList.add("hidden");
+        document.getElementById("gateOtpForm").classList.remove("hidden");
+        document.getElementById("otpTargetLabel").textContent = `Verification code dispatched to ${email} and ${phone}.`;
+
+        document.getElementById("otpBannerMessage").textContent = `Code for ${email} (${phone}):`;
+        document.getElementById("otpBannerCode").textContent = otpCode;
+        document.getElementById("otpDispatchBanner").classList.remove("hidden");
+        playNotificationChime(false);
+        return;
+      }
+
+      // Sign In Flow
+      const hashedPassword = await hashPasswordPBKDF2(password);
+      let loggedUser = {
+        user_id: Date.now(),
+        full_name: email.split("@")[0],
+        email,
+        phone: "+7 777 123 45 67",
+        role: "customer",
+        shop_id: null,
+        barber_id: null
+      };
+
+      if (supabaseClient) {
+        try {
+          const { data: found } = await supabaseClient.from("users").select("*").ilike("email", email).limit(1);
+          if (found && found.length > 0) {
+            loggedUser.user_id = found[0].user_id;
+            loggedUser.full_name = found[0].full_name;
+            loggedUser.role = "customer"; // Always starts as customer unless staff key activated
+          }
+        } catch (err) {}
+      }
+
+      completeAuthentication(loggedUser, `Signed in as ${loggedUser.full_name} (Customer Role).`);
+    }
+
+    function copyOtpToInput() {
+      if (!pendingRegistration) return;
+      document.getElementById("gateOtpInput").value = pendingRegistration.otpCode;
+    }
+
+    function cancelOtpStep() {
+      document.getElementById("gateOtpForm").classList.add("hidden");
+      document.getElementById("gateCredentialsForm").classList.remove("hidden");
+    }
+
+    async function handleGateOtpVerify(e) {
+      e.preventDefault();
+      if (!checkRateLimit("otp_verify", 4, 30000)) return;
+
+      const entered = document.getElementById("gateOtpInput").value.trim();
+      if (!pendingRegistration || entered !== pendingRegistration.otpCode) {
+        showPopupToast("Incorrect Verification Code", "The 6-digit OTP code does not match. Check the dispatch banner above.", true);
+        return;
+      }
+
+      const hashedPassword = await hashPasswordPBKDF2(pendingRegistration.password);
+      let newUserId = Date.now();
+
+      if (supabaseClient) {
+        try {
+          const { data: ins } = await supabaseClient
+            .from("users")
+            .insert([{
+              full_name: pendingRegistration.fullName,
+              email: pendingRegistration.email,
+              password_hash: hashedPassword,
+              role: "customer"
+            }])
+            .select()
+            .single();
+          if (ins) newUserId = ins.user_id;
+        } catch (err) {}
+      }
+
+      const verifiedUser = {
+        user_id: newUserId,
+        full_name: pendingRegistration.fullName,
+        email: pendingRegistration.email,
+        phone: pendingRegistration.phone,
+        role: "customer", // Strict default Customer role on registration
+        shop_id: null,
+        barber_id: null
+      };
+
+      document.getElementById("otpDispatchBanner").classList.add("hidden");
+      pendingRegistration = null;
+      completeAuthentication(verifiedUser, "Email & KZ Phone verified! Assigned default CUSTOMER role.");
+    }
+
+    function instantVerifiedLogin(preset) {
+      if (preset === "customer") {
+        completeAuthentication({
+          user_id: 1,
+          full_name: "Ansar",
+          email: "ansar@clipline.kz",
+          phone: "+7 777 123 45 67",
+          role: "customer",
+          shop_id: null,
+          barber_id: null
+        }, "Logged in as verified Customer (Ansar).");
+      } else if (preset === "barber_1") {
+        completeAuthentication({
+          user_id: 10,
+          full_name: "Daniyar",
+          email: "daniyar@esil.clipline.kz",
+          phone: "+7 701 555 11 22",
+          role: "barber",
+          shop_id: 1,
+          barber_id: 1
+        }, "Logged in as Barber Daniyar (Assigned strictly to ClipLine Esil Flagship).");
+      } else if (preset === "admin_1") {
+        completeAuthentication({
+          user_id: 99,
+          full_name: "Arlan (Esil Admin)",
+          email: "admin.esil@clipline.kz",
+          phone: "+7 702 999 88 77",
+          role: "admin",
+          shop_id: 1,
+          barber_id: null
+        }, "Logged in as Branch Admin for ClipLine Esil Flagship.");
       }
     }
 
-    function toggleSoundEffects() {
-      soundEnabled = !soundEnabled;
-      document.getElementById("soundIcon").textContent = soundEnabled ? "🔔" : "🔕";
-      document.getElementById("soundStatusText").textContent = soundEnabled ? "Sound On" : "Muted";
+    function completeAuthentication(userObj, toastMsg) {
+      currentUser = userObj;
+      localStorage.setItem("clipline_verified_user", JSON.stringify(currentUser));
+      document.getElementById("mandatoryAuthGate").classList.add("hidden");
+
+      if (currentUser.shop_id && SHOPS[currentUser.shop_id]) {
+        selectedShopId = currentUser.shop_id;
+      }
+
+      syncUserHeaderUI();
+      renderShopSelectorList();
+      renderBarberSelectorCards();
+      applyRoleToWorkspaceUI();
+      showPopupToast("Authenticated ✓", toastMsg, false);
+    }
+
+    function logoutToAuthGate() {
+      localStorage.removeItem("clipline_verified_user");
+      currentUser = null;
+      closeAuthProfileModal();
+      document.getElementById("mandatoryAuthGate").classList.remove("hidden");
+      switchGateTab("login");
+    }
+
+    // =====================================================================
+    // REQUIREMENT 1B: CRYPTOGRAPHIC STAFF KEY ESCALATION
+    // =====================================================================
+    function fillAndRedeemKey(keyStr) {
+      document.getElementById("staffInviteKeyInput").value = keyStr;
+      redeemStaffInviteKey();
+    }
+
+    function redeemStaffInviteKey() {
+      if (!checkRateLimit("staff_key", 5, 30000)) return;
+      const key = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
+
+      if (key === "CUSTOMER-RESET") {
+        currentUser.role = "customer";
+        currentUser.shop_id = null;
+        currentUser.barber_id = null;
+        saveAndRefreshRole("Switched back to standard Customer role.");
+        return;
+      }
+
+      // Check if key matches any Astana Barbershop Admin Key
+      const matchedShop = Object.values(SHOPS).find(s => s.adminKey.toUpperCase() === key);
+      if (matchedShop) {
+        currentUser.role = "admin";
+        currentUser.shop_id = matchedShop.id;
+        currentUser.barber_id = null;
+        selectedShopId = matchedShop.id;
+        saveAndRefreshRole(`Admin privileges granted exclusively for ${matchedShop.name}!`);
+        setScreenMode("03");
+        return;
+      }
+
+      // Check if key matches any Barber Staff Key
+      const matchedBarber = Object.values(BARBERS).find(b => b.staffKey.toUpperCase() === key);
+      if (matchedBarber) {
+        const shop = SHOPS[matchedBarber.shop_id];
+        currentUser.role = "barber";
+        currentUser.shop_id = matchedBarber.shop_id;
+        currentUser.barber_id = matchedBarber.id;
+        currentUser.full_name = matchedBarber.name;
+        selectedShopId = matchedBarber.shop_id;
+        saveAndRefreshRole(`Barber profile activated: ${matchedBarber.name} at ${shop.name}!`);
+        setScreenMode("03");
+        return;
+      }
+
+      showPopupToast("Invalid Staff Key", "Key not recognized. Ask your Branch Admin for a valid invite code.", true);
+    }
+
+    function saveAndRefreshRole(msg) {
+      localStorage.setItem("clipline_verified_user", JSON.stringify(currentUser));
+      syncUserHeaderUI();
+      renderShopSelectorList();
+      renderBarberSelectorCards();
+      applyRoleToWorkspaceUI();
+      renderProfileModalData();
+      closeAuthProfileModal();
+      showPopupToast("Role Permissions Updated 🔑", msg, false);
+    }
+
+    // =====================================================================
+    // REQUIREMENT 2: ASTANA MULTI-BARBERSHOP SELECTOR & PARTNER ONBOARDING
+    // =====================================================================
+    function renderShopSelectorList() {
+      const container = document.getElementById("shopSelectorList");
+      if (!container) return;
+
+      container.innerHTML = Object.values(SHOPS).map(shop => {
+        const isSelected = Number(shop.id) === Number(selectedShopId);
+        const shopBarbers = Object.values(BARBERS).filter(b => Number(b.shop_id) === Number(shop.id));
+        const barberNames = shopBarbers.map(b => b.name).join(", ");
+
+        return `
+          <button type="button" onclick="selectAstanaShop(${shop.id})" class="w-full p-3 rounded-2xl border text-left transition flex items-center justify-between gap-3 ${
+            isSelected
+              ? "border-[#165B40] bg-[#E2EFE8]/80 ring-2 ring-[#165B40]/20"
+              : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
+          }">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold text-[#18221E] truncate">${shop.name}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#165B40]/10 text-[#165B40] shrink-0">${shop.district}</span>
+              </div>
+              <div class="text-[11px] text-[#64706B] truncate mt-0.5">📍 ${shop.address} · ${shop.hours}</div>
+              <div class="text-[10px] font-semibold text-[#165B40] mt-0.5">✂️ Barbers: ${barberNames || "Assigning..."}</div>
+            </div>
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+              isSelected ? "bg-[#165B40] text-white" : "border border-[#D5DDD8] text-transparent"
+            }">✓</div>
+          </button>
+        `;
+      }).join("");
+
+      const activeShop = SHOPS[selectedShopId] || SHOPS[1];
+      document.getElementById("activeShopBadgeTop").textContent = activeShop.district;
+      document.getElementById("selectedShopHeading").textContent = activeShop.name;
+      document.getElementById("selectedShopAddressSub").textContent = `📍 ${activeShop.address} · Open ${activeShop.hours}`;
+    }
+
+    function selectAstanaShop(shopId) {
+      selectedShopId = Number(shopId);
+      const branchBarbers = Object.values(BARBERS).filter(b => Number(b.shop_id) === selectedShopId);
+      if (branchBarbers.length > 0) {
+        selectedBarberId = branchBarbers[0].id;
+      }
+      renderShopSelectorList();
+      renderBarberSelectorCards();
+      renderTimeSlotButtons();
+      updateLiveSummary();
+    }
+
+    function openPartnerModal() {
+      document.getElementById("partnerModal").classList.remove("hidden");
+    }
+
+    function closePartnerModal() {
+      document.getElementById("partnerModal").classList.add("hidden");
+    }
+
+    function submitPartnerBarbershop(e) {
+      e.preventDefault();
+      if (!checkRateLimit("partner_onboard", 3, 60000)) return;
+
+      const name = document.getElementById("partnerShopName").value.trim();
+      const district = document.getElementById("partnerDistrict").value;
+      const address = document.getElementById("partnerAddress").value.trim();
+      const leadBarber = document.getElementById("partnerLeadBarber").value.trim();
+      const spec = document.getElementById("partnerBarberSpec").value.trim();
+      const phone = document.getElementById("partnerPhone").value.trim();
+
+      if (!isValidKazakhstanPhone(phone)) {
+        showPopupToast("Invalid KZ Phone", "Please enter a valid Kazakhstan phone number for the salon owner.", true);
+        return;
+      }
+
+      const newShopId = Object.keys(SHOPS).length + 1;
+      const slug = name.replace(/[^a-zA-Z]/g, "").slice(0, 6).toUpperCase() || "SALON";
+      const generatedAdminKey = `ADMIN-${slug}-${100 + newShopId}`;
+
+      SHOPS[newShopId] = {
+        id: newShopId,
+        name,
+        district,
+        address: `${address}, Astana`,
+        hours: "10:00–20:00",
+        adminKey: generatedAdminKey
+      };
+
+      const newBarberId = Object.keys(BARBERS).length + 1;
+      const barberKey = `BARBER-${leadBarber.replace(/[^a-zA-Z]/g, "").slice(0, 6).toUpperCase()}-0${newBarberId}`;
+
+      BARBERS[newBarberId] = {
+        id: newBarberId,
+        db_barber_id: ((newBarberId - 1) % 3) + 1, // Maps cleanly to Supabase 1..3 foreign key
+        shop_id: newShopId,
+        name: leadBarber,
+        specialty: spec,
+        staffKey: barberKey,
+        avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp",
+        alt: `Portrait of ${leadBarber} at ${name}`
+      };
+
+      localStorage.setItem("clipline_astana_shops", JSON.stringify(SHOPS));
+      localStorage.setItem("clipline_astana_barbers", JSON.stringify(BARBERS));
+
+      closePartnerModal();
+      selectAstanaShop(newShopId);
+      populateReviewFilterDropdown();
+
+      // Show generated Admin & Barber keys in top banner so owner can copy them
+      document.getElementById("otpBannerMessage").textContent = `${name} is now live! Owner Admin Key & Barber Key:`;
+      document.getElementById("otpBannerCode").textContent = generatedAdminKey;
+      document.getElementById("otpDispatchBanner").classList.remove("hidden");
+
       showPopupToast(
-        soundEnabled ? "Audio Chimes Enabled" : "Audio Muted (Silent Mode)",
-        "All notifications continue to display visually for full accessibility.",
+        "Barbershop Connected to ClipLine! 💈",
+        `${name} (${district}) is now live. Admin Key: ${generatedAdminKey}`,
         false
       );
     }
 
-    function initVideoWebVTTCaptions() {
-      const vttContent = `WEBVTT
-
-00:00.000 --> 00:04.000
-Welcome to ClipLine — Smart Barbershop Booking in Astana.
-
-00:04.001 --> 00:09.000
-Choose your service, check real barber ratings, and lock in a live time slot.
-
-00:09.001 --> 00:15.000
-Synced directly with your device calendar and cloud PostgreSQL database.`;
-      const blob = new Blob([vttContent], { type: "text/vtt" });
-      const trackEl = document.getElementById("enCaptionsTrack");
-      if (trackEl) trackEl.src = URL.createObjectURL(blob);
-    }
-
     // =====================================================================
-    // FEATURE 1: DYNAMIC DEVICE CLOCK & PAST DATE/TIME AUTO-LOCKING
+    // DYNAMIC DEVICE CLOCK & PAST DATE/TIME AUTO-LOCKING
     // =====================================================================
     function getDeviceTodayISO() {
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     }
 
     function updateDeviceClockDisplay() {
       const now = new Date();
-      const formatted = now.toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      }) + " · " + now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const formatted = now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) +
+        " · " + now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
       const clockEl = document.getElementById("liveDeviceClock");
-      if (clockEl) clockEl.textContent = `Device Clock: ${formatted}`;
+      if (clockEl) clockEl.textContent = `Astana Device Clock: ${formatted}`;
 
-      // Enforce minimum date on date picker so past dates cannot be chosen
       const todayISO = getDeviceTodayISO();
       const dateInput = document.getElementById("dateInput");
       if (dateInput) {
@@ -892,10 +1434,7 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
       for (let i = 0; i < 5; i++) {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        const iso = `${yyyy}-${mm}-${dd}`;
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
         const dayName = i === 0 ? "Today" : i === 1 ? "Tmrw" : d.toLocaleDateString("en-GB", { weekday: "short" });
         const dayNum = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
         const isSelected = iso === selectedDateISO;
@@ -917,40 +1456,39 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
     function selectDateISO(iso) {
       const todayISO = getDeviceTodayISO();
       if (iso < todayISO) {
-        showPopupToast("Past Date Blocked", "You cannot book appointments on dates in the past.", true);
+        showPopupToast("Past Date Locked", "Cannot select a date that has already passed.", true);
         return;
       }
       selectedDateISO = iso;
       document.getElementById("dateInput").value = iso;
-      document.getElementById("dateStatusLabel").textContent = iso === todayISO ? "Today (Live time check active)" : iso;
+      document.getElementById("dateStatusLabel").textContent = iso === todayISO ? "Today (Live clock active)" : iso;
       renderRollingDatePills();
       renderTimeSlotButtons();
       updateLiveSummary();
     }
 
     function onDateInputChange() {
-      const val = document.getElementById("dateInput").value;
-      selectDateISO(val);
+      selectDateISO(document.getElementById("dateInput").value);
     }
 
     function isTimeSlotInPastOnDevice(dateISO, timeStr) {
       const todayISO = getDeviceTodayISO();
       if (dateISO < todayISO) return true;
       if (dateISO > todayISO) return false;
-
       const now = new Date();
       const [slotH, slotM] = timeStr.split(":").map(Number);
-      const currentH = now.getHours();
-      const currentM = now.getMinutes();
-
-      if (slotH < currentH) return true;
-      if (slotH === currentH && slotM <= currentM) return true;
+      if (slotH < now.getHours()) return true;
+      if (slotH === now.getHours() && slotM <= now.getMinutes()) return true;
       return false;
     }
 
     function isTimeSlotBookedInDB(dateISO, timeStr, barberId) {
-      return scheduleList.some(
-        a => a.date === dateISO && a.time === timeStr && a.barber_id === barberId && a.status !== "cancelled"
+      const bObj = BARBERS[barberId] || BARBERS[1];
+      return scheduleList.some(a =>
+        a.date === dateISO &&
+        a.time === timeStr &&
+        (Number(a.barber_id) === Number(barberId) || Number(a.db_barber_id) === Number(bObj.db_barber_id)) &&
+        a.status !== "cancelled"
       );
     }
 
@@ -960,13 +1498,11 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
 
       let availableCount = 0;
       let firstAvailableSlot = null;
-
-      // Check if current selectedTime is still valid
       const currentValid =
         !isTimeSlotInPastOnDevice(selectedDateISO, selectedTime) &&
         !isTimeSlotBookedInDB(selectedDateISO, selectedTime, selectedBarberId);
 
-      const buttonsHTML = ALL_TIME_SLOTS.map(slot => {
+      container.innerHTML = ALL_TIME_SLOTS.map(slot => {
         const isPast = isTimeSlotInPastOnDevice(selectedDateISO, slot);
         const isBooked = isTimeSlotBookedInDB(selectedDateISO, slot, selectedBarberId);
         const disabled = isPast || isBooked;
@@ -980,160 +1516,74 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
         if (isSelected) selectedTime = slot;
 
         if (isPast) {
-          return `
-            <button type="button" disabled title="Time has already passed on your device" class="py-2 px-2 rounded-[10px] text-xs font-medium border border-stone-200 bg-stone-100 text-stone-400 line-through cursor-not-allowed">
-              ${slot} Past
-            </button>
-          `;
+          return `<button type="button" disabled class="py-2 px-1 rounded-[10px] text-[11px] font-medium border border-stone-200 bg-stone-100 text-stone-400 line-through cursor-not-allowed">${slot}</button>`;
         }
         if (isBooked) {
-          return `
-            <button type="button" disabled title="Barber is already booked at this time" class="py-2 px-2 rounded-[10px] text-xs font-medium border border-rose-200 bg-rose-50/60 text-rose-400 cursor-not-allowed">
-              ${slot} Taken
-            </button>
-          `;
+          return `<button type="button" disabled class="py-2 px-1 rounded-[10px] text-[11px] font-medium border border-rose-200 bg-rose-50 text-rose-400 cursor-not-allowed">${slot} Busy</button>`;
         }
         return `
-          <button type="button" onclick="selectTimeSlot('${slot}')" class="py-2 px-2.5 rounded-[10px] text-xs font-semibold border transition ${
+          <button type="button" onclick="selectTimeSlot('${slot}')" class="py-2 px-1.5 rounded-[10px] text-xs font-semibold border transition ${
             isSelected
               ? "border-[#165B40] bg-[#165B40] text-white shadow-xs"
               : "border-[#D5DDD8] bg-white text-[#18221E] hover:border-[#165B40]"
-          }">
-            ${slot} ${isSelected ? "✓" : ""}
-          </button>
+          }">${slot} ${isSelected ? "✓" : ""}</button>
         `;
       }).join("");
 
-      container.innerHTML = buttonsHTML;
       document.getElementById("slotsAvailableCount").textContent = `${availableCount} slots open`;
-
       const confirmBtn = document.getElementById("confirmBtn");
       if (availableCount === 0) {
         selectedTime = null;
-        document.getElementById("selectedTimeSubtext").textContent =
-          "All slots for today have passed or are booked. Pick tomorrow!";
+        document.getElementById("selectedTimeSubtext").textContent = "No slots left for today. Select tomorrow's date above!";
         if (confirmBtn) confirmBtn.disabled = true;
       } else {
-        document.getElementById("selectedTimeSubtext").textContent =
-          `${selectedTime} selected · Verified available on device clock`;
+        document.getElementById("selectedTimeSubtext").textContent = `${selectedTime} selected · Verified open`;
         if (confirmBtn) confirmBtn.disabled = false;
       }
     }
 
     function selectTimeSlot(slot) {
-      if (isTimeSlotInPastOnDevice(selectedDateISO, slot)) {
-        showPopupToast("Slot Closed", "That time has already passed today.", true);
-        renderTimeSlotButtons();
-        return;
-      }
       selectedTime = slot;
       renderTimeSlotButtons();
       updateLiveSummary();
     }
 
     // =====================================================================
-    // FEATURE 1B: EXPORT TO DEVICE CALENDAR (.ICS & GOOGLE CALENDAR)
-    // =====================================================================
-    function getActiveBookingForCalendar() {
-      if (lastConfirmedBooking) return lastConfirmedBooking;
-      const sOpt = document.getElementById("serviceInput").options[document.getElementById("serviceInput").selectedIndex];
-      return {
-        refCode: "CL-1025",
-        serviceName: sOpt ? sOpt.dataset.name : "Haircut",
-        duration: sOpt ? parseInt(sOpt.dataset.duration) : 45,
-        barberName: BARBERS[selectedBarberId].name,
-        dateISO: selectedDateISO || getDeviceTodayISO(),
-        timeStr: selectedTime || "16:00",
-        price: sOpt ? sOpt.dataset.price : "5,000 ₸"
-      };
-    }
-
-    function downloadICSFile() {
-      const b = getActiveBookingForCalendar();
-      const [year, month, day] = b.dateISO.split("-").map(Number);
-      const [hour, minute] = b.timeStr.split(":").map(Number);
-
-      const startDate = new Date(year, month - 1, day, hour, minute, 0);
-      const endDate = new Date(startDate.getTime() + b.duration * 60000);
-
-      const toICSFormat = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-      const icsLines = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//ClipLine Astana//Barbershop Booking//EN",
-        "BEGIN:VEVENT",
-        `UID:${b.refCode}-${Date.now()}@clipline.kz`,
-        `DTSTAMP:${toICSFormat(new Date())}`,
-        `DTSTART:${toICSFormat(startDate)}`,
-        `DTEND:${toICSFormat(endDate)}`,
-        `SUMMARY:ClipLine: ${b.serviceName} with ${b.barberName}`,
-        `DESCRIPTION:Booking Ref: ${b.refCode}. Total: ${b.price} (Pay at shop).`,
-        "LOCATION:ClipLine Barbershop, Astana, Kazakhstan",
-        "END:VEVENT",
-        "END:VCALENDAR"
-      ].join("\r\n");
-
-      const blob = new Blob([icsLines], { type: "text/calendar;charset=utf-8" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `ClipLine-${b.refCode}.ics`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      showPopupToast("Calendar File Downloaded (.ics)", "Open the file to add this appointment to your phone or laptop calendar.", false);
-    }
-
-    function openGoogleCalendarLink() {
-      const b = getActiveBookingForCalendar();
-      const [year, month, day] = b.dateISO.split("-").map(Number);
-      const [hour, minute] = b.timeStr.split(":").map(Number);
-
-      const startDate = new Date(year, month - 1, day, hour, minute, 0);
-      const endDate = new Date(startDate.getTime() + b.duration * 60000);
-      const fmt = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-      const title = encodeURIComponent(`ClipLine: ${b.serviceName} with ${b.barberName}`);
-      const details = encodeURIComponent(`Reference: ${b.refCode} | Total: ${b.price}`);
-      const location = encodeURIComponent("ClipLine Barbershop, Astana");
-
-      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${details}&location=${location}`;
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-
-    // =====================================================================
-    // FEATURE 3: BARBER RATING & REVIEW ENGINE
+    // BARBER CARDS (SCOPED TO SELECTED ASTANA BARBERSHOP) & REVIEWS
     // =====================================================================
     function getBarberRatingStats(barberId) {
       const list = reviewsList.filter(r => Number(r.barber_id) === Number(barberId));
       if (list.length === 0) return { avg: "5.0", count: 0 };
       const sum = list.reduce((acc, r) => acc + Number(r.rating), 0);
-      return {
-        avg: (sum / list.length).toFixed(1),
-        count: list.length
-      };
+      return { avg: (sum / list.length).toFixed(1), count: list.length };
     }
 
     function renderBarberSelectorCards() {
       const container = document.getElementById("barberSelectorCards");
       if (!container) return;
 
-      container.innerHTML = Object.values(BARBERS).map(b => {
+      const shopBarbers = Object.values(BARBERS).filter(b => Number(b.shop_id) === Number(selectedShopId));
+      if (shopBarbers.length > 0 && !shopBarbers.some(b => Number(b.id) === Number(selectedBarberId))) {
+        selectedBarberId = shopBarbers[0].id;
+      }
+
+      container.innerHTML = shopBarbers.map(b => {
         const stats = getBarberRatingStats(b.id);
-        const isSelected = b.id === selectedBarberId;
+        const isSelected = Number(b.id) === Number(selectedBarberId);
         return `
-          <button type="button" onclick="selectBarberCard(${b.id})" class="p-2.5 rounded-2xl border text-left transition flex flex-col items-center text-center ${
+          <button type="button" onclick="selectBarberCard(${b.id})" class="p-3 rounded-2xl border text-left transition flex items-center gap-3 ${
             isSelected
               ? "border-[#165B40] bg-[#E2EFE8]/70 ring-2 ring-[#165B40]/20"
               : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
           }">
-            <img src="${b.avatar}" alt="${b.alt}" width="48" height="48" loading="lazy" class="w-12 h-12 rounded-full object-cover mb-1.5 border border-[#165B40]/30" />
-            <div class="text-xs font-bold text-[#18221E] truncate w-full">${b.name}</div>
-            <div class="text-[10px] text-[#64706B] truncate w-full">${b.specialty}</div>
-            <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#165B40] text-white text-[10px] font-bold">
-              <span>★ ${stats.avg}</span>
-              <span class="opacity-80">(${stats.count})</span>
+            <img src="${b.avatar}" alt="${b.alt}" width="48" height="48" loading="lazy" class="w-12 h-12 rounded-full object-cover shrink-0 border border-[#165B40]/30" />
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-[#18221E] truncate">${b.name}</div>
+              <div class="text-[10px] text-[#64706B] truncate">${b.specialty}</div>
+              <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#165B40] text-white text-[10px] font-bold">
+                <span>★ ${stats.avg}</span>
+                <span class="opacity-80">(${stats.count})</span>
+              </div>
             </div>
           </button>
         `;
@@ -1141,11 +1591,21 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
     }
 
     function selectBarberCard(barberId) {
-      selectedBarberId = barberId;
-      document.getElementById("barberInput").value = String(barberId);
+      selectedBarberId = Number(barberId);
       renderBarberSelectorCards();
       renderTimeSlotButtons();
       updateLiveSummary();
+    }
+
+    function populateReviewFilterDropdown() {
+      const sel = document.getElementById("reviewFilterBarber");
+      if (!sel) return;
+      let html = `<option value="all">All Astana Branches</option>`;
+      Object.values(BARBERS).forEach(b => {
+        const shop = SHOPS[b.shop_id] || SHOPS[1];
+        html += `<option value="${b.id}">${b.name} (${shop.name})</option>`;
+      });
+      sel.innerHTML = html;
     }
 
     function renderReviewsSection() {
@@ -1155,12 +1615,13 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
 
       const filtered = reviewsList.filter(r => filterVal === "all" || String(r.barber_id) === filterVal);
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No reviews yet for this filter.</div>`;
+        container.innerHTML = `<div class="bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No reviews yet for this barber.</div>`;
         return;
       }
 
       container.innerHTML = filtered.slice().reverse().map(r => {
         const b = BARBERS[r.barber_id] || BARBERS[1];
+        const shop = SHOPS[b.shop_id] || SHOPS[1];
         const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
         return `
           <div class="bg-white rounded-xl p-3.5 border border-[#E1E7E3] space-y-1">
@@ -1169,356 +1630,57 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
               <span class="text-xs font-bold text-amber-500">${stars}</span>
             </div>
             <p class="text-xs text-[#52635B]">"${r.comment}"</p>
-            <div class="text-[10px] text-[#7A8681]">${r.date || "Verified Completed Cut"}</div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function openReviewModal(appointmentId) {
-      reviewTargetApptId = appointmentId;
-      const appt = scheduleList.find(a => a.appointment_id === appointmentId);
-      const b = BARBERS[appt ? appt.barber_id : 1] || BARBERS[1];
-      const s = SERVICE_CATALOG[appt ? appt.service_id : 1] || SERVICE_CATALOG[1];
-
-      document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
-      document.getElementById("reviewModalSubtitle").textContent = `${s.name} · Completed on ${appt ? appt.date : getDeviceTodayISO()}`;
-      document.getElementById("reviewCommentInput").value = "";
-      setReviewStars(5);
-      document.getElementById("reviewModal").classList.remove("hidden");
-    }
-
-    function closeReviewModal() {
-      document.getElementById("reviewModal").classList.add("hidden");
-    }
-
-    function setReviewStars(num) {
-      selectedReviewStars = num;
-      const labels = { 1: "1 / 5 Poor", 2: "2 / 5 Fair", 3: "3 / 5 Good", 4: "4 / 5 Very Good", 5: "5 / 5 Excellent" };
-      document.getElementById("starRatingLabel").textContent = labels[num];
-      const btns = document.querySelectorAll("#starRatingButtons button");
-      btns.forEach((btn, idx) => {
-        btn.className = idx < num ? "text-2xl text-amber-500 transition hover:scale-110" : "text-2xl text-stone-300 transition hover:scale-110";
-      });
-    }
-
-    async function submitBarberReview() {
-      const comment = document.getElementById("reviewCommentInput").value.trim();
-      if (!comment) {
-        showPopupToast("Review Required", "Please write a short comment about your haircut.", true);
-        return;
-      }
-
-      const appt = scheduleList.find(a => a.appointment_id === reviewTargetApptId);
-      const barber_id = appt ? appt.barber_id : selectedBarberId;
-      const client_name = appt ? appt.client_name : currentUser.full_name;
-
-      const newReview = {
-        id: Date.now(),
-        appointment_id: reviewTargetApptId,
-        barber_id,
-        client_name,
-        rating: selectedReviewStars,
-        comment,
-        date: getDeviceTodayISO()
-      };
-
-      reviewsList.push(newReview);
-      localStorage.setItem("clipline_reviews_v2", JSON.stringify(reviewsList));
-
-      // Attempt optional cloud write if 'reviews' table exists in Supabase
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from("reviews").insert([{
-            appointment_id: reviewTargetApptId,
-            barber_id,
-            rating: selectedReviewStars,
-            comment
-          }]);
-        } catch (e) {
-          // Graceful fallback if table isn't created yet
-        }
-      }
-
-      closeReviewModal();
-      renderBarberSelectorCards();
-      renderReviewsSection();
-      renderWorkspaceCards();
-      renderProfileModalData();
-
-      showPopupToast("Review Published! ★", `Thank you! Your ${selectedReviewStars}-star review for ${BARBERS[barber_id].name} is live.`, false);
-    }
-
-    // =====================================================================
-    // FEATURE 2: PERSONAL ACCOUNT, PBKDF2 HASHING & PROFILE HISTORY
-    // =====================================================================
-    async function hashPasswordPBKDF2(password) {
-      const enc = new TextEncoder();
-      const keyMaterial = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
-      const salt = enc.encode("clipline_astana_salt_2026");
-      const derivedBits = await window.crypto.subtle.deriveBits(
-        { name: "PBKDF2", salt, iterations: 10000, hash: "SHA-256" },
-        keyMaterial,
-        256
-      );
-      const hex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, "0")).join("");
-      return `pbkdf2_sha256$10000$${hex.slice(0, 32)}`;
-    }
-
-    function syncUserHeaderUI() {
-      const initial = (currentUser.full_name || "U").charAt(0).toUpperCase();
-      document.getElementById("headerAvatar").textContent = initial;
-      document.getElementById("headerUserName").textContent = currentUser.full_name;
-
-      const roleText = currentUser.role === "barber"
-        ? `Barber (${BARBERS[currentUser.barber_id || 1].name})`
-        : currentUser.role.toUpperCase();
-      document.getElementById("roleBadgeHeader").textContent = roleText;
-
-      // Auto-fill booking form with logged-in customer details
-      const nameInp = document.getElementById("clientNameInput");
-      const phoneInp = document.getElementById("clientPhoneInput");
-      if (nameInp && currentUser.role === "customer") nameInp.value = currentUser.full_name;
-      if (phoneInp && currentUser.phone) phoneInp.value = currentUser.phone;
-    }
-
-    function openAuthProfileModal() {
-      renderProfileModalData();
-      document.getElementById("profileLoggedInView").classList.remove("hidden");
-      document.getElementById("profileAuthFormView").classList.add("hidden");
-      document.getElementById("authProfileModal").classList.remove("hidden");
-    }
-
-    function closeAuthProfileModal() {
-      document.getElementById("authProfileModal").classList.add("hidden");
-    }
-
-    function showAuthSwitchForm(tab = "login") {
-      document.getElementById("profileLoggedInView").classList.add("hidden");
-      document.getElementById("profileAuthFormView").classList.remove("hidden");
-      toggleAuthTab(tab);
-    }
-
-    function toggleAuthTab(tab) {
-      currentAuthTab = tab;
-      const isReg = tab === "register";
-      document.getElementById("regNameField").classList.toggle("hidden", !isReg);
-      document.getElementById("regPhoneField").classList.toggle("hidden", !isReg);
-      document.getElementById("regRoleField").classList.toggle("hidden", !isReg);
-
-      document.getElementById("tabBtnLogin").className = !isReg
-        ? "flex-1 py-2 rounded-lg bg-[#165B40] text-white transition"
-        : "flex-1 py-2 rounded-lg text-stone-700 transition";
-      document.getElementById("tabBtnRegister").className = isReg
-        ? "flex-1 py-2 rounded-lg bg-[#165B40] text-white transition"
-        : "flex-1 py-2 rounded-lg text-stone-700 transition";
-      document.getElementById("authSubmitBtn").textContent = isReg ? "Create Clip-ID Account" : "Sign In to ClipLine";
-    }
-
-    async function handleAuthSubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById("authEmail").value.trim().toLowerCase();
-      const pass = document.getElementById("authPassword").value;
-      const fullName = document.getElementById("authFullName").value.trim() || email.split("@")[0];
-      const phone = document.getElementById("authPhone").value.trim() || "+7 777 123 45 67";
-      const role = currentAuthTab === "register" ? document.getElementById("authRoleSelect").value : "customer";
-
-      const hashedPassword = await hashPasswordPBKDF2(pass);
-
-      if (supabaseClient) {
-        try {
-          if (currentAuthTab === "register") {
-            const { data: inserted } = await supabaseClient
-              .from("users")
-              .insert([{ full_name: fullName, email, password_hash: hashedPassword, role: role === "barber" ? "barber" : role }])
-              .select()
-              .single();
-
-            currentUser = {
-              user_id: inserted ? inserted.user_id : Date.now(),
-              full_name: fullName,
-              email,
-              phone,
-              role,
-              barber_id: role === "barber" ? 1 : null
-            };
-          } else {
-            const { data: found } = await supabaseClient
-              .from("users")
-              .select("*")
-              .ilike("email", email)
-              .limit(1);
-
-            if (found && found.length > 0) {
-              currentUser = {
-                user_id: found[0].user_id,
-                full_name: found[0].full_name,
-                email: found[0].email,
-                phone,
-                role: found[0].role || "customer",
-                barber_id: found[0].role === "barber" ? 1 : null
-              };
-            } else {
-              currentUser = { user_id: Date.now(), full_name: fullName, email, phone, role: "customer", barber_id: null };
-            }
-          }
-        } catch (err) {
-          currentUser = { user_id: Date.now(), full_name: fullName, email, phone, role, barber_id: role === "barber" ? 1 : null };
-        }
-      }
-
-      localStorage.setItem("clipline_user", JSON.stringify(currentUser));
-      syncUserHeaderUI();
-      applyRoleToWorkspaceUI();
-      renderProfileModalData();
-      document.getElementById("profileAuthFormView").classList.add("hidden");
-      document.getElementById("profileLoggedInView").classList.remove("hidden");
-      showPopupToast(`Welcome, ${currentUser.full_name}!`, `Logged in with PBKDF2-SHA256 verified session (${currentUser.role}).`, false);
-    }
-
-    function quickLoginPreset(preset) {
-      if (preset === "customer") {
-        currentUser = { user_id: 1, full_name: "Ansar", email: "ansar@clipline.kz", phone: "+7 777 123 45 67", role: "customer", barber_id: null };
-        document.getElementById("quickRoleSelect").value = "customer";
-      } else if (preset === "barber") {
-        currentUser = { user_id: 10, full_name: "Daniyar", email: "daniyar@clipline.kz", phone: "+7 701 555 11 22", role: "barber", barber_id: 1 };
-        document.getElementById("quickRoleSelect").value = "barber_1";
-      } else {
-        currentUser = { user_id: 99, full_name: "Arlan (Admin)", email: "admin@clipline.kz", phone: "+7 700 999 88 77", role: "admin", barber_id: null };
-        document.getElementById("quickRoleSelect").value = "admin";
-      }
-      localStorage.setItem("clipline_user", JSON.stringify(currentUser));
-      syncUserHeaderUI();
-      applyRoleToWorkspaceUI();
-      closeAuthProfileModal();
-      showPopupToast(`Switched Account to ${currentUser.full_name}`, `Active Role Rank: ${currentUser.role.toUpperCase()}`, false);
-    }
-
-    function renderProfileModalData() {
-      document.getElementById("profileBigAvatar").textContent = (currentUser.full_name || "U").charAt(0).toUpperCase();
-      document.getElementById("profileDisplayName").textContent = currentUser.full_name;
-      document.getElementById("profileRoleBadge").textContent = currentUser.role;
-      document.getElementById("profileDisplayEmail").textContent = currentUser.email || "user@clipline.kz";
-      document.getElementById("profileDisplayPhone").textContent = currentUser.phone || "+7 777 123 45 67";
-
-      const myBookings = scheduleList.filter(
-        a => a.client_name.toLowerCase() === currentUser.full_name.split(" ")[0].toLowerCase()
-      );
-      const myUpcoming = myBookings.filter(a => a.status === "confirmed");
-      const myReviews = reviewsList.filter(
-        r => r.client_name.toLowerCase() === currentUser.full_name.split(" ")[0].toLowerCase()
-      );
-
-      document.getElementById("profStatTotal").textContent = myBookings.length;
-      document.getElementById("profStatUpcoming").textContent = myUpcoming.length;
-      document.getElementById("profStatReviews").textContent = myReviews.length;
-
-      const listEl = document.getElementById("profileHistoryList");
-      if (myBookings.length === 0) {
-        listEl.innerHTML = `<div class="bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No appointments in your history yet. Book your first fresh cut!</div>`;
-        return;
-      }
-
-      listEl.innerHTML = myBookings.slice().reverse().map(item => {
-        const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
-        const b = BARBERS[item.barber_id] || BARBERS[1];
-        const alreadyReviewed = reviewsList.some(r => r.appointment_id === item.appointment_id);
-
-        return `
-          <div class="bg-white rounded-xl p-3.5 border border-[#E1E7E3] flex items-center justify-between gap-2">
-            <div>
-              <div class="text-xs font-bold text-[#18221E]">${s.name} with ${b.name}</div>
-              <div class="text-[11px] text-[#64706B]">${item.date} at ${item.time} · Ref: CL-${1000 + item.appointment_id}</div>
-              <span class="inline-block mt-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                item.status === "completed"
-                  ? "bg-[#E2EFE8] text-[#165B40]"
-                  : item.status === "cancelled"
-                  ? "bg-rose-100 text-rose-700"
-                  : "bg-amber-100 text-amber-800"
-              }">${item.status}</span>
-            </div>
-            <div>
-              ${
-                item.status === "completed" && !alreadyReviewed
-                  ? `<button onclick="closeAuthProfileModal(); openReviewModal(${item.appointment_id})" class="px-2.5 py-1.5 rounded-lg bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732] transition">★ Rate</button>`
-                  : item.status === "completed" && alreadyReviewed
-                  ? `<span class="text-[11px] font-bold text-[#165B40]">✓ Reviewed</span>`
-                  : item.status === "confirmed"
-                  ? `<button onclick="closeAuthProfileModal(); openAppointmentModal(${item.appointment_id})" class="px-2.5 py-1.5 rounded-lg border border-[#D5DDD8] text-xs font-semibold hover:border-[#165B40]">Manage</button>`
-                  : ``
-              }
-            </div>
+            <div class="text-[10px] text-[#7A8681]">📍 ${shop.name} · ${r.date}</div>
           </div>
         `;
       }).join("");
     }
 
     // =====================================================================
-    // FEATURE 4: 3-TIER ROLE RANK SYSTEM (CUSTOMER / BARBER / ADMIN)
+    // REQUIREMENT 4: BRANCH-SCOPED WORKSPACE (CUSTOMER / BARBER / ADMIN)
     // =====================================================================
-    function switchDemoRole(val) {
-      document.getElementById("quickRoleSelect").value = val;
-
-      if (val === "customer") {
-        currentUser.role = "customer";
-        currentUser.barber_id = null;
-        if (currentUser.full_name.includes("Admin") || BARBERS[1].name === currentUser.full_name) {
-          currentUser.full_name = "Ansar";
-        }
-      } else if (val.startsWith("barber_")) {
-        const bId = parseInt(val.split("_")[1]);
-        currentUser.role = "barber";
-        currentUser.barber_id = bId;
-        currentUser.full_name = BARBERS[bId].name;
-        document.getElementById("activeBarberIdentity").value = String(bId);
-      } else if (val === "admin") {
-        currentUser.role = "admin";
-        currentUser.barber_id = null;
-        currentUser.full_name = "Arlan (Admin)";
-      }
-
-      localStorage.setItem("clipline_user", JSON.stringify(currentUser));
-      syncUserHeaderUI();
-      applyRoleToWorkspaceUI();
-    }
-
     function applyRoleToWorkspaceUI() {
+      if (!currentUser) return;
       const role = currentUser.role;
-      const activeCls = "py-1.5 px-2 rounded-lg border border-[#165B40] bg-[#165B40] text-white text-center transition";
-      const idleCls = "py-1.5 px-2 rounded-lg border border-[#D5DDD8] bg-[#F4F7F4] text-[#18221E] hover:border-[#165B40] text-center transition";
-
-      document.getElementById("rankBtnCustomer").className = role === "customer" ? activeCls : idleCls;
-      document.getElementById("rankBtnBarber").className = role === "barber" ? activeCls : idleCls;
-      document.getElementById("rankBtnAdmin").className = role === "admin" ? activeCls : idleCls;
-
-      const barberSub = document.getElementById("barberRankSubSelector");
+      const adminPanel = document.getElementById("branchAdminToolsPanel");
       const ratingBadge = document.getElementById("barberPersonalRatingBadge");
 
       if (role === "customer") {
-        barberSub.classList.add("hidden");
+        adminPanel.classList.add("hidden");
         ratingBadge.classList.add("hidden");
-        document.getElementById("workspaceRoleOverline").textContent = `CUSTOMER / PERSONAL CABINET (${currentUser.full_name})`;
+        document.getElementById("workspaceRoleOverline").textContent = `CUSTOMER / ${currentUser.full_name.toUpperCase()}`;
         document.getElementById("workspaceTitle").textContent = "My Appointments";
         document.getElementById("workspaceDescription").textContent =
-          "Customer Rank: View your personal bookings, cancel upcoming visits, or rate your barber after completion.";
+          "Customer Portal: Track your upcoming appointments across Astana, cancel if needed, or leave a review after completion.";
       } else if (role === "barber") {
-        const bId = currentUser.barber_id || 1;
-        const b = BARBERS[bId];
-        const stats = getBarberRatingStats(bId);
-        barberSub.classList.remove("hidden");
+        const b = BARBERS[currentUser.barber_id || 1] || BARBERS[1];
+        const shop = SHOPS[b.shop_id] || SHOPS[1];
+        const stats = getBarberRatingStats(b.id);
+        adminPanel.classList.add("hidden");
         ratingBadge.classList.remove("hidden");
-        ratingBadge.textContent = `★ ${stats.avg} (${stats.count} reviews)`;
-        document.getElementById("workspaceRoleOverline").textContent = `BARBER WORKSPACE / ${b.name.toUpperCase()}`;
-        document.getElementById("workspaceTitle").textContent = `${b.name}’s Clients`;
+        ratingBadge.textContent = `★ ${stats.avg} (${stats.count})`;
+        document.getElementById("workspaceRoleOverline").textContent = `BARBER WORKSPACE · ${shop.name.toUpperCase()}`;
+        document.getElementById("workspaceTitle").textContent = `${b.name}’s Chair Queue`;
         document.getElementById("workspaceDescription").textContent =
-          `Barber Rank: Showing only clients booked with ${b.name}. Mark appointments as Completed when finished.`;
-      } else {
-        barberSub.classList.add("hidden");
+          `Strictly scoped to ${b.name} at ${shop.name} (${shop.address}). Mark your clients as Completed when finished.`;
+      } else if (role === "admin") {
+        const shop = SHOPS[currentUser.shop_id || 1] || SHOPS[1];
+        adminPanel.classList.remove("hidden");
         ratingBadge.classList.add("hidden");
-        document.getElementById("workspaceRoleOverline").textContent = "ADMIN / MASTER SCHEDULE";
-        document.getElementById("workspaceTitle").textContent = "All Salon Bookings";
+        document.getElementById("adminAssignedShopTag").textContent = shop.name;
+        document.getElementById("workspaceRoleOverline").textContent = `BRANCH ADMIN · ${shop.name.toUpperCase()}`;
+        document.getElementById("workspaceTitle").textContent = `${shop.name} Schedule`;
         document.getElementById("workspaceDescription").textContent =
-          "Admin Rank: Full control over all clients and barbers. Inspect, reschedule, complete, or cancel any booking.";
+          `Branch Admin Isolation: Managing only appointments and barbers assigned to ${shop.name} (${shop.address}).`;
+
+        // Render branch staff invite keys for this specific barbershop
+        const branchBarbers = Object.values(BARBERS).filter(b => Number(b.shop_id) === Number(shop.id));
+        document.getElementById("adminStaffKeysBox").innerHTML = branchBarbers.map(b => `
+          <div class="flex items-center justify-between bg-[#F4F7F4] px-2.5 py-1.5 rounded-lg border border-[#D5DDD8]">
+            <span>✂️ <strong>${b.name}</strong> (${b.specialty})</span>
+            <code class="text-[#165B40] font-bold">${b.staffKey}</code>
+          </div>
+        `).join("");
       }
 
       renderWorkspaceCards();
@@ -1526,36 +1688,41 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
 
     function renderWorkspaceCards() {
       const container = document.getElementById("adminCardsContainer");
-      if (!container) return;
+      if (!container || !currentUser) return;
       const query = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
       const role = currentUser.role;
 
-      // Filter list according to Role Rank permissions
-      let roleScopedList = scheduleList.filter(a => a.status !== "cancelled");
+      let scopedList = scheduleList.filter(a => a.status !== "cancelled");
+
       if (role === "customer") {
         const firstName = currentUser.full_name.split(" ")[0].toLowerCase();
-        roleScopedList = roleScopedList.filter(a => a.client_name.toLowerCase() === firstName);
+        scopedList = scopedList.filter(a => a.client_name.toLowerCase() === firstName);
       } else if (role === "barber") {
-        const bId = currentUser.barber_id || 1;
-        roleScopedList = roleScopedList.filter(a => Number(a.barber_id) === Number(bId));
+        const myBarber = BARBERS[currentUser.barber_id || 1];
+        scopedList = scopedList.filter(a =>
+          Number(a.barber_id) === Number(myBarber.id) && Number(a.shop_id) === Number(myBarber.shop_id)
+        );
+      } else if (role === "admin") {
+        const myShopId = currentUser.shop_id || 1;
+        scopedList = scopedList.filter(a => Number(a.shop_id) === Number(myShopId));
       }
 
-      const completedCount = roleScopedList.filter(a => a.status === "completed").length;
-      document.getElementById("statTotalBookings").textContent = `${roleScopedList.length} bookings`;
+      const completedCount = scopedList.filter(a => a.status === "completed").length;
+      document.getElementById("statTotalBookings").textContent = `${scopedList.length} bookings`;
       document.getElementById("statCompletedBookings").textContent = `${completedCount} completed`;
-      document.getElementById("filterBtnAll").textContent = `All (${roleScopedList.length})`;
+      document.getElementById("filterBtnAll").textContent = `All (${scopedList.length})`;
 
-      const filtered = roleScopedList.filter(item => {
-        const bName = (BARBERS[item.barber_id] ? BARBERS[item.barber_id].name : "").toLowerCase();
+      const filtered = scopedList.filter(item => {
+        const b = BARBERS[item.barber_id] || BARBERS[1];
         const matchesFilter = currentFilter === "all" || item.status === currentFilter;
-        const matchesSearch = item.client_name.toLowerCase().includes(query) || bName.includes(query);
+        const matchesSearch = item.client_name.toLowerCase().includes(query) || b.name.toLowerCase().includes(query);
         return matchesFilter && matchesSearch;
       });
 
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="bg-white rounded-2xl p-5 border border-[#E1E7E3] text-center text-xs text-[#64706B]">
-            No appointments match this view (${role.toUpperCase()} mode).
+            No appointments in this view.
           </div>
         `;
         return;
@@ -1564,10 +1731,10 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
       container.innerHTML = filtered.map(item => {
         const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
         const b = BARBERS[item.barber_id] || BARBERS[1];
+        const shop = SHOPS[item.shop_id] || SHOPS[1];
         const isCompleted = item.status === "completed";
         const alreadyReviewed = reviewsList.some(r => r.appointment_id === item.appointment_id);
 
-        // Role-specific action buttons
         let actionsHTML = "";
         if (role === "admin" || role === "barber") {
           if (!isCompleted) {
@@ -1586,18 +1753,18 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
           if (isCompleted && !alreadyReviewed) {
             actionsHTML = `
               <div class="pt-2">
-                <button onclick="openReviewModal(${item.appointment_id})" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-xs">
-                  ★ Leave Rating & Review for ${b.name}
+                <button onclick="openReviewModal(${item.appointment_id})" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition">
+                  ★ Rate & Review ${b.name}
                 </button>
               </div>
             `;
           } else if (isCompleted && alreadyReviewed) {
-            actionsHTML = `<div class="pt-1 text-[11px] font-bold text-[#165B40]">★ You reviewed this appointment</div>`;
+            actionsHTML = `<div class="pt-1 text-[11px] font-bold text-[#165B40]">★ Verified review submitted</div>`;
           } else {
             actionsHTML = `
               <div class="pt-2">
                 <button onclick="quickChangeStatus(${item.appointment_id}, 'cancelled')" class="w-full py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition">
-                  Cancel My Appointment
+                  Cancel Appointment
                 </button>
               </div>
             `;
@@ -1608,17 +1775,18 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
           <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-1.5 transition hover:border-[#165B40]/40">
             <div class="flex items-center justify-between">
               <div class="text-sm font-bold text-[#18221E]">
-                <span class="text-[#165B40] mr-1.5">${item.time}</span> · ${item.client_name}
+                <span class="text-[#165B40] mr-1">${item.time}</span> · ${item.client_name}
               </div>
               <span class="text-[11px] font-medium text-[#64706B]">${item.date}</span>
             </div>
+            <div class="text-[11px] font-semibold text-[#165B40]">📍 ${shop.name}</div>
             <div class="flex items-center justify-between text-xs text-[#64706B]">
               <span>✂️ ${s.name} (${s.price})</span>
               <span class="font-semibold text-[#18221E]">Barber: ${b.name}</span>
             </div>
             <div class="flex items-center gap-1.5 text-xs font-semibold text-[#165B40] pt-0.5">
               <span class="w-2 h-2 rounded-full ${isCompleted ? "bg-[#165B40]" : "bg-amber-500"} inline-block"></span>
-              <span>${isCompleted ? "Completed" : "Confirmed (Upcoming)"}</span>
+              <span>${isCompleted ? "Completed" : "Confirmed"}</span>
             </div>
             ${actionsHTML}
           </div>
@@ -1627,70 +1795,19 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
     }
 
     // =====================================================================
-    // CORE UI & SUPABASE CRUD FUNCTIONS
+    // SUPABASE CRUD, CRYPTO & CALENDAR SYNC
     // =====================================================================
-    let toastTimer = null;
-    function showPopupToast(title, message, isError = false) {
-      playNotificationChime(isError);
-      const toast = document.getElementById("bottomPopupToast");
-      const icon = document.getElementById("toastIcon");
-      const heading = document.getElementById("toastHeading");
-      const body = document.getElementById("toastBody");
-
-      toast.classList.remove("hidden", "toast-animate");
-      void toast.offsetWidth;
-      toast.classList.add("toast-animate");
-
-      if (isError) {
-        toast.className = "fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950 toast-animate";
-        icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-rose-600 text-white";
-        icon.textContent = "✕";
-      } else {
-        toast.className = "fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white toast-animate";
-        icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-[#E2EFE8] text-[#165B40]";
-        icon.textContent = "✓";
-      }
-
-      heading.textContent = title;
-      body.textContent = message;
-
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => hidePopupToast(), 5500);
-    }
-
-    function hidePopupToast() {
-      document.getElementById("bottomPopupToast").classList.add("hidden");
-    }
-
-    function setScreenMode(mode) {
-      const s1 = document.getElementById("screen01Wrapper");
-      const s2 = document.getElementById("screen02Wrapper");
-      const s3 = document.getElementById("screen03Wrapper");
-      const s4 = document.getElementById("screen04Wrapper");
-
-      s1.classList.toggle("hidden", mode !== "01" && mode !== "all");
-      s2.classList.toggle("hidden", mode !== "02" && mode !== "all");
-      s3.classList.toggle("hidden", mode !== "03" && mode !== "all");
-      s4.classList.toggle("hidden", mode !== "04" && mode !== "all");
-
-      const activeBtn = "px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition whitespace-nowrap";
-      const idleBtn = "px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap";
-
-      document.getElementById("nav01").className = mode === "01" ? activeBtn : idleBtn;
-      document.getElementById("nav02").className = mode === "02" ? activeBtn : idleBtn;
-      document.getElementById("nav03").className = mode === "03" ? activeBtn : idleBtn;
-      document.getElementById("nav04").className = mode === "04" ? activeBtn : idleBtn;
-      document.getElementById("navAll").className = (mode === "all" ? activeBtn : idleBtn) + " hidden xl:inline-block";
-    }
-
-    function updateLiveSummary() {
-      const servSel = document.getElementById("serviceInput");
-      const sOpt = servSel.options[servSel.selectedIndex];
-      const b = BARBERS[selectedBarberId];
-      const timeLabel = selectedTime || "No slot open";
-
-      document.getElementById("summaryLine1").textContent = `${sOpt.dataset.name} with ${b.name} · ${selectedDateISO} · ${timeLabel}`;
-      document.getElementById("summaryLine2").textContent = `${sOpt.dataset.duration} minutes · Total: ${sOpt.dataset.price} · Pay at the shop`;
+    async function hashPasswordPBKDF2(password) {
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
+      const salt = enc.encode("clipline_astana_salt_2026");
+      const derivedBits = await window.crypto.subtle.deriveBits(
+        { name: "PBKDF2", salt, iterations: 10000, hash: "SHA-256" },
+        keyMaterial,
+        256
+      );
+      const hex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, "0")).join("");
+      return `pbkdf2_sha256$10000$${hex.slice(0, 32)}`;
     }
 
     async function fetchScheduleFromDB(showToast = false) {
@@ -1705,9 +1822,7 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
         if (uRes.error || aRes.error) throw (uRes.error || aRes.error);
 
         const userMap = {};
-        (uRes.data || []).forEach(u => {
-          userMap[u.user_id] = u.full_name.split(" ")[0];
-        });
+        (uRes.data || []).forEach(u => { userMap[u.user_id] = u.full_name.split(" ")[0]; });
 
         const servMap = {};
         (asRes.data || []).forEach(r => { servMap[r.appointment_id] = r.service_id; });
@@ -1717,12 +1832,20 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
             const dateObj = new Date(a.starts_at);
             const rawTime = dateObj.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Almaty" });
             const rawDate = dateObj.toLocaleDateString("en-CA", { timeZone: "Asia/Almaty" });
+
+            const savedMeta = appointmentBranchMap[a.appointment_id];
+            const mappedBarberId = savedMeta ? savedMeta.barber_id : a.barber_id;
+            const bObj = BARBERS[mappedBarberId] || BARBERS[1];
+            const mappedShopId = savedMeta ? savedMeta.shop_id : bObj.shop_id;
+
             return {
               appointment_id: a.appointment_id,
               time: rawTime,
               date: rawDate,
               client_name: userMap[a.customer_id] || "Client",
-              barber_id: a.barber_id,
+              db_barber_id: a.barber_id,
+              barber_id: mappedBarberId,
+              shop_id: mappedShopId,
               service_id: servMap[a.appointment_id] || 1,
               status: a.status
             };
@@ -1730,11 +1853,8 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
         }
         renderTimeSlotButtons();
         renderWorkspaceCards();
-        if (showToast) {
-          showPopupToast("Synced with Cloud PostgreSQL", "Latest appointments and availability loaded.", false);
-        }
+        if (showToast) showPopupToast("Synced with Supabase", "Latest Astana branch appointments loaded.", false);
       } catch (err) {
-        console.warn("Fetch error:", err.message);
         renderTimeSlotButtons();
         renderWorkspaceCards();
       }
@@ -1742,25 +1862,31 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
 
     async function submitBooking(e) {
       e.preventDefault();
+      if (!checkRateLimit("booking_submit", 3, 25000)) return;
 
-      // Guard 1: Verify date and time against device clock right at submission
       if (!selectedTime || isTimeSlotInPastOnDevice(selectedDateISO, selectedTime)) {
-        showPopupToast("Invalid Time Slot", "That date or time has already passed on your device clock.", true);
+        showPopupToast("Slot Closed", "That date or time has already passed on your device clock.", true);
         renderTimeSlotButtons();
         return;
       }
 
-      const service_id = parseInt(document.getElementById("serviceInput").value);
-      const barber_id = selectedBarberId;
-      const clientName = document.getElementById("clientNameInput").value.trim() || currentUser.full_name;
+      const clientName = document.getElementById("clientNameInput").value.trim();
+      const clientPhone = document.getElementById("clientPhoneInput").value.trim();
 
+      if (!isValidKazakhstanPhone(clientPhone)) {
+        showPopupToast("Invalid KZ Phone", "Please enter a valid Kazakhstan phone number (+7 7XX...).", true);
+        return;
+      }
+
+      const service_id = parseInt(document.getElementById("serviceInput").value);
+      const barberObj = BARBERS[selectedBarberId] || BARBERS[1];
+      const shopObj = SHOPS[selectedShopId] || SHOPS[1];
       const starts_at_iso = `${selectedDateISO}T${selectedTime}:00+05:00`;
       const sInfo = SERVICE_CATALOG[service_id];
-      const bName = BARBERS[barber_id].name;
 
       if (supabaseClient) {
         try {
-          let customer_id = currentUser.user_id || 1;
+          let customer_id = currentUser ? currentUser.user_id : 1;
           const { data: existingUsers } = await supabaseClient
             .from("users")
             .select("user_id, full_name")
@@ -1773,12 +1899,7 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
             const randomEmail = `${clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
             const { data: newUser } = await supabaseClient
               .from("users")
-              .insert([{
-                full_name: clientName,
-                email: randomEmail,
-                password_hash: "pbkdf2_sha256$210000$hash",
-                role: "customer"
-              }])
+              .insert([{ full_name: clientName, email: randomEmail, password_hash: "pbkdf2_sha256$10000$verified", role: "customer" }])
               .select()
               .single();
             if (newUser) customer_id = newUser.user_id;
@@ -1788,7 +1909,7 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
             .from("appointments")
             .insert([{
               customer_id,
-              barber_id,
+              barber_id: barberObj.db_barber_id,
               starts_at: starts_at_iso,
               status: "confirmed"
             }])
@@ -1801,48 +1922,200 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
             .from("appointment_services")
             .insert([{ appointment_id: apptRow.appointment_id, service_id }]);
 
+          // Save branch & exact barber mapping
+          appointmentBranchMap[apptRow.appointment_id] = {
+            shop_id: shopObj.id,
+            barber_id: barberObj.id
+          };
+          localStorage.setItem("clipline_appt_branch_map", JSON.stringify(appointmentBranchMap));
+
           activeBookingId = apptRow.appointment_id;
           const refCode = `CL-${1000 + apptRow.appointment_id}`;
 
           lastConfirmedBooking = {
             refCode,
+            shopName: shopObj.name,
+            shopAddress: shopObj.address,
             serviceName: sInfo.name,
             duration: sInfo.duration,
-            barberName: bName,
+            barberName: barberObj.name,
             dateISO: selectedDateISO,
             timeStr: selectedTime,
             price: sInfo.price
           };
 
           document.getElementById("confReference").textContent = `Reference: ${refCode}`;
-          document.getElementById("confService").textContent = `${sInfo.name} · ${sInfo.duration} minutes`;
+          document.getElementById("confShopName").textContent = shopObj.name;
+          document.getElementById("confShopAddress").textContent = shopObj.address;
+          document.getElementById("confService").textContent = `${sInfo.name} (${sInfo.duration} min) · ${barberObj.name}`;
           document.getElementById("confWhen").textContent = `${selectedDateISO} · ${selectedTime}`;
-          document.getElementById("confBarber").textContent = bName;
-          document.getElementById("confTotal").textContent = `${sInfo.price} · Pay at the shop`;
+          document.getElementById("confTotal").textContent = `${sInfo.price} · Pay at the barbershop`;
 
           await fetchScheduleFromDB(false);
-
-          if (window.innerWidth < 1280) {
-            setScreenMode("02");
-          }
+          if (window.innerWidth < 1280) setScreenMode("02");
 
           showPopupToast(
-            `Booking Confirmed! (${refCode})`,
-            `${clientName} booked ${sInfo.name} with ${bName} on ${selectedDateISO} at ${selectedTime}.`,
+            `Confirmed at ${shopObj.name}! (${refCode})`,
+            `${clientName} booked ${sInfo.name} with ${barberObj.name} on ${selectedDateISO} at ${selectedTime}.`,
             false
           );
         } catch (err) {
           if (err.message.includes("uq_active_barber_start") || err.message.includes("duplicate key")) {
-            showPopupToast(
-              "Time Slot Already Booked!",
-              `Database constraint blocked double-booking: ${bName} is already booked at ${selectedTime}!`,
-              true
-            );
+            showPopupToast("Slot Already Taken", `${barberObj.name} is already booked at ${selectedTime}.`, true);
           } else {
             showPopupToast("Booking Error", err.message, true);
           }
         }
       }
+    }
+
+    // =====================================================================
+    // UI HELPERS, MODALS & CALENDAR EXPORT
+    // =====================================================================
+    function syncUserHeaderUI() {
+      if (!currentUser) return;
+      document.getElementById("headerAvatar").textContent = (currentUser.full_name || "U").charAt(0).toUpperCase();
+      document.getElementById("headerUserName").textContent = currentUser.full_name;
+
+      let badgeText = "CUSTOMER";
+      if (currentUser.role === "barber") {
+        const b = BARBERS[currentUser.barber_id || 1] || BARBERS[1];
+        badgeText = `BARBER · ${b.name}`;
+      } else if (currentUser.role === "admin") {
+        const s = SHOPS[currentUser.shop_id || 1] || SHOPS[1];
+        badgeText = `ADMIN · ${s.name.split(" ")[1] || s.name}`;
+      }
+      document.getElementById("roleBadgeHeader").textContent = badgeText;
+
+      const nameInp = document.getElementById("clientNameInput");
+      const phoneInp = document.getElementById("clientPhoneInput");
+      if (nameInp) nameInp.value = currentUser.full_name.split(" (")[0];
+      if (phoneInp && currentUser.phone) phoneInp.value = currentUser.phone;
+    }
+
+    function updateLiveSummary() {
+      const servSel = document.getElementById("serviceInput");
+      const sOpt = servSel.options[servSel.selectedIndex];
+      const b = BARBERS[selectedBarberId] || BARBERS[1];
+      const shop = SHOPS[selectedShopId] || SHOPS[1];
+      const timeLabel = selectedTime || "No slot open";
+
+      document.getElementById("summaryLine1").textContent = `${sOpt.dataset.name} with ${b.name} · ${selectedDateISO} · ${timeLabel}`;
+      document.getElementById("summaryLine2").textContent = `${shop.name} · Total: ${sOpt.dataset.price}`;
+    }
+
+    function openAuthProfileModal() {
+      renderProfileModalData();
+      document.getElementById("authProfileModal").classList.remove("hidden");
+    }
+
+    function closeAuthProfileModal() {
+      document.getElementById("authProfileModal").classList.add("hidden");
+    }
+
+    function renderProfileModalData() {
+      if (!currentUser) return;
+      document.getElementById("profileBigAvatar").textContent = (currentUser.full_name || "U").charAt(0).toUpperCase();
+      document.getElementById("profileDisplayName").textContent = currentUser.full_name;
+      document.getElementById("profileRoleBadge").textContent = currentUser.role;
+      document.getElementById("profileDisplayEmail").textContent = currentUser.email;
+      document.getElementById("profileDisplayPhone").textContent = currentUser.phone;
+
+      const branchEl = document.getElementById("profileAssignedBranch");
+      if (currentUser.role === "admin" || currentUser.role === "barber") {
+        const s = SHOPS[currentUser.shop_id || 1] || SHOPS[1];
+        branchEl.textContent = `📍 Assigned Branch: ${s.name} (${s.address})`;
+      } else {
+        branchEl.textContent = "📍 Access across all Astana ClipLine branches";
+      }
+
+      const firstName = currentUser.full_name.split(" ")[0].toLowerCase();
+      const myBookings = scheduleList.filter(a => a.client_name.toLowerCase() === firstName);
+      const listEl = document.getElementById("profileHistoryList");
+
+      if (myBookings.length === 0) {
+        listEl.innerHTML = `<div class="bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No appointments yet.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = myBookings.slice().reverse().map(item => {
+        const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
+        const b = BARBERS[item.barber_id] || BARBERS[1];
+        const shop = SHOPS[item.shop_id] || SHOPS[1];
+        const alreadyReviewed = reviewsList.some(r => r.appointment_id === item.appointment_id);
+
+        return `
+          <div class="bg-white rounded-xl p-3 border border-[#E1E7E3] flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-[#18221E]">${s.name} · ${b.name}</div>
+              <div class="text-[10px] font-semibold text-[#165B40]">${shop.name}</div>
+              <div class="text-[11px] text-[#64706B]">${item.date} at ${item.time}</div>
+            </div>
+            <div>
+              ${
+                item.status === "completed" && !alreadyReviewed
+                  ? `<button onclick="closeAuthProfileModal(); openReviewModal(${item.appointment_id})" class="px-2.5 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-bold">★ Rate</button>`
+                  : `<span class="text-[10px] font-bold uppercase px-2 py-1 rounded bg-[#E2EFE8] text-[#165B40]">${item.status}</span>`
+              }
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function openReviewModal(appointmentId) {
+      reviewTargetApptId = appointmentId;
+      const appt = scheduleList.find(a => a.appointment_id === appointmentId);
+      const b = BARBERS[appt ? appt.barber_id : 1] || BARBERS[1];
+      const shop = SHOPS[appt ? appt.shop_id : 1] || SHOPS[1];
+
+      document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
+      document.getElementById("reviewModalSubtitle").textContent = `${shop.name} · Completed Appointment`;
+      document.getElementById("reviewCommentInput").value = "";
+      setReviewStars(5);
+      document.getElementById("reviewModal").classList.remove("hidden");
+    }
+
+    function closeReviewModal() {
+      document.getElementById("reviewModal").classList.add("hidden");
+    }
+
+    function setReviewStars(num) {
+      selectedReviewStars = num;
+      const labels = { 1: "1 / 5 Poor", 2: "2 / 5 Fair", 3: "3 / 5 Good", 4: "4 / 5 Very Good", 5: "5 / 5 Excellent" };
+      document.getElementById("starRatingLabel").textContent = labels[num];
+      document.querySelectorAll("#starRatingButtons button").forEach((btn, idx) => {
+        btn.className = idx < num ? "text-2xl text-amber-500 transition hover:scale-110" : "text-2xl text-stone-300 transition hover:scale-110";
+      });
+    }
+
+    function submitBarberReview() {
+      const comment = document.getElementById("reviewCommentInput").value.trim();
+      if (!comment) {
+        showPopupToast("Comment Required", "Please write a brief review.", true);
+        return;
+      }
+      const appt = scheduleList.find(a => a.appointment_id === reviewTargetApptId);
+      const barber_id = appt ? appt.barber_id : selectedBarberId;
+      const shop_id = appt ? appt.shop_id : selectedShopId;
+
+      reviewsList.push({
+        id: Date.now(),
+        appointment_id: reviewTargetApptId,
+        shop_id,
+        barber_id,
+        client_name: currentUser ? currentUser.full_name.split(" ")[0] : "Client",
+        rating: selectedReviewStars,
+        comment,
+        date: getDeviceTodayISO()
+      });
+      localStorage.setItem("clipline_reviews_v3", JSON.stringify(reviewsList));
+
+      closeReviewModal();
+      renderBarberSelectorCards();
+      renderReviewsSection();
+      applyRoleToWorkspaceUI();
+      showPopupToast("Verified Review Published! ★", `Your ${selectedReviewStars}-star rating for ${BARBERS[barber_id].name} is live.`, false);
     }
 
     function setAdminFilter(filter) {
@@ -1858,7 +2131,7 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
 
     function openAppointmentModal(id) {
       activeBookingId = id;
-      const item = scheduleList.find(a => a.appointment_id === id) || scheduleList[0];
+      const item = scheduleList.find(a => a.appointment_id === id);
       if (!item) return;
       const s = SERVICE_CATALOG[item.service_id] || SERVICE_CATALOG[1];
       const b = BARBERS[item.barber_id] || BARBERS[1];
@@ -1879,7 +2152,7 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
       const datePart = item ? item.date : getDeviceTodayISO();
 
       if (isTimeSlotInPastOnDevice(datePart, newTime)) {
-        showPopupToast("Cannot Reschedule to Past", "That time slot has already passed on your device.", true);
+        showPopupToast("Past Time Blocked", "Cannot reschedule to a time that has already passed.", true);
         return;
       }
 
@@ -1888,16 +2161,14 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
           .from("appointments")
           .update({ starts_at: `${datePart}T${newTime}:00+05:00` })
           .eq("appointment_id", activeBookingId);
-
         if (error) {
-          showPopupToast("Reschedule Blocked!", "That barber is already booked at " + newTime, true);
+          showPopupToast("Slot Taken", "That time is already booked.", true);
           return;
         }
       }
-      if (item) item.time = newTime;
       closeAppointmentModal();
       await fetchScheduleFromDB(false);
-      showPopupToast("Rescheduled!", `Updated appointment to ${newTime}.`, false);
+      showPopupToast("Rescheduled ✓", `Updated appointment to ${newTime}.`, false);
     }
 
     async function quickChangeStatus(id, newStatus) {
@@ -1907,48 +2178,167 @@ Synced directly with your device calendar and cloud PostgreSQL database.`;
 
     async function changeModalStatus(newStatus) {
       if (supabaseClient) {
-        await supabaseClient
-          .from("appointments")
-          .update({ status: newStatus })
-          .eq("appointment_id", activeBookingId);
+        await supabaseClient.from("appointments").update({ status: newStatus }).eq("appointment_id", activeBookingId);
       }
-      const item = scheduleList.find(a => a.appointment_id === activeBookingId);
-      if (item) item.status = newStatus;
       closeAppointmentModal();
       await fetchScheduleFromDB(false);
-
-      if (newStatus === "completed") {
-        showPopupToast("Appointment Completed! ✓", "The customer can now leave a star rating & review for this cut.", false);
-      } else {
-        showPopupToast("Status Updated", `Appointment marked as ${newStatus}.`, false);
-      }
+      showPopupToast("Status Updated", `Appointment marked as ${newStatus}.`, false);
     }
 
-    // =====================================================================
-    // INITIALIZE APP ON LOAD + REAL-TIME DEVICE CLOCK INTERVAL
-    // =====================================================================
+    function getActiveBookingForCalendar() {
+      if (lastConfirmedBooking) return lastConfirmedBooking;
+      const sOpt = document.getElementById("serviceInput").options[document.getElementById("serviceInput").selectedIndex];
+      const shop = SHOPS[selectedShopId] || SHOPS[1];
+      const b = BARBERS[selectedBarberId] || BARBERS[1];
+      return {
+        refCode: "CL-1025",
+        shopName: shop.name,
+        shopAddress: shop.address,
+        serviceName: sOpt ? sOpt.dataset.name : "Haircut",
+        duration: sOpt ? parseInt(sOpt.dataset.duration) : 45,
+        barberName: b.name,
+        dateISO: selectedDateISO || getDeviceTodayISO(),
+        timeStr: selectedTime || "16:00",
+        price: sOpt ? sOpt.dataset.price : "5,000 ₸"
+      };
+    }
+
+    function downloadICSFile() {
+      const b = getActiveBookingForCalendar();
+      const [year, month, day] = b.dateISO.split("-").map(Number);
+      const [hour, minute] = b.timeStr.split(":").map(Number);
+      const startDate = new Date(year, month - 1, day, hour, minute, 0);
+      const endDate = new Date(startDate.getTime() + b.duration * 60000);
+      const toICS = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+      const ics = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//ClipLine Astana//EN",
+        "BEGIN:VEVENT",
+        `UID:${b.refCode}-${Date.now()}@clipline.kz`,
+        `DTSTAMP:${toICS(new Date())}`,
+        `DTSTART:${toICS(startDate)}`,
+        `DTEND:${toICS(endDate)}`,
+        `SUMMARY:${b.shopName}: ${b.serviceName} with ${b.barberName}`,
+        `DESCRIPTION:Ref: ${b.refCode} | Total: ${b.price}`,
+        `LOCATION:${b.shopAddress}`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ].join("\r\n");
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+      link.download = `ClipLine-${b.refCode}.ics`;
+      link.click();
+      showPopupToast("Calendar File Downloaded (.ics)", "Open to import into your device calendar.", false);
+    }
+
+    function openGoogleCalendarLink() {
+      const b = getActiveBookingForCalendar();
+      const [year, month, day] = b.dateISO.split("-").map(Number);
+      const [hour, minute] = b.timeStr.split(":").map(Number);
+      const startDate = new Date(year, month - 1, day, hour, minute, 0);
+      const endDate = new Date(startDate.getTime() + b.duration * 60000);
+      const fmt = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(b.shopName + ": " + b.serviceName)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent("Barber: " + b.barberName + " | Ref: " + b.refCode)}&location=${encodeURIComponent(b.shopAddress)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    function playNotificationChime(isError = false) {
+      if (!soundEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = isError ? "sawtooth" : "sine";
+        osc.frequency.setValueAtTime(isError ? 210 : 587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(isError ? 170 : 880, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.07, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.32);
+      } catch (e) {}
+    }
+
+    function toggleSoundEffects() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("soundIcon").textContent = soundEnabled ? "🔔" : "🔕";
+      showPopupToast(soundEnabled ? "Sound Chimes On" : "Silent Mode Active", "Visual alerts remain active.", false);
+    }
+
+    let toastTimer = null;
+    function showPopupToast(title, message, isError = false) {
+      playNotificationChime(isError);
+      const toast = document.getElementById("bottomPopupToast");
+      const icon = document.getElementById("toastIcon");
+      document.getElementById("toastHeading").textContent = title;
+      document.getElementById("toastBody").textContent = message;
+
+      toast.classList.remove("hidden", "toast-animate");
+      void toast.offsetWidth;
+      toast.classList.add("toast-animate");
+
+      if (isError) {
+        toast.className = "fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950 toast-animate";
+        icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-rose-600 text-white";
+        icon.textContent = "✕";
+      } else {
+        toast.className = "fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white toast-animate";
+        icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-[#E2EFE8] text-[#165B40]";
+        icon.textContent = "✓";
+      }
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => hidePopupToast(), 5500);
+    }
+
+    function hidePopupToast() {
+      document.getElementById("bottomPopupToast").classList.add("hidden");
+    }
+
+    function setScreenMode(mode) {
+      ["01", "02", "03", "04"].forEach(id => {
+        document.getElementById(`screen${id}Wrapper`).classList.toggle("hidden", mode !== id && mode !== "all");
+      });
+      const activeBtn = "px-3 py-1.5 rounded-lg bg-[#165B40] text-white transition whitespace-nowrap";
+      const idleBtn = "px-3 py-1.5 rounded-lg text-stone-700 hover:text-[#165B40] transition whitespace-nowrap";
+      ["01", "02", "03", "04"].forEach(id => {
+        document.getElementById(`nav${id}`).className = mode === id ? activeBtn : idleBtn;
+      });
+      document.getElementById("navAll").className = (mode === "all" ? activeBtn : idleBtn) + " hidden xl:inline-block";
+    }
+
+    function initVideoWebVTTCaptions() {
+      const vtt = `WEBVTT\n\n00:00.000 --> 00:05.000\nClipLine Astana — Multi-Branch Barbershop Booking Network.\n\n00:05.001 --> 00:12.000\nSelect your Astana branch, verify your slot, and sync with your device calendar.`;
+      const trackEl = document.getElementById("enCaptionsTrack");
+      if (trackEl) trackEl.src = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
       initVideoWebVTTCaptions();
       updateDeviceClockDisplay();
       renderRollingDatePills();
+      renderShopSelectorList();
       renderBarberSelectorCards();
+      populateReviewFilterDropdown();
       renderReviewsSection();
-      syncUserHeaderUI();
-      applyRoleToWorkspaceUI();
       updateLiveSummary();
 
-      // Refresh device clock & auto-lock passing time slots every 15 seconds
+      if (currentUser) {
+        document.getElementById("mandatoryAuthGate").classList.add("hidden");
+        syncUserHeaderUI();
+        applyRoleToWorkspaceUI();
+      }
+
       setInterval(() => {
         updateDeviceClockDisplay();
         renderTimeSlotButtons();
       }, 15000);
 
-      if (window.innerWidth < 1280) {
-        setScreenMode("01");
-      } else {
-        setScreenMode("all");
-      }
-
+      setScreenMode(window.innerWidth < 1280 ? "01" : "all");
       fetchScheduleFromDB(false);
 
       if (supabaseClient) {
