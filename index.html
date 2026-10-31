@@ -13,7 +13,6 @@
       background-color: #E6E9E6;
       color: #18221E;
     }
-    /* Hard guarantee that hidden overlays never block mouse clicks */
     .hidden {
       display: none !important;
       pointer-events: none !important;
@@ -72,24 +71,16 @@
 <body class="min-h-screen flex flex-col lg:flex-row">
 
   <!-- ===================================================================== -->
-  <!-- INCOMING MAIL PUSH BANNER (Delivers OTP & Admin Credentials)          -->
+  <!-- EMAIL INBOX NOTIFICATION (Displays incoming verification email)       -->
   <!-- ===================================================================== -->
-  <div id="mailNotificationBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[90] w-[94%] max-w-md bg-white text-[#18221E] rounded-2xl p-4 shadow-2xl border-2 border-[#165B40]">
+  <div id="mailNotificationBanner" class="hidden fixed top-4 right-4 z-[90] w-[92%] max-w-sm bg-white text-[#18221E] rounded-2xl p-4 shadow-2xl border border-[#D5DDD8]">
     <div class="flex items-start justify-between gap-3">
       <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#165B40] text-white flex items-center justify-center text-base font-bold shrink-0">✉️</div>
+        <div class="w-9 h-9 rounded-xl bg-[#165B40] text-white flex items-center justify-center text-sm font-bold shrink-0">✉️</div>
         <div class="text-xs">
-          <div class="flex items-center gap-2">
-            <span class="font-extrabold text-[#18221E]">ClipLine Mail</span>
-            <span class="text-[10px] text-[#165B40] font-bold">New Message</span>
-          </div>
+          <div class="font-bold text-[#18221E]">no-reply@clipline.kz</div>
           <p id="mailPushSubject" class="text-xs text-[#52635B] mt-0.5"></p>
-          <div class="mt-2 flex items-center gap-2">
-            <span id="mailPushCode" class="px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40] font-extrabold text-sm tracking-widest"></span>
-            <button id="mailPushActionBtn" type="button" onclick="window.app.applyMailCode()" class="px-2.5 py-1 rounded-lg bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732]">
-              Auto-Fill Code
-            </button>
-          </div>
+          <div id="mailPushCode" class="mt-1.5 inline-block px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40] font-extrabold text-sm tracking-widest"></div>
         </div>
       </div>
       <button type="button" onclick="document.getElementById('mailNotificationBanner').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 font-bold px-1">✕</button>
@@ -102,7 +93,7 @@
   <div id="authGateOverlay" class="fixed inset-0 bg-[#E6E9E6] z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 app-card overflow-hidden my-auto shadow-xl">
       
-      <!-- Left Brand Showcase -->
+      <!-- Brand Panel -->
       <div class="hidden lg:flex lg:col-span-5 bg-[#165B40] text-white p-8 flex-col justify-between">
         <div>
           <div class="flex items-center gap-3 mb-6">
@@ -130,14 +121,13 @@
         </div>
       </div>
 
-      <!-- Right Auth Form -->
+      <!-- Auth Form Panel -->
       <div class="lg:col-span-7 p-6 sm:p-8 bg-[#F4F7F4]">
         <div class="mb-5">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">WELCOME TO CLIPLINE</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIPLINE ACCOUNT</span>
           <h1 id="authMainHeading" class="text-2xl font-bold text-[#18221E]">Sign in to your account</h1>
         </div>
 
-        <!-- Mode Switcher Tabs -->
         <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold mb-5">
           <button type="button" onclick="window.app.switchAuthTab('login')" id="authTabLogin" class="flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition">
             Sign In
@@ -147,11 +137,11 @@
           </button>
         </div>
 
-        <!-- Step 1: Credentials Form -->
+        <!-- Credentials Form -->
         <form id="authCredentialsForm" onsubmit="window.app.handleAuthSubmit(event)" class="space-y-3.5">
           <div id="regNameRow" class="hidden">
             <label for="authFullName" class="block text-xs font-semibold text-[#18221E] mb-1">Full Name</label>
-            <input id="authFullName" type="text" placeholder="e.g. Ansar" class="field w-full px-3.5 py-2.5 text-sm" />
+            <input id="authFullName" type="text" placeholder="Enter your full name" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div>
@@ -160,17 +150,12 @@
           </div>
 
           <div id="regPhoneRow" class="hidden">
-            <label for="authPhone" class="block text-xs font-semibold text-[#18221E] mb-1">Kazakhstan Mobile Number</label>
-            <input id="authPhone" type="tel" oninput="SecurityService.formatPhone(this)" placeholder="+7 701 234 56 78" class="field w-full px-3.5 py-2.5 text-sm" />
+            <label for="authPhone" class="block text-xs font-semibold text-[#18221E] mb-1">Mobile Number</label>
+            <input id="authPhone" type="tel" oninput="SecurityService.formatPhone(this)" placeholder="+7 701 000 00 00" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div>
-            <div class="flex items-center justify-between mb-1">
-              <label for="authPassword" class="text-xs font-semibold text-[#18221E]">Password</label>
-              <button type="button" onclick="window.app.sendAdminRecoveryEmail()" class="text-[11px] font-semibold text-[#165B40] hover:underline">
-                Send Head Admin Login to Mail
-              </button>
-            </div>
+            <label for="authPassword" class="block text-xs font-semibold text-[#18221E] mb-1">Password</label>
             <input id="authPassword" type="password" required minlength="6" placeholder="••••••••" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
@@ -186,19 +171,9 @@
           <button type="submit" id="authSubmitBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm shadow-sm">
             Sign In
           </button>
-
-          <!-- Quick Fill Helpers -->
-          <div class="pt-3 border-t border-[#D5DDD8] flex items-center justify-between text-[11px]">
-            <button type="button" onclick="window.app.quickFillLogin('customer')" class="font-semibold text-[#52635B] hover:text-[#165B40] underline">
-              Fill Customer Account
-            </button>
-            <button type="button" onclick="window.app.quickFillLogin('head_admin')" class="font-bold text-[#165B40] hover:underline">
-              Fill Head Admin (Arlan)
-            </button>
-          </div>
         </form>
 
-        <!-- Step 2: Email OTP Verification -->
+        <!-- Email OTP Verification Form -->
         <form id="authOtpForm" onsubmit="window.app.handleOtpVerify(event)" class="hidden space-y-4">
           <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20">
             <div class="text-xs font-bold text-[#165B40]">Verify your email address</div>
@@ -208,12 +183,12 @@
           </div>
 
           <div>
-            <label for="authOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">6-Digit Confirmation Code</label>
+            <label for="authOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">Confirmation Code</label>
             <input id="authOtpInput" type="text" maxlength="6" required placeholder="••••••" class="field w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] text-[#165B40]" />
           </div>
 
           <div class="flex items-center justify-between text-xs">
-            <button type="button" onclick="window.app.cancelOtpStep()" class="font-semibold text-[#64706B] hover:text-[#18221E]">← Edit details</button>
+            <button type="button" onclick="window.app.cancelOtpStep()" class="font-semibold text-[#64706B] hover:text-[#18221E]">← Back</button>
             <button type="button" onclick="window.app.resendOtpCode()" class="font-semibold text-[#165B40] hover:underline">Resend code</button>
           </div>
 
@@ -573,7 +548,7 @@
         <div id="iotSensorsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
       </section>
 
-      <!-- VIEW 5: MANAGEMENT CONSOLE (Unlocked via 12-Char Token or Head Admin Login) -->
+      <!-- VIEW 5: MANAGEMENT CONSOLE -->
       <section id="viewPortal" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -727,7 +702,7 @@
       <div>
         <h3 class="text-xl font-bold text-[#18221E]">Connect Your Barbershop</h3>
         <p class="text-xs text-[#64706B] mt-1">
-          Submit your branch details for verification. Once approved by Head Administration, your branch and staff access codes will be activated.
+          Submit your branch details for verification. Once approved by Administration, your branch and staff access codes will be activated.
         </p>
       </div>
 
@@ -845,9 +820,6 @@
   <!-- APPLICATION ARCHITECTURE (SRP ES6 CLASSES)                            -->
   <!-- ===================================================================== -->
   <script>
-    /**
-     * 0. SafeStorage: Prevents localStorage crashes on file:// or strict privacy modes
-     */
     class SafeStorage {
       static memory = {};
       static get(key, fallback) {
@@ -872,9 +844,6 @@
       }
     }
 
-    /**
-     * 1. SecurityService: Validation, Formatting, Rate Limiting & Fallback Hashing
-     */
     class SecurityService {
       static buckets = {};
       static kzPrefixes = ["700", "701", "702", "705", "706", "707", "708", "747", "771", "775", "776", "777", "778"];
@@ -954,7 +923,6 @@
         return `${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
       }
 
-      // Works on BOTH https:// (Web Crypto API) and file:// (Pure JS Fallback)
       static async hashPassword(password) {
         try {
           if (window.crypto && window.crypto.subtle) {
@@ -969,7 +937,6 @@
             return `pbkdf2_sha256$10000$${hex.slice(0, 32)}`;
           }
         } catch (e) {}
-        // Pure-JS deterministic hash fallback for local file:// protocol
         let h1 = 0xdeadbeef ^ password.length;
         let h2 = 0x41c6ce57 ^ password.length;
         for (let i = 0, ch; i < password.length; i++) {
@@ -984,11 +951,8 @@
       }
     }
 
-    /**
-     * 2. MailDeliveryService: Real HTTP relay + instant top push notification
-     */
     class MailDeliveryService {
-      static async sendCode(email, subject, codeText, mode = "otp") {
+      static async sendCode(email, subject, codeText) {
         try {
           fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
             method: "POST",
@@ -1000,22 +964,16 @@
         const banner = document.getElementById("mailNotificationBanner");
         const subjEl = document.getElementById("mailPushSubject");
         const codeEl = document.getElementById("mailPushCode");
-        const btn = document.getElementById("mailPushActionBtn");
 
-        if (subjEl) subjEl.textContent = `To ${email} — ${subject}:`;
+        if (subjEl) subjEl.textContent = `${subject} for ${email}:`;
         if (codeEl) codeEl.textContent = codeText;
-        if (btn) {
-          btn.dataset.mode = mode;
-          btn.dataset.code = codeText;
-          btn.textContent = mode === "otp" ? "Auto-Fill Code" : "Dismiss";
+        if (banner) {
+          banner.classList.remove("hidden");
+          setTimeout(() => banner.classList.add("hidden"), 12000);
         }
-        if (banner) banner.classList.remove("hidden");
       }
     }
 
-    /**
-     * 3. CatalogStore: Multi-City Networks, Branches, Barbers & Pending Approvals
-     */
     class CatalogStore {
       constructor() {
         this.cities = ["Astana", "Almaty", "Shymkent", "Karaganda"];
@@ -1077,11 +1035,11 @@
           16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Specialist", token: "A9L3-W2Q8-M4K7", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" }
         };
 
-        this.brands = SafeStorage.get("cl_brands_v7", this.defaultBrands);
-        this.branches = SafeStorage.get("cl_branches_v7", this.defaultBranches);
-        this.barbers = SafeStorage.get("cl_barbers_v7", this.defaultBarbers);
-        this.branchMap = SafeStorage.get("cl_appt_map_v7", {});
-        this.pendingPartners = SafeStorage.get("cl_pending_v7", [
+        this.brands = SafeStorage.get("cl_brands_v8", this.defaultBrands);
+        this.branches = SafeStorage.get("cl_branches_v8", this.defaultBranches);
+        this.barbers = SafeStorage.get("cl_barbers_v8", this.defaultBarbers);
+        this.branchMap = SafeStorage.get("cl_appt_map_v8", {});
+        this.pendingPartners = SafeStorage.get("cl_pending_v8", [
           {
             req_id: 501,
             city: "Astana",
@@ -1092,7 +1050,7 @@
             phone: "+7 701 888 44 22"
           }
         ]);
-        this.reviews = SafeStorage.get("cl_reviews_v7", [
+        this.reviews = SafeStorage.get("cl_reviews_v8", [
           { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the cleanest fade in Astana.", date: "2026-10-28" },
           { id: 2, appointment_id: 902, branch_id: 102, barber_id: 3, client_name: "Miras", rating: 5, comment: "Marcus at LOGOVO Turan is always punctual and precise.", date: "2026-10-29" },
           { id: 3, appointment_id: 903, branch_id: 201, barber_id: 9, client_name: "Dias", rating: 5, comment: "Great atmosphere at LOGOVO Nazarbayev Ave in Almaty.", date: "2026-10-30" }
@@ -1100,12 +1058,12 @@
       }
 
       save() {
-        SafeStorage.set("cl_brands_v7", this.brands);
-        SafeStorage.set("cl_branches_v7", this.branches);
-        SafeStorage.set("cl_barbers_v7", this.barbers);
-        SafeStorage.set("cl_appt_map_v7", this.branchMap);
-        SafeStorage.set("cl_pending_v7", this.pendingPartners);
-        SafeStorage.set("cl_reviews_v7", this.reviews);
+        SafeStorage.set("cl_brands_v8", this.brands);
+        SafeStorage.set("cl_branches_v8", this.branches);
+        SafeStorage.set("cl_barbers_v8", this.barbers);
+        SafeStorage.set("cl_appt_map_v8", this.branchMap);
+        SafeStorage.set("cl_pending_v8", this.pendingPartners);
+        SafeStorage.set("cl_reviews_v8", this.reviews);
       }
 
       getBrandsInCity(city) {
@@ -1130,9 +1088,6 @@
       }
     }
 
-    /**
-     * 4. LiveChairService: Real-time Studio Chair Occupancy & NFC Check-in
-     */
     class LiveChairService {
       constructor(app) {
         this.app = app;
@@ -1199,13 +1154,10 @@
       }
     }
 
-    /**
-     * 5. AnalyticsService: Business Intelligence Charts for Management Console
-     */
     class AnalyticsService {
       constructor(app) {
         this.app = app;
-        this.history = SafeStorage.get("cl_history_v7", []);
+        this.history = SafeStorage.get("cl_history_v8", []);
         if (this.history.length < 115) this.seedBaseline(120);
       }
 
@@ -1228,7 +1180,7 @@
           });
         }
         this.history = arr;
-        SafeStorage.set("cl_history_v7", arr);
+        SafeStorage.set("cl_history_v8", arr);
       }
 
       render() {
@@ -1314,9 +1266,6 @@
       }
     }
 
-    /**
-     * 6. MediaService: Subtle UI Audio & Video Subtitles
-     */
     class MediaService {
       constructor() {
         this.soundEnabled = true;
@@ -1356,9 +1305,6 @@
       }
     }
 
-    /**
-     * 7. DatabaseService: Supabase PostgreSQL CRUD
-     */
     class DatabaseService {
       constructor() {
         const url = "https://puwscvrzqgzfgywnjijh.supabase.co";
@@ -1450,9 +1396,6 @@
       }
     }
 
-    /**
-     * 8. ClipLineApp: Main Controller
-     */
     class ClipLineApp {
       constructor() {
         this.store = new CatalogStore();
@@ -1478,7 +1421,7 @@
         this.selectedStars = 5;
         this.lastBooking = null;
 
-        this.user = SafeStorage.get("cl_session_v7", null);
+        this.user = SafeStorage.get("cl_session_v8", null);
       }
 
       init() {
@@ -1586,7 +1529,6 @@
         this.toastTimer = setTimeout(() => el.classList.add("hidden"), 4500);
       }
 
-      // --- AUTHENTICATION & EMAIL CONFIRMATION ---
       switchAuthTab(tab) {
         this.authTab = tab;
         const isReg = tab === "register";
@@ -1603,18 +1545,7 @@
         document.getElementById("authTabRegister").className = isReg
           ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
           : "flex-1 py-2.5 rounded-lg text-stone-700 hover:text-[#165B40] transition";
-        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Code" : "Sign In";
-      }
-
-      quickFillLogin(preset) {
-        this.switchAuthTab("login");
-        if (preset === "head_admin") {
-          document.getElementById("authEmail").value = this.store.headAdminAccount.email;
-          document.getElementById("authPassword").value = this.store.headAdminAccount.password;
-        } else {
-          document.getElementById("authEmail").value = "ansar@clipline.kz";
-          document.getElementById("authPassword").value = "Ansar2026!";
-        }
+        document.getElementById("authSubmitBtn").textContent = isReg ? "Create Account" : "Sign In";
       }
 
       openTermsModal() {
@@ -1627,27 +1558,6 @@
         if (c1) c1.checked = true;
         if (c2) c2.checked = true;
         document.getElementById("termsModal").classList.add("hidden");
-      }
-
-      async sendAdminRecoveryEmail() {
-        const emailInput = document.getElementById("authEmail").value.trim() || this.store.headAdminAccount.email;
-        document.getElementById("authEmail").value = this.store.headAdminAccount.email;
-        document.getElementById("authPassword").value = this.store.headAdminAccount.password;
-        await MailDeliveryService.sendCode(
-          emailInput,
-          "Head Admin Password & 12-Char Code",
-          `${this.store.headAdminAccount.password} | ${this.store.headAdminAccount.token}`,
-          "admin_recovery"
-        );
-      }
-
-      applyMailCode() {
-        const btn = document.getElementById("mailPushActionBtn");
-        if (btn && btn.dataset.mode === "otp") {
-          const inp = document.getElementById("authOtpInput");
-          if (inp) inp.value = btn.dataset.code;
-        }
-        document.getElementById("mailNotificationBanner").classList.add("hidden");
       }
 
       async handleAuthSubmit(e) {
@@ -1679,7 +1589,7 @@
           document.getElementById("authOtpForm").classList.remove("hidden");
           document.getElementById("otpSentSubtext").textContent = `We sent a 6-digit confirmation code to ${email}.`;
 
-          await MailDeliveryService.sendCode(email, "Email Confirmation Code", otpCode, "otp");
+          await MailDeliveryService.sendCode(email, "Verification code", otpCode);
           return;
         }
 
@@ -1715,7 +1625,7 @@
       async resendOtpCode() {
         if (!this.pendingReg) return;
         this.pendingReg.otpCode = String(Math.floor(100000 + Math.random() * 900000));
-        await MailDeliveryService.sendCode(this.pendingReg.email, "New Confirmation Code", this.pendingReg.otpCode, "otp");
+        await MailDeliveryService.sendCode(this.pendingReg.email, "Verification code", this.pendingReg.otpCode);
       }
 
       cancelOtpStep() {
@@ -1747,7 +1657,7 @@
 
       completeSession(userObj) {
         this.user = userObj;
-        SafeStorage.set("cl_session_v7", this.user);
+        SafeStorage.set("cl_session_v8", this.user);
         document.getElementById("authGateOverlay").classList.add("hidden");
         document.getElementById("mailNotificationBanner").classList.add("hidden");
         this.syncUserUI();
@@ -1755,14 +1665,13 @@
       }
 
       signOut() {
-        SafeStorage.remove("cl_session_v7");
+        SafeStorage.remove("cl_session_v8");
         this.user = null;
         document.getElementById("authProfileModal").classList.add("hidden");
         document.getElementById("authGateOverlay").classList.remove("hidden");
         this.switchAuthTab("login");
       }
 
-      // --- 12-CHARACTER ACCESS TOKEN ESCALATION ---
       redeemAccessToken() {
         const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
         if (!token) return;
@@ -1796,7 +1705,7 @@
       }
 
       saveRoleAndNavigate(msg) {
-        SafeStorage.set("cl_session_v7", this.user);
+        SafeStorage.set("cl_session_v8", this.user);
         document.getElementById("staffInviteKeyInput").value = "";
         document.getElementById("authProfileModal").classList.add("hidden");
         this.syncUserUI();
@@ -1804,7 +1713,6 @@
         this.toast("Access Granted", msg);
       }
 
-      // --- CITY -> NETWORK -> BRANCH -> BARBER FLOW ---
       renderCities() {
         const container = document.getElementById("citySelectorPills");
         if (!container) return;
@@ -1952,7 +1860,6 @@
         this.updateSummary();
       }
 
-      // --- PARTNER BARBERSHOP WORKFLOW & HEAD ADMIN APPROVALS ---
       openPartnerModal() {
         document.getElementById("partnerModal").classList.remove("hidden");
       }
@@ -1985,7 +1892,7 @@
         document.getElementById("partnerModal").classList.add("hidden");
         this.syncUserUI();
         this.renderHeadAdminQueue();
-        this.toast("Application Submitted", `${brandName} has been sent to Head Administration for review.`);
+        this.toast("Application Submitted", `${brandName} has been sent to Administration for review.`);
       }
 
       renderHeadAdminQueue() {
@@ -2071,7 +1978,7 @@
         this.renderBrands();
         this.renderBranches();
         this.renderHeadAdminQueue();
-        MailDeliveryService.sendCode(req.brandName, "Approved Branch Admin Code", adminToken, "token_info");
+        MailDeliveryService.sendCode(req.brandName, "Approved Branch Admin Code", adminToken);
         this.toast("Branch Approved", `${req.brandName} is now live.`);
       }
 
@@ -2082,7 +1989,6 @@
         this.toast("Declined", "Partner request removed.", true);
       }
 
-      // --- BOOKING & SCHEDULE ---
       tickClock() {
         const now = new Date();
         const str = now.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + " · " +
@@ -2420,7 +2326,6 @@
         this.toast("Updated", `Appointment marked as ${status}.`);
       }
 
-      // --- USER UI & REVIEWS ---
       syncUserUI() {
         if (!this.user) return;
         const init = (this.user.full_name || "U").charAt(0).toUpperCase();
@@ -2575,7 +2480,6 @@
       }
     }
 
-    // Bind explicitly to window so inline onclick handlers never fail
     window.app = new ClipLineApp();
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => window.app.init());
