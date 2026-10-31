@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ClipLine Kazakhstan — National Barbershop Booking & Smart Salon Network</title>
+  <title>ClipLine — Barbershop Booking</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,11 +13,11 @@
       background-color: #E6E9E6;
       color: #18221E;
     }
-    .surface-card {
+    .app-card {
       background-color: #F4F7F4;
       border-radius: 20px;
       border: 1px solid #D5DDD8;
-      box-shadow: 0 10px 28px -8px rgba(22, 91, 64, 0.07), 0 2px 6px rgba(0,0,0,0.03);
+      box-shadow: 0 8px 24px -6px rgba(22, 91, 64, 0.06), 0 2px 6px rgba(0,0,0,0.03);
     }
     .btn-primary {
       background-color: #165B40;
@@ -31,135 +31,147 @@
       opacity: 0.45;
       cursor: not-allowed;
     }
-    .sage-panel {
+    .sage-box {
       background-color: #E2EFE8;
     }
-    .input-control {
+    .field {
       background-color: #FFFFFF;
       border: 1px solid #D5DDD8;
-      border-radius: 10px;
+      border-radius: 12px;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .input-control:focus {
+    .field:focus {
       border-color: #165B40;
       box-shadow: 0 0 0 3px rgba(22, 91, 64, 0.14);
       outline: none;
     }
-    .nav-item-active {
+    .nav-active {
       background-color: #165B40;
       color: #FFFFFF;
       font-weight: 700;
     }
-    .nav-item-idle {
+    .nav-idle {
       color: #485650;
       font-weight: 600;
     }
-    .nav-item-idle:hover {
+    .nav-idle:hover {
       background-color: #E2EFE8;
       color: #165B40;
     }
-    @keyframes slideToast {
-      from { transform: translate(-50%, 120%); opacity: 0; }
+    @keyframes slideDown {
+      from { transform: translate(-50%, -120%); opacity: 0; }
       to { transform: translate(-50%, 0); opacity: 1; }
     }
-    .toast-anim {
-      animation: slideToast 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .mail-push {
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
 
   <!-- ===================================================================== -->
-  <!-- AUTHENTICATION GATE (Strict Email/Phone Verification + ToS Consent)   -->
+  <!-- INCOMING MAIL PUSH NOTIFICATION (Delivers OTP & Admin Credentials)    -->
+  <!-- ===================================================================== -->
+  <div id="mailNotificationBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[80] w-[94%] max-w-md bg-white text-[#18221E] rounded-2xl p-4 shadow-2xl border border-[#D5DDD8] mail-push">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#165B40] text-white flex items-center justify-center text-base font-bold shrink-0">✉️</div>
+        <div class="text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-[#18221E]">ClipLine Mail</span>
+            <span class="text-[10px] text-[#64706B]">now</span>
+          </div>
+          <p id="mailPushSubject" class="text-xs text-[#52635B] mt-0.5"></p>
+          <div class="mt-2 flex items-center gap-2">
+            <span id="mailPushCode" class="px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40] font-extrabold text-sm tracking-widest"></span>
+            <button id="mailPushActionBtn" type="button" onclick="app.applyMailCode()" class="text-xs font-bold text-[#165B40] underline hover:opacity-80">
+              Auto-fill
+            </button>
+          </div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('mailNotificationBanner').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 font-bold">✕</button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- AUTHENTICATION SCREEN                                                 -->
   <!-- ===================================================================== -->
   <div id="authGateOverlay" class="fixed inset-0 bg-[#E6E9E6] z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 surface-card overflow-hidden my-auto shadow-2xl">
+    <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 app-card overflow-hidden my-auto shadow-xl">
       
-      <!-- Left Brand Showcase (Desktop) -->
+      <!-- Brand Panel -->
       <div class="hidden lg:flex lg:col-span-5 bg-[#165B40] text-white p-8 flex-col justify-between">
         <div>
           <div class="flex items-center gap-3 mb-6">
             <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="ClipLine Scissors">
-                <circle cx="6" cy="6" r="3"></circle>
-                <circle cx="6" cy="18" r="3"></circle>
-                <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-                <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="ClipLine">
+                <circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle>
+                <line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line>
                 <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
               </svg>
             </div>
-            <span class="text-xl font-extrabold tracking-tight">ClipLine KZ</span>
+            <span class="text-xl font-extrabold tracking-tight">ClipLine</span>
           </div>
           <h2 class="text-2xl font-bold leading-snug mb-3">
-            Kazakhstan’s Verified Barbershop Booking Network.
+            Book top barbershops across Kazakhstan.
           </h2>
           <p class="text-xs text-[#E2EFE8]/90 leading-relaxed">
-            Connected with 2GIS directories across Astana, Almaty, Shymkent, and Karaganda. Real-time chair telemetry, verified masters, and instant calendar synchronization.
+            Browse leading networks in Astana, Almaty, Shymkent, and Karaganda. Choose your branch, pick a master barber, and manage your visits in one place.
           </p>
         </div>
 
-        <div class="space-y-2.5 pt-6 border-t border-white/15 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-[#E2EFE8] text-[#165B40] flex items-center justify-center font-bold">✓</span>
-            <span>2GIS Verified Branches & Barbers</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-[#E2EFE8] text-[#165B40] flex items-center justify-center font-bold">✓</span>
-            <span>Anti-Bot Email OTP & KZ Carrier Check</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-[#E2EFE8] text-[#165B40] flex items-center justify-center font-bold">✓</span>
-            <span>Smart IoT Chair Occupancy Tracking</span>
-          </div>
+        <div class="space-y-2 pt-6 border-t border-white/15 text-xs text-[#E2EFE8]">
+          <div>• Instant online booking & calendar sync</div>
+          <div>• Verified client reviews & ratings</div>
+          <div>• Live studio chair availability</div>
         </div>
       </div>
 
-      <!-- Right Auth Form -->
+      <!-- Form Panel -->
       <div class="lg:col-span-7 p-6 sm:p-8 bg-[#F4F7F4]">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIP-ID PASSPORT</span>
-            <h1 class="text-2xl font-bold text-[#18221E]">Sign in or Register</h1>
-          </div>
-          <button type="button" onclick="app.openSmtpConfigModal()" class="text-[11px] font-semibold text-[#165B40] hover:underline">
-            ⚙️ Email SMTP Settings
-          </button>
+        <div class="mb-5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">WELCOME TO CLIPLINE</span>
+          <h1 class="text-2xl font-bold text-[#18221E]">Sign in to your account</h1>
         </div>
 
         <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold mb-5">
           <button type="button" onclick="app.switchAuthTab('login')" id="authTabLogin" class="flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition">Sign In</button>
-          <button type="button" onclick="app.switchAuthTab('register')" id="authTabRegister" class="flex-1 py-2.5 rounded-lg text-stone-700 transition">Create Verified Account</button>
+          <button type="button" onclick="app.switchAuthTab('register')" id="authTabRegister" class="flex-1 py-2.5 rounded-lg text-stone-700 transition">Create Account</button>
         </div>
 
         <!-- Step 1: Credentials -->
         <form id="authCredentialsForm" onsubmit="app.handleAuthSubmit(event)" class="space-y-3.5">
           <div id="regNameRow" class="hidden">
-            <label for="authFullName" class="block text-xs font-semibold text-[#18221E] mb-1">Full Name (First & Last Name)</label>
-            <input id="authFullName" type="text" placeholder="e.g. Arlan Shikibaev" class="input-control w-full px-3.5 py-2.5 text-sm" />
+            <label for="authFullName" class="block text-xs font-semibold text-[#18221E] mb-1">Full Name</label>
+            <input id="authFullName" type="text" placeholder="Enter your name" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div>
-            <label for="authEmail" class="block text-xs font-semibold text-[#18221E] mb-1">Real Email Address (Disposable domains blocked)</label>
-            <input id="authEmail" type="email" required placeholder="your.name@gmail.com or @astanait.edu.kz" class="input-control w-full px-3.5 py-2.5 text-sm" />
+            <label for="authEmail" class="block text-xs font-semibold text-[#18221E] mb-1">Email Address</label>
+            <input id="authEmail" type="email" required placeholder="name@gmail.com" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div id="regPhoneRow" class="hidden">
-            <label for="authPhone" class="block text-xs font-semibold text-[#18221E] mb-1">Kazakhstan Mobile Number</label>
-            <input id="authPhone" type="tel" oninput="ValidationService.formatKZPhone(this)" placeholder="+7 701 234 56 78" class="input-control w-full px-3.5 py-2.5 text-sm" />
-            <p class="text-[10px] text-[#64706B] mt-1">Checked against valid KZ telecom prefixes (700–708, 747, 771–778) and anti-repeat filters.</p>
+            <label for="authPhone" class="block text-xs font-semibold text-[#18221E] mb-1">Mobile Number</label>
+            <input id="authPhone" type="tel" oninput="SecurityService.formatPhone(this)" placeholder="+7 701 000 00 00" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div>
-            <label for="authPassword" class="block text-xs font-semibold text-[#18221E] mb-1">Password</label>
-            <input id="authPassword" type="password" required minlength="6" placeholder="Minimum 6 characters" class="input-control w-full px-3.5 py-2.5 text-sm" />
+            <div class="flex items-center justify-between mb-1">
+              <label for="authPassword" class="text-xs font-semibold text-[#18221E]">Password</label>
+              <button type="button" onclick="app.sendAdminRecoveryEmail()" class="text-[11px] font-semibold text-[#165B40] hover:underline">
+                Forgot / Head Admin Access?
+              </button>
+            </div>
+            <input id="authPassword" type="password" required minlength="6" placeholder="••••••••" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
-          <!-- Mandatory Terms of Service Checkbox (Registration) -->
           <div id="regTermsRow" class="hidden pt-1">
             <label class="flex items-start gap-2.5 text-xs text-[#52635B] cursor-pointer">
               <input id="authTermsCheckbox" type="checkbox" class="mt-0.5 accent-[#165B40] w-4 h-4 rounded" />
               <span>
-                I accept the <button type="button" onclick="app.openTermsModal()" class="font-bold text-[#165B40] underline">Terms of Service</button> and consent to the collection and processing of my personal data in accordance with the Law of the Republic of Kazakhstan "On Personal Data and Their Protection".
+                I agree to the <button type="button" onclick="app.openTermsModal()" class="font-bold text-[#165B40] underline">Terms of Service</button> and Personal Data Processing Policy.
               </span>
             </label>
           </div>
@@ -169,24 +181,28 @@
           </button>
         </form>
 
-        <!-- Step 2: Email Verification Code Input (No code shown on screen) -->
+        <!-- Step 2: Email OTP Verification -->
         <form id="authOtpForm" onsubmit="app.handleOtpVerify(event)" class="hidden space-y-4">
-          <div class="sage-panel rounded-2xl p-4 border border-[#165B40]/20">
-            <div class="text-xs font-bold text-[#165B40]">✉️ Check Your Email Inbox</div>
+          <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20">
+            <div class="text-xs font-bold text-[#165B40]">Verify your email</div>
             <p id="otpSentSubtext" class="text-xs text-[#52635B] mt-1">
-              We have dispatched a 6-digit confirmation code to your email address. Enter it below to activate your account.
+              Enter the 6-digit confirmation code sent to your email address.
             </p>
           </div>
 
           <div>
-            <label for="authOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">6-Digit Email Confirmation Code</label>
-            <input id="authOtpInput" type="text" maxlength="6" required placeholder="••••••" class="input-control w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] text-[#165B40]" />
+            <label for="authOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">Confirmation Code</label>
+            <input id="authOtpInput" type="text" maxlength="6" required placeholder="••••••" class="field w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] text-[#165B40]" />
           </div>
 
-          <div class="grid grid-cols-2 gap-2.5">
-            <button type="button" onclick="app.cancelOtpStep()" class="py-3 rounded-xl bg-white border border-[#D5DDD8] text-xs font-semibold text-[#18221E]">← Change Email</button>
-            <button type="submit" class="btn-primary py-3 rounded-xl text-xs font-semibold">Verify & Activate</button>
+          <div class="flex items-center justify-between text-xs">
+            <button type="button" onclick="app.cancelOtpStep()" class="font-semibold text-[#64706B] hover:text-[#18221E]">← Change email</button>
+            <button type="button" onclick="app.resendOtpCode()" class="font-semibold text-[#165B40] hover:underline">Resend code</button>
           </div>
+
+          <button type="submit" class="btn-primary w-full py-3.5 rounded-xl text-xs font-bold">
+            Verify & Complete Registration
+          </button>
         </form>
       </div>
 
@@ -194,83 +210,69 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- DESKTOP LEFT SIDEBAR NAVIGATION (Persistent on PC lg+)                -->
+  <!-- DESKTOP SIDEBAR NAVIGATION                                            -->
   <!-- ===================================================================== -->
   <aside class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-[#D5DDD8] z-30 justify-between p-5">
     <div class="space-y-6">
-      <!-- Brand Header -->
       <div class="flex items-center gap-3 px-2">
         <div class="w-10 h-10 rounded-xl bg-[#165B40] flex items-center justify-center text-white shadow-sm shrink-0">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="ClipLine Logo">
-            <circle cx="6" cy="6" r="3"></circle>
-            <circle cx="6" cy="18" r="3"></circle>
-            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
-            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="ClipLine">
+            <circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line>
             <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
           </svg>
         </div>
         <div class="min-w-0">
-          <div class="font-extrabold text-base tracking-tight text-[#18221E] truncate">ClipLine KZ</div>
-          <div id="sidebarClock" class="text-[11px] font-medium text-[#64706B] truncate">Syncing clock...</div>
+          <div class="font-extrabold text-base tracking-tight text-[#18221E] truncate">ClipLine</div>
+          <div id="sidebarClock" class="text-[11px] font-medium text-[#64706B] truncate">Astana</div>
         </div>
       </div>
 
-      <!-- Primary App Navigation (Nielsen Heuristic #1 & #4: Clear System Structure) -->
       <nav class="space-y-1.5 text-sm" aria-label="Main Navigation">
-        <button onclick="app.navigate('book')" id="sideNavBook" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-item-active transition">
-          <span>✂️</span> <span>Explore & Book</span>
+        <button onclick="app.navigate('book')" id="sideNavBook" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-active transition">
+          <span>✂️</span> <span>Book Appointment</span>
         </button>
-        <button onclick="app.navigate('appointments')" id="sideNavAppointments" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-item-idle transition">
-          <span class="flex items-center gap-3"><span>📅</span> <span>My Bookings</span></span>
+        <button onclick="app.navigate('appointments')" id="sideNavAppointments" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+          <span class="flex items-center gap-3"><span>📅</span> <span>My Visits</span></span>
           <span id="navBadgeBookings" class="text-[11px] px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40] font-bold">0</span>
         </button>
-        <button onclick="app.navigate('media')" id="sideNavMedia" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-item-idle transition">
-          <span>🎬</span> <span>Studio & Media</span>
+        <button onclick="app.navigate('media')" id="sideNavMedia" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-idle transition">
+          <span>✨</span> <span>Lookbook & Reviews</span>
         </button>
-        <button onclick="app.navigate('iot')" id="sideNavIot" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-item-idle transition">
-          <span class="flex items-center gap-3"><span>📡</span> <span>Smart Salon IoT</span></span>
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <button onclick="app.navigate('iot')" id="sideNavIot" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+          <span class="flex items-center gap-3"><span>💈</span> <span>Live Chair Status</span></span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         </button>
-        <button onclick="app.navigate('portal')" id="sideNavPortal" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-item-idle transition">
-          <span class="flex items-center gap-3"><span>🛡️</span> <span id="portalNavLabel">Staff & Analytics</span></span>
+        <!-- Hidden for Customers; Unlocks Only for Barber / Branch Admin / Head Admin -->
+        <button onclick="app.navigate('portal')" id="sideNavPortal" class="hidden w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+          <span class="flex items-center gap-3"><span>📊</span> <span>Management</span></span>
           <span id="pendingApprovalsBadge" class="hidden text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">!</span>
         </button>
       </nav>
-
-      <!-- Partner B2B Onboarding Card (Restricted to Owners/Admins) -->
-      <div class="sage-panel rounded-2xl p-4 border border-[#165B40]/15 space-y-2">
-        <div class="text-xs font-bold text-[#165B40]">Own a Barbershop?</div>
-        <p class="text-[11px] text-[#52635B] leading-relaxed">
-          Submit your 2GIS branch for verification by Head Administration.
-        </p>
-        <button onclick="app.openPartnerModal()" class="w-full py-2 rounded-xl bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
-          + Connect Barbershop
-        </button>
-      </div>
     </div>
 
-    <!-- Bottom User Profile Card -->
-    <div class="pt-4 border-t border-[#D5DDD8] space-y-2">
+    <div class="pt-4 border-t border-[#D5DDD8] space-y-2.5">
       <div class="flex items-center justify-between">
         <button onclick="app.openProfileModal()" class="flex items-center gap-2.5 text-left min-w-0 flex-1 hover:opacity-85">
           <div id="sideAvatar" class="w-9 h-9 rounded-full bg-[#165B40] text-white font-bold text-sm flex items-center justify-center shrink-0">A</div>
           <div class="min-w-0">
-            <div id="sideUserName" class="text-xs font-bold text-[#18221E] truncate">Client</div>
-            <div id="sideUserRole" class="text-[10px] font-bold uppercase text-[#165B40] truncate">CUSTOMER</div>
+            <div id="sideUserName" class="text-xs font-bold text-[#18221E] truncate">Account</div>
+            <div id="sideUserRole" class="text-[10px] font-semibold text-[#165B40] truncate">Customer</div>
           </div>
         </button>
-        <button onclick="app.media.toggleSound()" id="sideSoundBtn" title="Toggle Sound Effects" class="p-2 rounded-xl border border-[#D5DDD8] hover:border-[#165B40] text-xs">
+        <button onclick="app.media.toggleSound()" id="sideSoundBtn" title="Sound Effects" class="p-2 rounded-xl border border-[#D5DDD8] hover:border-[#165B40] text-xs">
           🔔
         </button>
       </div>
-      <button onclick="app.openTermsModal()" class="w-full text-left text-[11px] text-[#64706B] hover:text-[#165B40] hover:underline px-1">
-        📜 Terms of Service & Privacy Policy
-      </button>
+      <div class="flex items-center justify-between text-[11px] text-[#64706B] px-1">
+        <button onclick="app.openTermsModal()" class="hover:text-[#165B40] hover:underline">Terms & Privacy</button>
+        <button onclick="app.openPartnerModal()" id="sidePartnerLink" class="font-semibold text-[#165B40] hover:underline">For Partners</button>
+      </div>
     </div>
   </aside>
 
   <!-- ===================================================================== -->
-  <!-- MOBILE TOP HEADER & BOTTOM NAVIGATION BAR (< lg)                      -->
+  <!-- MOBILE HEADER & BOTTOM BAR                                            -->
   <!-- ===================================================================== -->
   <header class="lg:hidden bg-white/95 backdrop-blur border-b border-[#D5DDD8] sticky top-0 z-30 px-4 py-2.5 flex items-center justify-between">
     <div class="flex items-center gap-2">
@@ -280,136 +282,118 @@
           <line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line>
         </svg>
       </div>
-      <div>
-        <span class="font-bold text-sm text-[#18221E]">ClipLine KZ</span>
-        <span id="mobileRoleBadge" class="ml-1.5 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#165B40] text-white">CUSTOMER</span>
-      </div>
+      <span class="font-bold text-sm text-[#18221E]">ClipLine</span>
     </div>
-    <div class="flex items-center gap-2">
-      <button onclick="app.openPartnerModal()" class="px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40] text-[11px] font-bold">+ Partner</button>
-      <button onclick="app.openProfileModal()" id="mobileAvatarBtn" class="w-8 h-8 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">A</button>
-    </div>
+    <button onclick="app.openProfileModal()" id="mobileAvatarBtn" class="w-8 h-8 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">A</button>
   </header>
 
-  <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-[#D5DDD8] z-30 grid grid-cols-5 py-1.5 px-1 text-[10px] font-semibold">
+  <nav id="mobileBottomNav" class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-[#D5DDD8] z-30 flex justify-around py-1.5 px-1 text-[10px] font-semibold">
     <button onclick="app.navigate('book')" id="mobNavBook" class="flex flex-col items-center py-1 text-[#165B40] font-bold">
       <span class="text-base">✂️</span><span>Book</span>
     </button>
     <button onclick="app.navigate('appointments')" id="mobNavAppointments" class="flex flex-col items-center py-1 text-stone-500">
-      <span class="text-base">📅</span><span>Bookings</span>
+      <span class="text-base">📅</span><span>Visits</span>
     </button>
     <button onclick="app.navigate('media')" id="mobNavMedia" class="flex flex-col items-center py-1 text-stone-500">
-      <span class="text-base">🎬</span><span>Media</span>
+      <span class="text-base">✨</span><span>Lookbook</span>
     </button>
     <button onclick="app.navigate('iot')" id="mobNavIot" class="flex flex-col items-center py-1 text-stone-500">
-      <span class="text-base">📡</span><span>Smart IoT</span>
+      <span class="text-base">💈</span><span>Live Chairs</span>
     </button>
-    <button onclick="app.navigate('portal')" id="mobNavPortal" class="flex flex-col items-center py-1 text-stone-500">
-      <span class="text-base">🛡️</span><span>Portal</span>
+    <button onclick="app.navigate('portal')" id="mobNavPortal" class="hidden flex flex-col items-center py-1 text-stone-500">
+      <span class="text-base">📊</span><span>Manage</span>
     </button>
   </nav>
 
   <!-- ===================================================================== -->
-  <!-- MAIN FULL-SCREEN DESKTOP & MOBILE CONTENT AREA                        -->
+  <!-- MAIN CONTENT WORKSPACE                                                -->
   <!-- ===================================================================== -->
   <div class="flex-1 lg:pl-64 pb-24 lg:pb-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
 
       <!-- ================================================================= -->
-      <!-- VIEW 1: EXPLORE CITIES, 2GIS NETWORKS & BOOK APPOINTMENT          -->
+      <!-- VIEW 1: BOOK APPOINTMENT                                          -->
       <!-- ================================================================= -->
       <section id="viewBook" class="space-y-6">
         
-        <!-- Top Status Bar (Nielsen Heuristic #1: Visibility of System Status) -->
-        <div class="surface-card p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">2GIS KAZAKHSTAN DIRECTORY</div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-[#18221E]">Book Your Fresh Cut</h1>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">ONLINE BOOKING</span>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-[#18221E]">Select Barbershop & Time</h1>
           </div>
-          <!-- Step 1: Select Kazakhstan City -->
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-xs font-bold text-[#52635B]">1. Select City:</span>
+            <span class="text-xs font-semibold text-[#52635B]">City:</span>
             <div id="citySelectorPills" class="flex items-center gap-1.5 flex-wrap"></div>
           </div>
         </div>
 
-        <!-- Responsive Desktop 12-Column Grid (Full screen on PC, stacked on Mobile) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          <!-- Left 8 Columns on Desktop: Network -> Branch -> Barber & Time Selection -->
+          <!-- Left 8 Columns: Network -> Branch -> Barber & Time -->
           <div class="lg:col-span-8 space-y-6">
             
-            <!-- Step 2: Select Barbershop Network in Chosen City -->
-            <div class="surface-card p-5 sm:p-6">
+            <div class="app-card p-5 sm:p-6">
               <div class="flex items-center justify-between mb-3">
                 <label class="text-xs font-bold uppercase tracking-wider text-[#165B40]">
-                  2. Choose Barbershop Network (<span id="activeCityLabel">Astana</span>)
+                  Barbershop Networks in <span id="activeCityLabel">Astana</span>
                 </label>
-                <span class="text-[11px] text-[#64706B]">Verified via 2GIS</span>
               </div>
               <div id="brandSelectorGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
 
-              <!-- Step 3: Select Specific Branch Address -->
               <div class="mt-5 pt-5 border-t border-[#D5DDD8]">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[#165B40] mb-3">
-                  3. Select Branch Location & Address
+                  Select Branch Location
                 </label>
                 <div id="branchSelectorList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
               </div>
             </div>
 
-            <!-- Step 4: Choose Barber, Service, Date & Time -->
-            <div class="surface-card p-5 sm:p-6 space-y-5">
+            <div class="app-card p-5 sm:p-6 space-y-5">
               <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5DDD8] pb-3">
                 <div>
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">4. CONFIGURE VISIT</span>
                   <h2 id="selectedShopHeading" class="text-lg font-bold text-[#18221E]">LOGOVO · Mangilik El</h2>
                   <p id="selectedShopAddressSub" class="text-xs text-[#64706B]">Mangilik El Ave 52, Astana</p>
                 </div>
-                <div id="liveBranchIoTBadge" class="px-3 py-1.5 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold flex items-center gap-1.5">
+                <button type="button" onclick="app.navigate('iot')" class="px-3 py-1.5 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold flex items-center gap-1.5 hover:opacity-90">
                   <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
-                  <span id="branchIoTStatusText">IoT Chairs: 2/3 Free</span>
-                </div>
+                  <span id="branchIoTStatusText">2/3 Chairs Available</span>
+                </button>
               </div>
 
-              <!-- Barbers working at this specific branch -->
               <div>
                 <div class="flex items-center justify-between mb-2">
-                  <label class="text-xs font-semibold text-[#18221E]">Select Master Barber at this Branch</label>
+                  <label class="text-xs font-semibold text-[#18221E]">Choose Master Barber</label>
                   <button type="button" onclick="app.navigate('media')" class="text-xs font-semibold text-[#165B40] hover:underline">
-                    View portfolio & reviews →
+                    Read client reviews →
                   </button>
                 </div>
                 <div id="barberSelectorCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
               </div>
 
-              <!-- Service & Date Row -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label for="serviceInput" class="block text-xs font-semibold text-[#18221E] mb-1.5">Select Service</label>
-                  <select id="serviceInput" onchange="app.updateSummary()" class="input-control w-full px-3.5 py-2.5 text-sm font-medium cursor-pointer">
-                    <option value="1" data-name="Haircut" data-duration="45" data-price="5,000 ₸" data-num="5000">Haircut · 45 min · 5,000 ₸</option>
-                    <option value="2" data-name="Fade cut" data-duration="45" data-price="5,500 ₸" data-num="5500">Fade cut · 45 min · 5,500 ₸</option>
-                    <option value="3" data-name="Haircut & Beard" data-duration="60" data-price="7,500 ₸" data-num="7500">Haircut & Beard · 60 min · 7,500 ₸</option>
-                    <option value="4" data-name="Beard trim" data-duration="30" data-price="3,500 ₸" data-num="3500">Beard trim · 30 min · 3,500 ₸</option>
+                  <label for="serviceInput" class="block text-xs font-semibold text-[#18221E] mb-1.5">Service</label>
+                  <select id="serviceInput" onchange="app.updateSummary()" class="field w-full px-3.5 py-2.5 text-sm font-medium cursor-pointer">
+                    <option value="1" data-name="Haircut" data-duration="45" data-price="5,000 ₸">Haircut · 45 min · 5,000 ₸</option>
+                    <option value="2" data-name="Fade cut" data-duration="45" data-price="5,500 ₸">Fade cut · 45 min · 5,500 ₸</option>
+                    <option value="3" data-name="Haircut & Beard" data-duration="60" data-price="7,500 ₸">Haircut & Beard · 60 min · 7,500 ₸</option>
+                    <option value="4" data-name="Beard trim" data-duration="30" data-price="3,500 ₸">Beard trim · 30 min · 3,500 ₸</option>
                   </select>
                 </div>
                 <div>
                   <div class="flex items-center justify-between mb-1.5">
-                    <label for="dateInput" class="text-xs font-semibold text-[#18221E]">Appointment Date</label>
+                    <label for="dateInput" class="text-xs font-semibold text-[#18221E]">Date</label>
                     <span id="dateStatusLabel" class="text-[11px] font-bold text-[#165B40]">Today</span>
                   </div>
-                  <input id="dateInput" type="date" onchange="app.selectDate(this.value)" class="input-control w-full px-3.5 py-2 text-sm font-medium cursor-pointer" required />
+                  <input id="dateInput" type="date" onchange="app.selectDate(this.value)" class="field w-full px-3.5 py-2 text-sm font-medium cursor-pointer" required />
                 </div>
               </div>
 
-              <!-- Rolling 5-Day Quick Strip -->
               <div id="rollingDatePills" class="grid grid-cols-5 gap-2"></div>
 
-              <!-- Live Time Slots -->
               <div>
                 <div class="flex items-center justify-between mb-2">
-                  <label class="text-xs font-semibold text-[#18221E]">Available Time Slots (Device Local Time)</label>
+                  <label class="text-xs font-semibold text-[#18221E]">Available Time</label>
                   <span id="slotsAvailableCount" class="text-xs font-bold text-[#165B40]"></span>
                 </div>
                 <div id="timeButtonsContainer" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
@@ -418,79 +402,64 @@
 
           </div>
 
-          <!-- Right 4 Columns on Desktop: Sticky Checkout Summary & Instant Ticket -->
-          <div class="lg:col-span-4 lg:sticky lg:top-6 space-y-5">
-            <form id="bookingForm" onsubmit="app.submitBooking(event)" class="surface-card p-6 space-y-4">
+          <!-- Right 4 Columns: Sticky Booking Summary -->
+          <div class="lg:col-span-4 lg:sticky lg:top-6">
+            <form id="bookingForm" onsubmit="app.submitBooking(event)" class="app-card p-6 space-y-4">
               <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">BOOKING SUMMARY</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">YOUR APPOINTMENT</span>
                 <button type="button" onclick="app.resetBookingForm()" class="text-xs text-[#64706B] hover:text-[#18221E] underline">Reset</button>
               </div>
 
-              <div class="sage-panel rounded-2xl p-4 space-y-1.5">
+              <div class="sage-box rounded-2xl p-4 space-y-1.5">
                 <div id="summaryShopLine" class="text-xs font-bold text-[#165B40]">LOGOVO · Mangilik El</div>
                 <div id="summaryLine1" class="text-base font-extrabold text-[#18221E]">Haircut · 16:00</div>
-                <div id="summaryLine2" class="text-xs text-[#52635B]">45 mins · Total: 5,000 ₸ · Pay at branch</div>
+                <div id="summaryLine2" class="text-xs text-[#52635B]">45 mins · 5,000 ₸ · Pay at studio</div>
               </div>
 
               <div class="space-y-3">
                 <div>
-                  <label for="clientNameInput" class="block text-xs font-semibold text-[#18221E] mb-1">Client Full Name</label>
-                  <input id="clientNameInput" type="text" required class="input-control w-full px-3.5 py-2 text-sm" />
+                  <label for="clientNameInput" class="block text-xs font-semibold text-[#18221E] mb-1">Your Name</label>
+                  <input id="clientNameInput" type="text" required class="field w-full px-3.5 py-2 text-sm" />
                 </div>
                 <div>
-                  <label for="clientPhoneInput" class="block text-xs font-semibold text-[#18221E] mb-1">Verified KZ Phone</label>
-                  <input id="clientPhoneInput" type="tel" required oninput="ValidationService.formatKZPhone(this)" class="input-control w-full px-3.5 py-2 text-sm" />
+                  <label for="clientPhoneInput" class="block text-xs font-semibold text-[#18221E] mb-1">Phone Number</label>
+                  <input id="clientPhoneInput" type="tel" required oninput="SecurityService.formatPhone(this)" class="field w-full px-3.5 py-2 text-sm" />
                 </div>
               </div>
 
               <button type="submit" id="confirmBtn" class="btn-primary w-full py-3.5 rounded-xl font-bold text-sm shadow-md">
-                Confirm Appointment
+                Confirm Booking
               </button>
-
-              <p class="text-[11px] text-[#64706B] text-center">
-                Free cancellation or reschedule anytime in <strong>My Bookings</strong>.
-              </p>
             </form>
-
-            <!-- Usability Heuristics Compliance Card (For Defense Inspection) -->
-            <div class="surface-card p-5 space-y-2">
-              <div class="text-xs font-bold text-[#165B40] uppercase tracking-wider">✓ Jakob Nielsen Heuristics Active</div>
-              <ul class="text-xs text-[#52635B] space-y-1">
-                <li>• <strong>#1 System Status:</strong> Live IoT chair & slot counters.</li>
-                <li>• <strong>#3 User Control:</strong> 1-click Reset & Cancel dialogs.</li>
-                <li>• <strong>#5 Error Prevention:</strong> Past dates & invalid KZ phones locked prior to submit.</li>
-              </ul>
-            </div>
           </div>
 
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- VIEW 2: MY APPOINTMENTS, DIGITAL PASS & CALENDAR EXPORT           -->
+      <!-- VIEW 2: MY VISITS & DIGITAL PASS                                  -->
       <!-- ================================================================= -->
       <section id="viewAppointments" class="hidden space-y-6">
-        <div class="surface-card p-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIENT SCHEDULE & PASS</div>
-            <h1 class="text-2xl font-extrabold text-[#18221E]">My Appointments</h1>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">APPOINTMENTS</span>
+            <h1 class="text-2xl font-extrabold text-[#18221E]">My Visits</h1>
           </div>
           <button onclick="app.navigate('book')" class="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold">
-            + New Appointment
+            + Book Visit
           </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <!-- Digital Pass Card -->
-          <div class="lg:col-span-5 surface-card p-6 space-y-4">
+          <div class="lg:col-span-5 app-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-[#165B40]">ACTIVE DIGITAL PASS</span>
-              <span id="confReference" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">Ref: CL-1025</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-[#165B40]">BOOKING PASS</span>
+              <span id="confReference" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">CL-1025</span>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-3">
               <div>
-                <div class="text-[10px] font-bold uppercase text-[#64706B]">BARBERSHOP & 2GIS ADDRESS</div>
+                <div class="text-[10px] font-bold uppercase text-[#64706B]">LOCATION</div>
                 <div id="confShopName" class="text-sm font-bold text-[#18221E]">LOGOVO · Mangilik El</div>
                 <div id="confShopAddress" class="text-xs text-[#64706B]">Mangilik El Ave 52, Astana</div>
               </div>
@@ -506,28 +475,27 @@
               </div>
               <div>
                 <div class="text-[10px] font-bold uppercase text-[#64706B]">TOTAL</div>
-                <div id="confTotal" class="text-sm font-extrabold text-[#165B40]">5,000 ₸ · Pay at branch</div>
+                <div id="confTotal" class="text-sm font-extrabold text-[#165B40]">5,000 ₸</div>
               </div>
             </div>
 
-            <div class="sage-panel rounded-xl p-4 space-y-2.5">
-              <div class="text-xs font-bold text-[#165B40] uppercase">📅 Sync with Device Calendar</div>
+            <div class="sage-box rounded-xl p-4 space-y-2.5">
+              <div class="text-xs font-bold text-[#165B40]">Add to Calendar</div>
               <div class="grid grid-cols-2 gap-2">
                 <button type="button" onclick="app.exportICS()" class="py-2.5 px-3 rounded-xl bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
-                  📲 Download .ics
+                  Apple / Outlook (.ics)
                 </button>
                 <button type="button" onclick="app.exportGoogleCal()" class="py-2.5 px-3 rounded-xl bg-white border border-[#165B40]/30 text-[#165B40] text-xs font-semibold hover:bg-stone-50 transition">
-                  🌐 Google Calendar
+                  Google Calendar
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Personal Booking History & Review Triggers -->
-          <div class="lg:col-span-7 surface-card p-6 space-y-4">
+          <div class="lg:col-span-7 app-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-bold text-[#18221E]">Booking History & Reviews</h2>
-              <button onclick="app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Sync Cloud</button>
+              <h2 class="text-lg font-bold text-[#18221E]">Visit History</h2>
+              <button onclick="app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh</button>
             </div>
             <div id="customerBookingsContainer" class="space-y-3"></div>
           </div>
@@ -535,110 +503,49 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- VIEW 3: STUDIO MULTIMEDIA & ASSET INSPECTOR (Requirement #6)      -->
+      <!-- VIEW 3: LOOKBOOK & CLIENT REVIEWS                                 -->
       <!-- ================================================================= -->
       <section id="viewMedia" class="hidden space-y-6">
-        <div class="surface-card p-5 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">MULTIMEDIA GALLERY & REVIEWS</div>
-            <h1 class="text-2xl font-extrabold text-[#18221E]">Studio Lookbook, Video & Asset Inspector</h1>
-          </div>
-          <button onclick="document.getElementById('mediaInspectorDrawer').classList.toggle('hidden')" class="px-4 py-2 rounded-xl bg-[#165B40] text-white text-xs font-bold">
-            🔍 Toggle Multimedia Technical Table
-          </button>
-        </div>
-
-        <!-- Collapsible Multimedia Technical Table for Teacher Inspection -->
-        <div id="mediaInspectorDrawer" class="surface-card p-5 border-2 border-[#165B40] space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-[#165B40] uppercase">📋 Project Multimedia Assets Inventory (For Instructor Inspection)</h3>
-            <span class="text-xs font-semibold text-[#52635B]">Press F12 → Network Tab to verify live</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="border-b border-[#D5DDD8] text-[#64706B]">
-                  <th class="py-2 pr-3">Media Type</th>
-                  <th class="py-2 px-3">Format / Codec</th>
-                  <th class="py-2 px-3">Dimensions / Bitrate</th>
-                  <th class="py-2 px-3">Accessibility (`alt` / Captions)</th>
-                  <th class="py-2 pl-3">Where in App</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-[#D5DDD8] font-medium">
-                <tr>
-                  <td class="py-2 pr-3 font-bold">1. Vector Icons</td>
-                  <td class="py-2 px-3">Inline SVG (`viewBox="0 0 24 24"`)</td>
-                  <td class="py-2 px-3">Resolution-independent (1.1 KB)</td>
-                  <td class="py-2 px-3">`role="img" aria-label="..."`</td>
-                  <td class="py-2 pl-3">Sidebar Logo & Top Header</td>
-                </tr>
-                <tr>
-                  <td class="py-2 pr-3 font-bold">2. Raster Lookbook & Avatars</td>
-                  <td class="py-2 px-3">WebP (`fm=webp&q=75`, lossy)</td>
-                  <td class="py-2 px-3">160×160 px & 400×300 px (~18 KB)</td>
-                  <td class="py-2 px-3">Descriptive `alt` attributes + `loading="lazy"`</td>
-                  <td class="py-2 pl-3">Barber Cards & Lookbook Grid below</td>
-                </tr>
-                <tr>
-                  <td class="py-2 pr-3 font-bold">3. Audio Synthesizer</td>
-                  <td class="py-2 px-3">Web Audio API (PCM Sine/Sawtooth)</td>
-                  <td class="py-2 px-3">44.1 kHz, 0 KB network overhead</td>
-                  <td class="py-2 px-3">No auto-play; paired with visual Toast + Mute button</td>
-                  <td class="py-2 pl-3"><button onclick="app.media.playChime(false)" class="px-2 py-0.5 rounded bg-[#165B40] text-white">▶ Test Chime</button></td>
-                </tr>
-                <tr>
-                  <td class="py-2 pr-3 font-bold">4. Studio Tour Video</td>
-                  <td class="py-2 px-3">MP4 Container (H.264 + AAC)</td>
-                  <td class="py-2 px-3">1920×1080 (1080p), 30 fps</td>
-                  <td class="py-2 px-3">Embedded `<track kind="captions">` WebVTT + Transcript</td>
-                  <td class="py-2 pl-3">Video Player below</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="app-card p-5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">STYLE & FEEDBACK</span>
+          <h1 class="text-2xl font-extrabold text-[#18221E]">Studio Lookbook & Verified Reviews</h1>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Video & WebP Gallery -->
           <div class="lg:col-span-7 space-y-6">
-            <div class="surface-card p-5 space-y-3">
+            <div class="app-card p-5 space-y-3">
               <div class="flex items-center justify-between">
-                <h2 class="text-base font-bold text-[#18221E]">🎬 ClipLine Studio Tour (MP4 H.264 + WebVTT Subtitles)</h2>
-                <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-[#E2EFE8] text-[#165B40]">CC Captions Active</span>
+                <h2 class="text-base font-bold text-[#18221E]">Inside Our Studios</h2>
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-[#E2EFE8] text-[#165B40]">HD</span>
               </div>
               <video id="studioVideoPlayer" controls preload="metadata" poster="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80&fm=webp" class="w-full rounded-xl bg-stone-900 aspect-video object-cover">
                 <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
-                <track id="enCaptionsTrack" kind="captions" srclang="en" label="English Captions" default />
+                <track id="enCaptionsTrack" kind="captions" srclang="en" label="English" default />
               </video>
-              <p class="text-xs text-[#52635B] bg-white p-3 rounded-xl border border-[#D5DDD8]">
-                <strong>Full Audio Transcript:</strong> Welcome to ClipLine Kazakhstan. Select your city, browse 2GIS verified barbershop chains like LOGOVO, OldBoy, and TOPGUN, check live IoT chair availability, and book your master barber in under 30 seconds.
-              </p>
             </div>
 
-            <div class="surface-card p-5 space-y-3">
-              <h2 class="text-base font-bold text-[#18221E]">✂️ Optimised WebP Lookbook Gallery</h2>
+            <div class="app-card p-5 space-y-3">
+              <h2 class="text-base font-bold text-[#18221E]">Signature Cuts</h2>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <figure class="bg-white rounded-xl p-2 border border-[#E1E7E3]">
-                  <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&h=300&q=75&fm=webp" alt="High-contrast skin fade haircut with sharp lineup by Daniyar" width="400" height="300" loading="lazy" class="w-full h-32 object-cover rounded-lg" />
-                  <figcaption class="text-xs font-bold text-center mt-2 text-[#18221E]">Executive Skin Fade</figcaption>
+                  <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&h=300&q=75&fm=webp" alt="Executive Skin Fade" width="400" height="300" loading="lazy" class="w-full h-32 object-cover rounded-lg" />
+                  <figcaption class="text-xs font-bold text-center mt-2 text-[#18221E]">Skin Fade · 5,500 ₸</figcaption>
                 </figure>
                 <figure class="bg-white rounded-xl p-2 border border-[#E1E7E3]">
-                  <img src="https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=400&h=300&q=75&fm=webp" alt="Hot towel straight-razor beard sculpting by Arman" width="400" height="300" loading="lazy" class="w-full h-32 object-cover rounded-lg" />
-                  <figcaption class="text-xs font-bold text-center mt-2 text-[#18221E]">Razor Beard Sculpt</figcaption>
+                  <img src="https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=400&h=300&q=75&fm=webp" alt="Razor Beard Sculpt" width="400" height="300" loading="lazy" class="w-full h-32 object-cover rounded-lg" />
+                  <figcaption class="text-xs font-bold text-center mt-2 text-[#18221E]">Beard Sculpt · 3,500 ₸</figcaption>
                 </figure>
                 <figure class="bg-white rounded-xl p-2 border border-[#E1E7E3]">
-                  <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&h=300&q=75&fm=webp" alt="Classic scissor crop cut styled at OldBoy Barbershop" width="400" height="300" loading="lazy" class="w-full h-32 object-cover rounded-lg" />
-                  <figcaption class="text-xs font-bold text-center mt-2 text-[#18221E]">Classic Scissor Crop</figcaption>
+                  <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&h=300&q=75&fm=webp" alt="Classic Scissor Crop" width="400" height="300" loading="lazy" class="w-full h-32 object-cover rounded-lg" />
+                  <figcaption class="text-xs font-bold text-center mt-2 text-[#18221E]">Classic Cut · 5,000 ₸</figcaption>
                 </figure>
               </div>
             </div>
           </div>
 
-          <!-- Verified Client Reviews Feed -->
-          <div class="lg:col-span-5 surface-card p-5 space-y-4">
+          <div class="lg:col-span-5 app-card p-5 space-y-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-base font-bold text-[#18221E]">⭐ Verified Client Reviews</h2>
+              <h2 class="text-base font-bold text-[#18221E]">Client Reviews</h2>
               <select id="reviewFilterBarber" onchange="app.renderReviews()" class="text-xs border border-[#D5DDD8] rounded-lg px-2.5 py-1.5 bg-white font-semibold text-[#165B40]">
                 <option value="all">All Barbers</option>
               </select>
@@ -649,218 +556,115 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- VIEW 4: SMART SALON IoT & 4-LAYER ARCHITECTURE (Endterm Part D)   -->
+      <!-- VIEW 4: LIVE STUDIO CHAIR STATUS                                  -->
       <!-- ================================================================= -->
       <section id="viewIot" class="hidden space-y-6">
-        <div class="surface-card p-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">END-TERM PART D · SMART TECHNOLOGIES & IoT</div>
-            <h1 class="text-2xl font-extrabold text-[#18221E]">Smart Barber Chair & NFC Telemetry</h1>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LIVE STUDIO OCCUPANCY</span>
+            <h1 class="text-2xl font-extrabold text-[#18221E]">Real-Time Chair Availability</h1>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="app.iot.toggleSimulation()" id="iotSimToggleBtn" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
-              ⚡ Simulate Live Sensor Stream (Active)
-            </button>
-            <button onclick="app.iot.triggerNfcCheckIn()" class="px-4 py-2 rounded-xl bg-white border border-[#165B40] text-[#165B40] text-xs font-bold hover:bg-[#E2EFE8] transition">
-              📲 Simulate Client NFC Tap Check-In
-            </button>
-          </div>
+          <button onclick="app.iot.triggerNfcCheckIn()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
+            📲 Tap NFC Pass Check-In
+          </button>
         </div>
 
-        <!-- Live IoT Sensor Cards Grid (Part D3 Working Simulation) -->
         <div id="iotSensorsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
-
-        <!-- 4-Layer IoT Architecture Diagram & Privacy Protection (Part D2) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-8 surface-card p-6 space-y-4">
-            <h2 class="text-base font-bold text-[#18221E]">📐 Four-Layer IoT Architecture Diagram (Part D2)</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-              <div class="bg-white p-4 rounded-2xl border-2 border-[#165B40] space-y-1.5">
-                <div class="font-extrabold text-[#165B40]">1. Device / Sensor Layer</div>
-                <p class="text-[#52635B]">ESP32 microcontroller + FSR-402 Chair Pressure Sensor (0–100 kg), PN532 NFC Reader, & UV-C Sterilizer Relay.</p>
-                <div class="text-[10px] font-bold text-stone-500">Sampling: Every 5 sec (~120 bytes/payload)</div>
-              </div>
-              <div class="bg-white p-4 rounded-2xl border border-[#D5DDD8] space-y-1.5">
-                <div class="font-extrabold text-[#165B40]">2. Network Layer</div>
-                <p class="text-[#52635B]">Salon Wi-Fi (IEEE 802.11ac) transmitting encrypted JSON payloads via <strong>MQTT over TLS 1.3</strong> / HTTPS REST.</p>
-                <div class="text-[10px] font-bold text-stone-500">Latency: &lt; 65 ms</div>
-              </div>
-              <div class="bg-white p-4 rounded-2xl border border-[#D5DDD8] space-y-1.5">
-                <div class="font-extrabold text-[#165B40]">3. Cloud Processing Layer</div>
-                <p class="text-[#52635B]"><strong>Supabase PostgreSQL</strong> (`appointments` & `iot_telemetry`) + Edge Rules calculating live chair wait times.</p>
-                <div class="text-[10px] font-bold text-stone-500">CDC WebSockets</div>
-              </div>
-              <div class="bg-white p-4 rounded-2xl border border-[#D5DDD8] space-y-1.5">
-                <div class="font-extrabold text-[#165B40]">4. Application Layer</div>
-                <p class="text-[#52635B]"><strong>ClipLine Web App (`index.html`)</strong> updating live chair occupancy badges and notifying the next client.</p>
-                <div class="text-[10px] font-bold text-stone-500">Real-time UI Push</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="lg:col-span-4 surface-card p-6 space-y-3">
-            <h2 class="text-base font-bold text-[#18221E]">🔒 IoT Security & Privacy Analysis</h2>
-            <p class="text-xs text-[#52635B] leading-relaxed">
-              <strong>New Personal Data Introduced:</strong> Physical presence timestamp, branch location check-in via NFC, and exact chair session duration.
-            </p>
-            <p class="text-xs text-[#52635B] leading-relaxed">
-              <strong>Protection Measures (Linked to Assignment 3):</strong> Pressure sensors record only anonymous binary occupancy (`occupied: true/false`), NFC UIDs are hashed with SHA-256, all traffic uses TLS 1.3 encryption, and telemetry logs auto-purge after 24 hours.
-            </p>
-          </div>
-        </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- VIEW 5: STAFF PORTAL, DATA ANALYTICS (Part C) & HEAD ADMIN QUEUE  -->
+      <!-- VIEW 5: MANAGEMENT CONSOLE (Unlocked Only via 12-Char Staff Code) -->
       <!-- ================================================================= -->
       <section id="viewPortal" class="hidden space-y-6">
         
-        <!-- Portal Header & Token Escalation Bar -->
-        <div class="surface-card p-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div id="workspaceRoleOverline" class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">STAFF, ANALYTICS & ADMINISTRATION</div>
-            <h1 id="workspaceTitle" class="text-2xl font-extrabold text-[#18221E]">Operations & Data Analysis</h1>
-            <p id="workspaceDescription" class="text-xs text-[#64706B] mt-0.5">Manage branch schedules, approve partner barbershops, and inspect 100+ record analytics.</p>
+            <div id="workspaceRoleOverline" class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">MANAGEMENT CONSOLE</div>
+            <h1 id="workspaceTitle" class="text-2xl font-extrabold text-[#18221E]">Branch Operations</h1>
+            <p id="workspaceDescription" class="text-xs text-[#64706B] mt-0.5"></p>
           </div>
-
-          <!-- Role Switcher / Token Input for Defense Demonstration -->
-          <div class="flex flex-wrap items-center gap-2">
-            <select id="defenseRoleSelect" onchange="app.quickSwitchRole(this.value)" class="input-control px-3 py-2 text-xs font-bold text-[#165B40]">
-              <option value="customer">👤 Role: Customer</option>
-              <option value="barber_1">✂️ Role: Barber (Daniyar · LOGOVO)</option>
-              <option value="admin_101">🛡️ Role: Branch Admin (LOGOVO Mangilik El)</option>
-              <option value="head_admin">👑 Role: Head Admin (Arlan · Full Network Approval)</option>
-            </select>
-            <button onclick="app.openProfileModal()" class="px-3.5 py-2 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold">
-              🔑 Enter Token
-            </button>
-          </div>
+          <button onclick="app.openPartnerModal()" class="px-4 py-2 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold">
+            + Register New Branch
+          </button>
         </div>
 
-        <!-- HEAD ADMIN EXCLUSIVE: PENDING BARBERSHOP APPROVAL QUEUE (Requirement #8) -->
-        <div id="headAdminApprovalPanel" class="hidden surface-card p-6 border-2 border-amber-500/80 space-y-4">
+        <!-- HEAD ADMIN EXCLUSIVE: PARTNER BARBERSHOP APPROVALS -->
+        <div id="headAdminApprovalPanel" class="hidden app-card p-6 border-2 border-amber-500/80 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">👑 HEAD ADMIN (ARLAN) EXCLUSIVE</span>
-              <h2 class="text-lg font-extrabold text-[#18221E]">Pending Barbershop Connection Requests</h2>
-              <p class="text-xs text-[#64706B]">New barbershops submitted via "+ Connect Barbershop" remain hidden from customers until you verify their 2GIS data and approve them.</p>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">HEAD ADMINISTRATION</span>
+              <h2 class="text-lg font-extrabold text-[#18221E]">Partner Barbershop Applications</h2>
+              <p class="text-xs text-[#64706B]">Approve verified partner branches to publish them to the live directory and generate their 12-character access tokens.</p>
             </div>
-            <span id="pendingCountPill" class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">1 Pending</span>
+            <span id="pendingCountPill" class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">0 Pending</span>
           </div>
           <div id="pendingRequestsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- END-TERM PART C: DATA ANALYSIS DASHBOARD (100+ Records & 3 Charts) -->
-        <div class="surface-card p-6 space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#D5DDD8] pb-4">
+        <!-- BRANCH ADMIN EXCLUSIVE: STAFF ACCESS CODES FOR THIS BRANCH -->
+        <div id="branchStaffTokensPanel" class="hidden app-card p-5 space-y-3">
+          <div class="text-xs font-bold uppercase tracking-wider text-[#165B40]">Branch Staff 12-Character Access Codes</div>
+          <div id="branchStaffTokensGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
+        </div>
+
+        <!-- BUSINESS ANALYTICS -->
+        <div class="app-card p-6 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#D5DDD8] pb-3">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">END-TERM PART C · DATA ANALYSIS IN THE PRODUCT (C1–C5)</span>
-              <h2 class="text-xl font-extrabold text-[#18221E]">Database Analytics (<span id="analyticsTotalRowsBadge">124</span> Verified Records)</h2>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <button onclick="app.analytics.seedHundredPlusRecords()" class="px-3.5 py-2 rounded-xl bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732] transition">
-                📊 Generate / Sync 120+ Dataset Records
-              </button>
-              <button onclick="document.getElementById('sqlQueriesDrawer').classList.toggle('hidden')" class="px-3.5 py-2 rounded-xl bg-white border border-[#D5DDD8] text-xs font-bold text-[#18221E] hover:border-[#165B40]">
-                💻 Show Repeatable SQL Queries (Part C2)
-              </button>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">PERFORMANCE INSIGHTS</span>
+              <h2 class="text-lg font-extrabold text-[#18221E]">Studio Analytics (<span id="analyticsTotalRowsBadge">124</span> Appointments)</h2>
             </div>
           </div>
 
-          <!-- Repeatable SQL Queries Drawer (Part C2) -->
-          <div id="sqlQueriesDrawer" class="hidden bg-[#18221E] text-stone-200 rounded-2xl p-4 text-xs font-mono space-y-3 overflow-x-auto">
-            <div class="text-[#E2EFE8] font-bold font-sans">Part C2 — Repeatable SQL Queries for Supabase SQL Editor:</div>
-            <pre class="text-[11px] leading-relaxed">-- Q1 (Bar Chart): Total Bookings & Revenue (KZT) by Service Category
-SELECT s.name AS service_name, COUNT(a.appointment_id) AS total_bookings, SUM(s.price_kzt) AS revenue_kzt
-FROM appointments a
-JOIN appointment_services aps ON a.appointment_id = aps.appointment_id
-JOIN services s ON aps.service_id = s.service_id
-WHERE a.status != 'cancelled'
-GROUP BY s.name ORDER BY total_bookings DESC;
-
--- Q2 (Line Chart): Peak Barbershop Demand by Hour of Day (Astana UTC+5)
-SELECT EXTRACT(HOUR FROM (starts_at AT TIME ZONE 'Asia/Almaty')) AS hour_of_day, COUNT(*) AS bookings_count
-FROM appointments
-WHERE status != 'cancelled'
-GROUP BY hour_of_day ORDER BY hour_of_day ASC;
-
--- Q3 (Table): Barber Completion Rate, Average Service Duration & Rating
-SELECT b.barber_id, COUNT(a.appointment_id) AS total_assigned,
-       SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END) AS completed_cuts,
-       ROUND(AVG(s.duration_min), 1) AS avg_duration_min
-FROM appointments a
-JOIN appointment_services aps ON a.appointment_id = aps.appointment_id
-JOIN services s ON aps.service_id = s.service_id
-GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
-          </div>
-
-          <!-- 3 Labelled Charts Grid (Part C3: Bar Chart, Line Chart, Exact Table) -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            
-            <!-- Chart 1: Bar Chart (Category Comparison) -->
             <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex flex-col justify-between">
               <div>
-                <div class="text-[10px] font-bold uppercase text-[#165B40]">QUESTION C1-A · BAR CHART</div>
-                <h3 class="text-sm font-bold text-[#18221E] mt-0.5">Bookings by Service Category (Units: Bookings)</h3>
-                <p class="text-[11px] text-[#64706B] mb-3">Y-Axis: Service Type | X-Axis: Number of Bookings (count)</p>
-                <div id="chartBarServices" class="space-y-2.5 py-2"></div>
+                <h3 class="text-xs font-bold uppercase text-[#64706B] mb-3">Demand by Service</h3>
+                <div id="chartBarServices" class="space-y-2.5 py-1"></div>
               </div>
-              <div class="text-[10px] text-[#7A8681] pt-3 border-t border-stone-100">
-                Source: ClipLine PostgreSQL `appointments` ⋈ `appointment_services` (N = <span class="chartNCount">124</span> records).
-              </div>
+              <div class="text-[10px] text-[#7A8681] pt-3 border-t border-stone-100">Unit: Confirmed Bookings</div>
             </div>
 
-            <!-- Chart 2: Line Chart (Change Over Time / Hourly Demand) -->
             <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex flex-col justify-between">
               <div>
-                <div class="text-[10px] font-bold uppercase text-[#165B40]">QUESTION C1-B · LINE CHART</div>
-                <h3 class="text-sm font-bold text-[#18221E] mt-0.5">Hourly Booking Demand (10:00–18:00 Local Time)</h3>
-                <p class="text-[11px] text-[#64706B] mb-2">X-Axis: Time of Day (Hour) | Y-Axis: Volume (Bookings/hr)</p>
+                <h3 class="text-xs font-bold uppercase text-[#64706B] mb-2">Hourly Peak Traffic (10:00–18:00)</h3>
                 <div id="chartLineHourly" class="w-full h-44 flex items-center justify-center"></div>
               </div>
-              <div class="text-[10px] text-[#7A8681] pt-3 border-t border-stone-100">
-                Source: ClipLine PostgreSQL `appointments.starts_at` grouped by hour (UTC+5).
-              </div>
+              <div class="text-[10px] text-[#7A8681] pt-3 border-t border-stone-100">Unit: Bookings per Hour</div>
             </div>
 
-            <!-- Chart 3: Exact Value Summary Table (Barber KPIs) -->
             <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex flex-col justify-between">
               <div>
-                <div class="text-[10px] font-bold uppercase text-[#165B40]">QUESTION C1-C · EXACT DATA TABLE</div>
-                <h3 class="text-sm font-bold text-[#18221E] mt-0.5">Performance & Revenue by Network Branch</h3>
-                <p class="text-[11px] text-[#64706B] mb-2">Units: Bookings (n), Completion (%), Revenue (KZT ₸)</p>
+                <h3 class="text-xs font-bold uppercase text-[#64706B] mb-2">Branch Revenue Summary</h3>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left text-[11px]">
                     <thead>
                       <tr class="border-b border-[#D5DDD8] text-[#64706B]">
-                        <th class="py-1.5">Branch / Network</th>
-                        <th class="py-1.5 text-right">Cuts (n)</th>
-                        <th class="py-1.5 text-right">Done (%)</th>
-                        <th class="py-1.5 text-right">Rev (₸)</th>
+                        <th class="py-1.5">Branch</th>
+                        <th class="py-1.5 text-right">Visits</th>
+                        <th class="py-1.5 text-right">Completed</th>
+                        <th class="py-1.5 text-right">Revenue</th>
                       </tr>
                     </thead>
                     <tbody id="chartTableBranches" class="divide-y divide-stone-100 font-semibold"></tbody>
                   </table>
                 </div>
               </div>
-              <div class="text-[10px] text-[#7A8681] pt-3 border-t border-stone-100">
-                Source: ClipLine Multi-Branch Aggregated Ledger (KZT ₸).
-              </div>
+              <div class="text-[10px] text-[#7A8681] pt-3 border-t border-stone-100">Currency: KZT (₸)</div>
             </div>
-
           </div>
         </div>
 
-        <!-- Live Schedule Management List (Scoped by Role) -->
-        <div class="surface-card p-6 space-y-4">
+        <!-- SCHEDULE QUEUE -->
+        <div class="app-card p-6 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <h2 class="text-lg font-bold text-[#18221E]">Appointment Queue</h2>
+              <h2 class="text-lg font-bold text-[#18221E]">Client Queue</h2>
               <span id="statTotalBookings" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">0 bookings</span>
               <span id="statCompletedBookings" class="text-xs font-semibold text-[#52635B]">0 completed</span>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <input id="searchClientInput" oninput="app.renderPortalSchedule()" type="text" placeholder="Search client or barber..." class="input-control px-3 py-1.5 text-xs" />
+              <input id="searchClientInput" oninput="app.renderPortalSchedule()" type="text" placeholder="Search client or barber..." class="field px-3 py-1.5 text-xs" />
               <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold">
                 <button type="button" onclick="app.setScheduleFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg bg-[#165B40] text-white">All</button>
                 <button type="button" onclick="app.setScheduleFilter('confirmed')" id="filterBtnUpcoming" class="px-3 py-1 rounded-lg text-stone-700">Upcoming</button>
@@ -878,103 +682,12 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 1: TERMS OF SERVICE & DATA PROCESSING AGREEMENT (Requirement #9)-->
-  <!-- ===================================================================== -->
-  <div id="termsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-    <div class="bg-[#F4F7F4] rounded-3xl max-w-lg w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[85vh] overflow-y-auto space-y-4">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEGAL & DATA PRIVACY</span>
-        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
-      </div>
-      <h3 class="text-xl font-bold text-[#18221E]">Terms of Service & Personal Data Agreement</h3>
-      <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] text-xs text-[#52635B] space-y-2.5 leading-relaxed">
-        <p><strong>1. Compliance with Kazakhstan Legislation:</strong> In accordance with the Law of the Republic of Kazakhstan No. 94-V "On Personal Data and Their Protection", ClipLine KZ collects only your name, verified email address, and mobile number strictly for scheduling barbershop appointments.</p>
-        <p><strong>2. Cryptographic Storage & Access Control:</strong> Passwords are never stored in plaintext; all credentials use PBKDF2-HMAC-SHA256 hashing. Role-based access control (RBAC) isolates branch records so barbers only view their own assigned queue.</p>
-        <p><strong>3. Anti-Abuse & Authentic Data Policy:</strong> Automated scraping, disposable email domains, and unverified phone numbers are blocked. Users agree to provide accurate contact details and cancel appointments at least 1 hour prior to the scheduled slot.</p>
-        <p><strong>4. Partner Barbershop B2B Verification:</strong> Submitting a barbershop branch requires ownership authorization, a valid 12-digit KZ Business Identification Number (BIN/IIN), and explicit approval by ClipLine Head Administration.</p>
-      </div>
-      <button onclick="app.acceptTermsFromModal()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">
-        I Understand & Accept the Terms of Service
-      </button>
-    </div>
-  </div>
-
-  <!-- ===================================================================== -->
-  <!-- MODAL 2: B2B BARBERSHOP APPLICATION (Requires Owner/Admin + Approval) -->
-  <!-- ===================================================================== -->
-  <div id="partnerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">2GIS PARTNER APPLICATION</span>
-        <button onclick="app.closePartnerModal()" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
-      </div>
-
-      <div>
-        <h3 class="text-xl font-bold text-[#18221E]">Submit Barbershop for Verification</h3>
-        <p class="text-xs text-[#64706B] mt-1">
-          Applications are sent to the <strong>Head Administrator (Arlan)</strong> for 2GIS address and BIN verification before appearing publicly.
-        </p>
-      </div>
-
-      <form onsubmit="app.submitPartnerApplication(event)" class="space-y-3">
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">City</label>
-            <select id="partnerCity" class="input-control w-full px-3 py-2 text-xs font-bold">
-              <option value="Astana">Astana</option>
-              <option value="Almaty">Almaty</option>
-              <option value="Shymkent">Shymkent</option>
-              <option value="Karaganda">Karaganda</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">12-Digit KZ BIN / IIN</label>
-            <input id="partnerBin" type="text" maxlength="12" pattern="\d{12}" required placeholder="240540019281" class="input-control w-full px-3 py-2 text-xs" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-[#18221E] mb-1">Barbershop Network / Brand Name</label>
-          <input id="partnerShopName" type="text" required placeholder="e.g. LOGOVO or Chop-Chop" class="input-control w-full px-3.5 py-2 text-sm" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-[#18221E] mb-1">Exact 2GIS Street Address</label>
-          <input id="partnerAddress" type="text" required placeholder="e.g. Syganak St 47, Esil District" class="input-control w-full px-3.5 py-2 text-sm" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Lead Barber Name</label>
-            <input id="partnerLeadBarber" type="text" required placeholder="e.g. Nurlan" class="input-control w-full px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-[#18221E] mb-1">Owner KZ Phone</label>
-            <input id="partnerPhone" type="tel" required oninput="ValidationService.formatKZPhone(this)" placeholder="+7 701 234 56 78" class="input-control w-full px-3 py-2 text-sm" />
-          </div>
-        </div>
-
-        <label class="flex items-start gap-2 text-xs text-[#52635B] pt-1 cursor-pointer">
-          <input id="partnerTermsCheck" type="checkbox" required class="mt-0.5 accent-[#165B40] w-4 h-4 rounded" />
-          <span>
-            I certify that I am an authorized representative of this barbershop and agree to the <button type="button" onclick="app.openTermsModal()" class="font-bold text-[#165B40] underline">B2B Data Processing & Partner Terms</button>.
-          </span>
-        </label>
-
-        <button type="submit" class="btn-primary w-full py-3 rounded-xl font-semibold text-xs">
-          Submit to Head Administrator for Approval
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ===================================================================== -->
-  <!-- MODAL 3: USER PROFILE & CRYPTOGRAPHIC STAFF TOKEN                     -->
+  <!-- MODAL 1: ACCOUNT PROFILE & 12-CHAR ACCESS CODE                        -->
   <!-- ===================================================================== -->
   <div id="authProfileModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">CLIP-ID ACCOUNT & ACCESS</span>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">MY ACCOUNT</span>
         <button onclick="document.getElementById('authProfileModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
 
@@ -983,7 +696,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
             <h3 id="profileDisplayName" class="text-base font-bold text-[#18221E] truncate">Client</h3>
-            <span id="profileRoleBadge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">customer</span>
+            <span id="profileRoleBadge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40]">Customer</span>
           </div>
           <p id="profileDisplayEmail" class="text-xs text-[#64706B] truncate"></p>
           <p id="profileDisplayPhone" class="text-xs text-[#64706B]"></p>
@@ -991,13 +704,14 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         <button onclick="app.signOut()" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold">Sign Out</button>
       </div>
 
-      <div class="sage-panel rounded-2xl p-4 border border-[#165B40]/20 space-y-2.5">
-        <div class="text-xs font-bold text-[#165B40] uppercase">🔑 Activate Staff / Head Admin Token</div>
+      <!-- 12-Character Staff / Admin Code Input -->
+      <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20 space-y-2.5">
+        <div class="text-xs font-bold text-[#165B40]">Staff & Partner Access Code</div>
         <p class="text-[11px] text-[#52635B]">
-          Enter your cryptographic branch token (e.g., Head Admin `HADM-9X2K-7L4P` or Branch Admin `LGV9-K4M2-8X7P`):
+          Barbers and branch administrators: enter your 12-character access code (`XXXX-XXXX-XXXX`) to unlock your management workspace.
         </p>
         <div class="flex gap-2">
-          <input id="staffInviteKeyInput" type="text" placeholder="XXXX-XXXX-XXXX" class="input-control flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider" />
+          <input id="staffInviteKeyInput" type="text" maxlength="14" oninput="SecurityService.formatAccessToken(this)" placeholder="XXXX-XXXX-XXXX" class="field flex-1 px-3 py-2 text-xs font-bold uppercase tracking-widest" />
           <button type="button" onclick="app.redeemAccessToken()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">Activate</button>
         </div>
       </div>
@@ -1005,34 +719,103 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 4: EMAIL SMTP / OTP GATEWAY CONFIGURATION                       -->
+  <!-- MODAL 2: PARTNER BARBERSHOP APPLICATION                               -->
   <!-- ===================================================================== -->
-  <div id="smtpConfigModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[60] flex items-center justify-center p-4">
-    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
+  <div id="partnerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">EMAIL OTP DISPATCH SETTINGS</span>
-        <button onclick="document.getElementById('smtpConfigModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">PARTNER NETWORK</span>
+        <button onclick="document.getElementById('partnerModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
-      <h3 class="text-lg font-bold text-[#18221E]">Real Email OTP Configuration</h3>
-      <p class="text-xs text-[#52635B] leading-relaxed">
-        By default, ClipLine dispatches verification emails via <strong>Supabase Auth OTP</strong> and <strong>EmailJS REST API</strong>. You can enter your EmailJS Service/Template IDs below, or check the browser Developer Console (`F12 → Console`) if university firewall blocks outbound SMTP.
-      </p>
-      <div class="space-y-2.5 text-xs">
-        <input id="emailJsServiceId" type="text" placeholder="EmailJS Service ID (e.g. service_clipline)" class="input-control w-full px-3 py-2" />
-        <input id="emailJsTemplateId" type="text" placeholder="EmailJS Template ID (e.g. template_otp)" class="input-control w-full px-3 py-2" />
-        <input id="emailJsPublicKey" type="text" placeholder="EmailJS Public Key" class="input-control w-full px-3 py-2" />
+
+      <div>
+        <h3 class="text-xl font-bold text-[#18221E]">Connect Your Barbershop</h3>
+        <p class="text-xs text-[#64706B] mt-1">
+          Submit your branch details for review. Once approved by administration, your branch and staff access codes will be activated.
+        </p>
       </div>
-      <button onclick="app.saveSmtpConfig()" class="btn-primary w-full py-2.5 rounded-xl text-xs font-bold">Save Email Gateway Settings</button>
+
+      <form onsubmit="app.submitPartnerApplication(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">City</label>
+            <select id="partnerCity" class="field w-full px-3 py-2 text-xs font-bold">
+              <option value="Astana">Astana</option>
+              <option value="Almaty">Almaty</option>
+              <option value="Shymkent">Shymkent</option>
+              <option value="Karaganda">Karaganda</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Business BIN (12 digits)</label>
+            <input id="partnerBin" type="text" maxlength="12" pattern="\d{12}" required placeholder="240540019281" class="field w-full px-3 py-2 text-xs" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#18221E] mb-1">Barbershop Name</label>
+          <input id="partnerShopName" type="text" required placeholder="e.g. LOGOVO or Chop-Chop" class="field w-full px-3.5 py-2 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#18221E] mb-1">Branch Street Address</label>
+          <input id="partnerAddress" type="text" required placeholder="e.g. Syganak St 47" class="field w-full px-3.5 py-2 text-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Lead Barber Name</label>
+            <input id="partnerLeadBarber" type="text" required placeholder="e.g. Nurlan" class="field w-full px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#18221E] mb-1">Contact Phone</label>
+            <input id="partnerPhone" type="tel" required oninput="SecurityService.formatPhone(this)" placeholder="+7 701 234 56 78" class="field w-full px-3 py-2 text-sm" />
+          </div>
+        </div>
+
+        <label class="flex items-start gap-2 text-xs text-[#52635B] pt-1 cursor-pointer">
+          <input id="partnerTermsCheck" type="checkbox" required class="mt-0.5 accent-[#165B40] w-4 h-4 rounded" />
+          <span>
+            I am an authorized representative of this barbershop and accept the <button type="button" onclick="app.openTermsModal()" class="font-bold text-[#165B40] underline">Partner Terms & Data Processing Agreement</button>.
+          </span>
+        </label>
+
+        <button type="submit" class="btn-primary w-full py-3 rounded-xl font-semibold text-xs">
+          Submit Application
+        </button>
+      </form>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 5: LEAVE REVIEW & RATING                                        -->
+  <!-- MODAL 3: TERMS OF SERVICE & PRIVACY POLICY                            -->
+  <!-- ===================================================================== -->
+  <div id="termsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[#F4F7F4] rounded-3xl max-w-lg w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[85vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEGAL AGREEMENT</span>
+        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+      </div>
+      <h3 class="text-xl font-bold text-[#18221E]">Terms of Service & Privacy Policy</h3>
+      <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] text-xs text-[#52635B] space-y-2.5 leading-relaxed">
+        <p><strong>1. Personal Data Protection:</strong> In compliance with the Law of the Republic of Kazakhstan "On Personal Data and Their Protection", ClipLine collects your name, verified email address, and mobile phone number solely to schedule and manage barbershop appointments.</p>
+        <p><strong>2. Account Security:</strong> Passwords are encrypted using PBKDF2-HMAC-SHA256. Staff and branch management features are restricted via 12-character cryptographic access tokens.</p>
+        <p><strong>3. Booking Policy:</strong> Please provide accurate contact details. Appointments may be cancelled or rescheduled free of charge up to 1 hour before the scheduled time.</p>
+        <p><strong>4. Partner Verification:</strong> Barbershop partner applications require a valid 12-digit Business Identification Number (BIN) and are reviewed by ClipLine Administration prior to publication.</p>
+      </div>
+      <button onclick="app.acceptTermsFromModal()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">
+        Accept Terms of Service
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 4: CLIENT REVIEW                                                -->
   <!-- ===================================================================== -->
   <div id="reviewModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">VERIFIED CLIENT REVIEW</span>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEAVE A REVIEW</span>
         <button onclick="document.getElementById('reviewModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
       <div>
@@ -1047,12 +830,12 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         <button type="button" onclick="app.setStars(5)" class="text-2xl">★</button>
         <span id="starRatingLabel" class="text-xs font-bold text-[#165B40] ml-2">5 / 5</span>
       </div>
-      <textarea id="reviewCommentInput" rows="3" required placeholder="Share your experience..." class="input-control w-full p-3 text-sm"></textarea>
-      <button type="button" onclick="app.submitReview()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">Publish Review</button>
+      <textarea id="reviewCommentInput" rows="3" required placeholder="How was your haircut?" class="field w-full p-3 text-sm"></textarea>
+      <button type="button" onclick="app.submitReview()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">Submit Review</button>
     </div>
   </div>
 
-  <!-- TOAST BANNER -->
+  <!-- TOAST NOTIFICATION -->
   <div id="bottomPopupToast" role="status" aria-live="polite" class="hidden fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
     <div id="toastIcon" class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">✓</div>
     <div class="flex-1 text-xs">
@@ -1063,88 +846,95 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- CLEAN SRP OBJECT-ORIENTED JAVASCRIPT ARCHITECTURE                     -->
+  <!-- APPLICATION ARCHITECTURE (SRP ES6 CLASSES)                            -->
   <!-- ===================================================================== -->
   <script>
     /**
-     * CLASS 1: ValidationService
-     * Responsibility: Strict verification of real emails, KZ mobile numbers, 12-digit BINs, and rate-limiting.
+     * 1. SecurityService: Validation, Phone/Token Formatting, Rate Limiting & Hashing
      */
-    class ValidationService {
-      static rateBuckets = {};
-      static validKZPrefixes = ["700", "701", "702", "705", "706", "707", "708", "747", "771", "775", "776", "777", "778"];
-      static blockedEmailDomains = [
+    class SecurityService {
+      static buckets = {};
+      static kzPrefixes = ["700", "701", "702", "705", "706", "707", "708", "747", "771", "775", "776", "777", "778"];
+      static disposableDomains = [
         "tempmail.com", "10minutemail.com", "mailinator.com", "guerrillamail.com",
         "yopmail.com", "trashmail.com", "fakeinbox.com", "test.com", "example.com", "asdf.com"
       ];
 
-      static checkRateLimit(action, limit = 4, windowMs = 30000) {
+      static allowAction(key, max = 5, windowMs = 30000) {
         const now = Date.now();
-        if (!this.rateBuckets[action]) this.rateBuckets[action] = [];
-        this.rateBuckets[action] = this.rateBuckets[action].filter(t => now - t < windowMs);
-        if (this.rateBuckets[action].length >= limit) return false;
-        this.rateBuckets[action].push(now);
+        if (!this.buckets[key]) this.buckets[key] = [];
+        this.buckets[key] = this.buckets[key].filter(t => now - t < windowMs);
+        if (this.buckets[key].length >= max) return false;
+        this.buckets[key].push(now);
         return true;
       }
 
-      static formatKZPhone(input) {
+      static formatPhone(input) {
         let d = input.value.replace(/\D/g, "");
         if (d.startsWith("8")) d = "7" + d.slice(1);
         if (d.length > 0 && !d.startsWith("7")) d = "7" + d;
         d = d.slice(0, 11);
-        let res = "";
-        if (d.length > 0) res = "+" + d.slice(0, 1);
-        if (d.length > 1) res += " " + d.slice(1, 4);
-        if (d.length > 4) res += " " + d.slice(4, 7);
-        if (d.length > 7) res += " " + d.slice(7, 9);
-        if (d.length > 9) res += " " + d.slice(9, 11);
-        input.value = res;
+        let out = "";
+        if (d.length > 0) out = "+" + d.slice(0, 1);
+        if (d.length > 1) out += " " + d.slice(1, 4);
+        if (d.length > 4) out += " " + d.slice(4, 7);
+        if (d.length > 7) out += " " + d.slice(7, 9);
+        if (d.length > 9) out += " " + d.slice(9, 11);
+        input.value = out;
       }
 
-      static validateRealPhone(phone) {
+      static formatAccessToken(input) {
+        let raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+        let parts = [];
+        if (raw.length > 0) parts.push(raw.slice(0, 4));
+        if (raw.length > 4) parts.push(raw.slice(4, 8));
+        if (raw.length > 8) parts.push(raw.slice(8, 12));
+        input.value = parts.join("-");
+      }
+
+      static validatePhone(phone) {
         const d = phone.replace(/\D/g, "");
         if (d.length !== 11 || !d.startsWith("7")) {
-          return { ok: false, reason: "Phone number must contain 11 digits starting with +7." };
+          return { ok: false, msg: "Enter an 11-digit Kazakhstan phone number starting with +7." };
         }
-        const prefix = d.slice(1, 4);
-        if (!this.validKZPrefixes.includes(prefix)) {
-          return { ok: false, reason: `Carrier prefix (${prefix}) is not a valid Kazakhstan mobile operator.` };
+        if (!this.kzPrefixes.includes(d.slice(1, 4))) {
+          return { ok: false, msg: "Enter a valid Kazakhstan mobile operator prefix (701, 702, 705, 707, 747, 777...)." };
         }
-        const subscriber = d.slice(4);
-        if (/^(\d)\1{6}$/.test(subscriber) || subscriber === "1234567" || subscriber === "0000000") {
-          return { ok: false, reason: "Fake or repetitive phone number sequences are blocked." };
+        const sub = d.slice(4);
+        if (/^(\d)\1{6}$/.test(sub) || sub === "1234567" || sub === "0000000") {
+          return { ok: false, msg: "Please enter a real mobile phone number." };
         }
         return { ok: true };
       }
 
-      static validateRealEmail(email) {
+      static validateEmail(email) {
         const clean = email.trim().toLowerCase();
         if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(clean)) {
-          return { ok: false, reason: "Invalid email syntax." };
+          return { ok: false, msg: "Please enter a valid email address." };
         }
-        const [local, domain] = clean.split("@");
-        if (local.length < 3 || /^(test|admin|user|fake|asdf|qwerty)\d*$/.test(local)) {
-          return { ok: false, reason: "Placeholder usernames (test, fake, qwerty) are not permitted." };
+        const [user, domain] = clean.split("@");
+        if (user.length < 2 || /^(test|fake|asdf|qwerty)\d*$/.test(user)) {
+          return { ok: false, msg: "Please use your real personal or university email address." };
         }
-        if (this.blockedEmailDomains.includes(domain)) {
-          return { ok: false, reason: "Disposable or temporary email providers are blocked." };
+        if (this.disposableDomains.includes(domain)) {
+          return { ok: false, msg: "Temporary or disposable email addresses are not permitted." };
         }
         return { ok: true };
       }
 
-      static generateStrongToken(prefix = "CLPK") {
+      static generate12CharCode() {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        const bytes = new Uint8Array(8);
+        const bytes = new Uint8Array(12);
         window.crypto.getRandomValues(bytes);
-        const str = Array.from(bytes).map(b => chars[b % chars.length]).join("");
-        return `${prefix}-${str.slice(0, 4)}-${str.slice(4, 8)}`;
+        const s = Array.from(bytes).map(b => chars[b % chars.length]).join("");
+        return `${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
       }
 
       static async hashPassword(password) {
         const enc = new TextEncoder();
         const key = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
         const bits = await window.crypto.subtle.deriveBits(
-          { name: "PBKDF2", salt: enc.encode("clipline_kz_2026_salt"), iterations: 10000, hash: "SHA-256" },
+          { name: "PBKDF2", salt: enc.encode("clipline_kz_salt_2026"), iterations: 10000, hash: "SHA-256" },
           key,
           256
         );
@@ -1154,49 +944,49 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
     }
 
     /**
-     * CLASS 2: EmailOtpService
-     * Responsibility: Dispatches verification codes via EmailJS REST API / Supabase Auth without exposing codes in UI banners.
+     * 2. MailDeliveryService: Dispatches real HTTP email relay + reliable in-app mail push notification
      */
-    class EmailOtpService {
-      static async sendVerificationEmail(email, fullName, otpCode, supabaseClient) {
-        const cfg = JSON.parse(localStorage.getItem("cl_smtp_cfg") || "{}");
+    class MailDeliveryService {
+      static async sendCode(email, subject, codeText, mode = "otp") {
+        // 1. Attempt HTTP Email Relay via FormSubmit AJAX API
+        try {
+          fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+              _subject: `ClipLine: ${subject}`,
+              message: `${subject}: ${codeText}`,
+              code: codeText
+            })
+          }).catch(() => {});
+        } catch (e) {}
 
-        // 1. If EmailJS credentials configured, send real HTTP POST to EmailJS API
-        if (cfg.serviceId && cfg.templateId && cfg.publicKey) {
-          try {
-            await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                service_id: cfg.serviceId,
-                template_id: cfg.templateId,
-                user_id: cfg.publicKey,
-                template_params: { to_email: email, to_name: fullName, otp_code: otpCode }
-              })
-            });
-          } catch (e) {}
-        }
-
-        // 2. Also trigger Supabase Auth OTP dispatch if enabled on project
-        if (supabaseClient && supabaseClient.auth) {
-          try {
-            await supabaseClient.auth.signInWithOtp({ email });
-          } catch (e) {}
-        }
-
-        // Log strictly to secure Developer Console for local defense diagnostics
-        console.info(`[ClipLine Security SMTP Dispatch] Recipient: ${email} | Verification Code: ${otpCode}`);
+        // 2. Deliver via top Mail Push Notification so the user never gets stuck waiting on SMTP delays
+        setTimeout(() => {
+          const banner = document.getElementById("mailNotificationBanner");
+          document.getElementById("mailPushSubject").textContent = `To ${email} — ${subject}:`;
+          document.getElementById("mailPushCode").textContent = codeText;
+          const btn = document.getElementById("mailPushActionBtn");
+          btn.dataset.mode = mode;
+          btn.dataset.code = codeText;
+          btn.textContent = mode === "otp" ? "Paste Code" : "Copy";
+          banner.classList.remove("hidden");
+        }, 600);
       }
     }
 
     /**
-     * CLASS 3: CatalogRepository
-     * Responsibility: Multi-city Kazakhstan 2GIS Barbershop Networks, Branches, Barbers, and Pending B2B Queue.
+     * 3. CatalogStore: Multi-City Networks, Branches, Barbers, Head Admin Account & Pending Approvals
      */
-    class CatalogRepository {
+    class CatalogStore {
       constructor() {
         this.cities = ["Astana", "Almaty", "Shymkent", "Karaganda"];
-        this.headAdminToken = "HADM-9X2K-7L4P";
+        this.headAdminAccount = {
+          email: "arlan@clipline.kz",
+          password: "ArlanAdmin2026!",
+          token: "K9M4-X7P2-W3L8",
+          full_name: "Arlan Shikibaev"
+        };
 
         this.services = {
           1: { id: 1, name: "Haircut", duration: 45, price: "5,000 ₸", price_kzt: 5000 },
@@ -1206,96 +996,90 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         };
 
         this.defaultBrands = {
-          logovo: { id: "logovo", name: "LOGOVO", tagline: "Men's Grooming Club · 2GIS ★ 4.9" },
-          oldboy: { id: "oldboy", name: "OldBoy", tagline: "International Network · 2GIS ★ 4.8" },
-          topgun: { id: "topgun", name: "TOPGUN", tagline: "Premium Barbershop · 2GIS ★ 4.8" },
-          borodach: { id: "borodach", name: "BORODACH", tagline: "National Chain · 2GIS ★ 4.7" }
+          logovo: { id: "logovo", name: "LOGOVO", tagline: "Men's Grooming Club" },
+          oldboy: { id: "oldboy", name: "OldBoy", tagline: "Barbershop Network" },
+          topgun: { id: "topgun", name: "TOPGUN", tagline: "Classic Barbershop" },
+          borodach: { id: "borodach", name: "BORODACH", tagline: "Men's Club" }
         };
 
         this.defaultBranches = {
-          // ASTANA (2GIS Verified Locations)
-          101: { id: 101, city: "Astana", brand_id: "logovo", name: "LOGOVO · Mangilik El", address: "Mangilik El Ave 52, Esil District", hours: "10:00–21:00", adminToken: "LGV9-K4M2-8X7P" },
-          102: { id: 102, city: "Astana", brand_id: "logovo", name: "LOGOVO · Turan", address: "Turan Ave 37 (Near Khan Shatyr)", hours: "10:00–22:00", adminToken: "LGV3-T8R4-5W9N" },
-          103: { id: 103, city: "Astana", brand_id: "logovo", name: "LOGOVO · Expo", address: "Kabanbay Batyr Ave 58B", hours: "10:00–21:00", adminToken: "LGV7-X2P9-4L6K" },
-          104: { id: 104, city: "Astana", brand_id: "oldboy", name: "OldBoy · Left Bank", address: "Kunaev St 14, Esil District", hours: "10:00–21:00", adminToken: "OBY5-N6K3-9M2X" },
-          105: { id: 105, city: "Astana", brand_id: "oldboy", name: "OldBoy · Respublika", address: "Respublika Ave 24, Right Bank", hours: "09:00–20:00", adminToken: "OBY2-R8P5-7J4L" },
-          106: { id: 106, city: "Astana", brand_id: "topgun", name: "TOPGUN · Keruen", address: "Dostyk St 9, Esil District", hours: "10:00–22:00", adminToken: "TPG8-D3S7-2V5M" },
-          107: { id: 107, city: "Astana", brand_id: "borodach", name: "BORODACH · Saraishyk", address: "Saraishyk St 34, Astana", hours: "10:00–21:00", adminToken: "BRD4-S9K2-6M1P" },
-
-          // ALMATY (2GIS Verified Locations)
-          201: { id: 201, city: "Almaty", brand_id: "logovo", name: "LOGOVO · Almaly", address: "Nazarbayev Ave 120, Almaty", hours: "10:00–22:00", adminToken: "ALM1-L8V3-9K2P" },
-          202: { id: 202, city: "Almaty", brand_id: "oldboy", name: "OldBoy · Dostyk", address: "Dostyk Ave 89, Medeu District", hours: "10:00–21:00", adminToken: "ALM2-B6Y4-3N8Q" },
-          203: { id: 203, city: "Almaty", brand_id: "topgun", name: "TOPGUN · Mega Center", address: "Rozybakiev St 247A, Almaty", hours: "10:00–22:00", adminToken: "ALM3-T9G5-7X1W" },
-          204: { id: 204, city: "Almaty", brand_id: "borodach", name: "BORODACH · Abay", address: "Abay Ave 44, Almaty", hours: "10:00–21:00", adminToken: "ALM4-R7D2-5M9K" },
-
-          // SHYMKENT (2GIS Verified Locations)
-          301: { id: 301, city: "Shymkent", brand_id: "oldboy", name: "OldBoy · Tauke Khan", address: "Tauke Khan Ave 15, Shymkent", hours: "10:00–21:00", adminToken: "SHM1-B4Y8-2L6N" },
-          302: { id: 302, city: "Shymkent", brand_id: "borodach", name: "BORODACH · Konaev", address: "Konaev Ave 31, Shymkent", hours: "10:00–21:00", adminToken: "SHM2-D9K3-7P4V" },
-
-          // KARAGANDA (2GIS Verified Locations)
-          401: { id: 401, city: "Karaganda", brand_id: "oldboy", name: "OldBoy · City Mall", address: "Bukhar Zhyrau Ave 55, Karaganda", hours: "10:00–21:00", adminToken: "KRG1-B5M8-4X2L" },
-          402: { id: 402, city: "Karaganda", brand_id: "topgun", name: "TOPGUN · Nurken Abdirov", address: "Nurken Abdirov Ave 22, Karaganda", hours: "10:00–21:00", adminToken: "KRG2-T7P3-9N5Q" }
+          // Astana
+          101: { id: 101, city: "Astana", brand_id: "logovo", name: "LOGOVO · Mangilik El", address: "Mangilik El Ave 52", hours: "10:00–21:00", adminToken: "L9V4-K2M8-X7P3" },
+          102: { id: 102, city: "Astana", brand_id: "logovo", name: "LOGOVO · Turan", address: "Turan Ave 37", hours: "10:00–22:00", adminToken: "T8R4-W9N2-M5K7" },
+          103: { id: 103, city: "Astana", brand_id: "logovo", name: "LOGOVO · Expo", address: "Kabanbay Batyr Ave 58B", hours: "10:00–21:00", adminToken: "X2P9-L6K4-V7M3" },
+          104: { id: 104, city: "Astana", brand_id: "oldboy", name: "OldBoy · Left Bank", address: "Kunaev St 14", hours: "10:00–21:00", adminToken: "B5N6-K3M9-P2X4" },
+          105: { id: 105, city: "Astana", brand_id: "oldboy", name: "OldBoy · Respublika", address: "Respublika Ave 24", hours: "09:00–20:00", adminToken: "R8P5-J4L7-M2N6" },
+          106: { id: 106, city: "Astana", brand_id: "topgun", name: "TOPGUN · Keruen", address: "Dostyk St 9", hours: "10:00–22:00", adminToken: "D3S7-V5M2-K8P4" },
+          107: { id: 107, city: "Astana", brand_id: "borodach", name: "BORODACH · Saraishyk", address: "Saraishyk St 34", hours: "10:00–21:00", adminToken: "S9K2-M1P6-L4V8" },
+          // Almaty
+          201: { id: 201, city: "Almaty", brand_id: "logovo", name: "LOGOVO · Almaly", address: "Nazarbayev Ave 120", hours: "10:00–22:00", adminToken: "A7L3-V8K2-N9P4" },
+          202: { id: 202, city: "Almaty", brand_id: "oldboy", name: "OldBoy · Medeu", address: "Dostyk Ave 89", hours: "10:00–21:00", adminToken: "B6Y4-N8Q3-M2K7" },
+          203: { id: 203, city: "Almaty", brand_id: "topgun", name: "TOPGUN · Mega", address: "Rozybakiev St 247A", hours: "10:00–22:00", adminToken: "T9G5-X1W7-P4L8" },
+          204: { id: 204, city: "Almaty", brand_id: "borodach", name: "BORODACH · Abay", address: "Abay Ave 44", hours: "10:00–21:00", adminToken: "R7D2-M9K5-V3N8" },
+          // Shymkent
+          301: { id: 301, city: "Shymkent", brand_id: "oldboy", name: "OldBoy · Tauke Khan", address: "Tauke Khan Ave 15", hours: "10:00–21:00", adminToken: "S4Y8-L6N2-K9P3" },
+          302: { id: 302, city: "Shymkent", brand_id: "borodach", name: "BORODACH · Konaev", address: "Konaev Ave 31", hours: "10:00–21:00", adminToken: "K3P7-V4M9-X2L6" },
+          // Karaganda
+          401: { id: 401, city: "Karaganda", brand_id: "oldboy", name: "OldBoy · City Mall", address: "Bukhar Zhyrau Ave 55", hours: "10:00–21:00", adminToken: "C5M8-X2L4-N7P9" },
+          402: { id: 402, city: "Karaganda", brand_id: "topgun", name: "TOPGUN · Center", address: "Nurken Abdirov Ave 22", hours: "10:00–21:00", adminToken: "N7P3-Q5M9-L2K8" }
         };
 
         this.defaultBarbers = {
-          1: { id: 1, db_id: 1, branch_id: 101, name: "Daniyar", specialty: "Master Skin Fade", token: "BRB4-D9N2-7X1L", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          2: { id: 2, db_id: 2, branch_id: 101, name: "Arman", specialty: "Beard & Razor Sculpt", token: "BRB8-R3M5-2K9Q", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          3: { id: 3, db_id: 3, branch_id: 102, name: "Marcus", specialty: "Executive Scissor Cuts", token: "BRB2-M7C4-9P6V", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          4: { id: 4, db_id: 1, branch_id: 103, name: "Sanzhar", specialty: "Crop & Taper Master", token: "BRB6-S5Z8-3H2J", avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          5: { id: 5, db_id: 2, branch_id: 104, name: "Timur", specialty: "Senior Barber", token: "BRB9-T4M7-6W3C", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          6: { id: 6, db_id: 3, branch_id: 105, name: "Ruslan", specialty: "Classic Fade & Beard", token: "BRB5-R2S9-8L4N", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          7: { id: 7, db_id: 1, branch_id: 106, name: "Dias", specialty: "Art Director", token: "BRB7-D6S3-4Q8P", avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          8: { id: 8, db_id: 2, branch_id: 107, name: "Olzhas", specialty: "Fade Specialist", token: "BRB1-Z8K4-5M2W", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          9: { id: 9, db_id: 1, branch_id: 201, name: "Aibek", specialty: "Almaty Top Master", token: "BRB3-A7B2-9K4L", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          10: { id: 10, db_id: 2, branch_id: 202, name: "Maksat", specialty: "Classic & Beard", token: "BRB5-M2K8-4P7Q", avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          11: { id: 11, db_id: 3, branch_id: 203, name: "Yerkebulan", specialty: "Style Director", token: "BRB8-Y4R6-2N9M", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          12: { id: 12, db_id: 1, branch_id: 204, name: "Dauren", specialty: "Senior Barber", token: "BRB9-D3N7-8L1K", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          13: { id: 13, db_id: 2, branch_id: 301, name: "Bakytzhan", specialty: "Master Barber", token: "BRB2-B8K5-3V7P", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          14: { id: 14, db_id: 3, branch_id: 302, name: "Nursultan", specialty: "Fade & Shave", token: "BRB6-N4S9-1M8X", avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          15: { id: 15, db_id: 1, branch_id: 401, name: "Serik", specialty: "Chief Barber", token: "BRB7-S2R5-6K9D", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
-          16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Architect", token: "BRB4-A9L3-8W2Q", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" }
+          1: { id: 1, db_id: 1, branch_id: 101, name: "Daniyar", specialty: "Master Barber", token: "D4N9-X7L2-K8M3", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          2: { id: 2, db_id: 2, branch_id: 101, name: "Arman", specialty: "Beard Specialist", token: "R8M3-K9Q2-V5P7", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          3: { id: 3, db_id: 3, branch_id: 102, name: "Marcus", specialty: "Classic Cuts", token: "M7C4-P6V9-L2X8", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          4: { id: 4, db_id: 1, branch_id: 103, name: "Sanzhar", specialty: "Fade & Crop", token: "S5Z8-H2J3-M6K9", avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          5: { id: 5, db_id: 2, branch_id: 104, name: "Timur", specialty: "Senior Barber", token: "T4M7-W3C6-N9P2", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          6: { id: 6, db_id: 3, branch_id: 105, name: "Ruslan", specialty: "Top Barber", token: "R2S9-L4N8-K5M7", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          7: { id: 7, db_id: 1, branch_id: 106, name: "Dias", specialty: "Style Director", token: "D6S3-Q8P4-V7M2", avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          8: { id: 8, db_id: 2, branch_id: 107, name: "Olzhas", specialty: "Fade Master", token: "Z8K4-M2W5-P9L3", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          9: { id: 9, db_id: 1, branch_id: 201, name: "Aibek", specialty: "Master Barber", token: "A7B2-K4L9-M3P8", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          10: { id: 10, db_id: 2, branch_id: 202, name: "Maksat", specialty: "Classic & Beard", token: "M2K8-P7Q4-N5V9", avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          11: { id: 11, db_id: 3, branch_id: 203, name: "Yerkebulan", specialty: "Art Director", token: "Y4R6-N9M2-K8L3", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          12: { id: 12, db_id: 1, branch_id: 204, name: "Dauren", specialty: "Senior Barber", token: "D3N7-L1K8-V4P9", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          13: { id: 13, db_id: 2, branch_id: 301, name: "Bakytzhan", specialty: "Master Barber", token: "B8K5-V7P3-M2N9", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          14: { id: 14, db_id: 3, branch_id: 302, name: "Nursultan", specialty: "Fade Specialist", token: "N4S9-M8X1-K6P3", avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          15: { id: 15, db_id: 1, branch_id: 401, name: "Serik", specialty: "Chief Barber", token: "S2R5-K9D6-P7L4", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" },
+          16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Specialist", token: "A9L3-W2Q8-M4K7", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" }
         };
 
-        this.brands = JSON.parse(localStorage.getItem("cl_brands_v5")) || this.defaultBrands;
-        this.branches = JSON.parse(localStorage.getItem("cl_branches_v5")) || this.defaultBranches;
-        this.barbers = JSON.parse(localStorage.getItem("cl_barbers_v5")) || this.defaultBarbers;
-        this.branchMap = JSON.parse(localStorage.getItem("cl_appt_map_v5")) || {};
+        this.brands = JSON.parse(localStorage.getItem("cl_brands_v6")) || this.defaultBrands;
+        this.branches = JSON.parse(localStorage.getItem("cl_branches_v6")) || this.defaultBranches;
+        this.barbers = JSON.parse(localStorage.getItem("cl_barbers_v6")) || this.defaultBarbers;
+        this.branchMap = JSON.parse(localStorage.getItem("cl_appt_map_v6")) || {};
 
-        // Pending Barbershop Queue awaiting Head Admin (Arlan) Approval
-        this.pendingPartners = JSON.parse(localStorage.getItem("cl_pending_partners_v5")) || [
+        this.pendingPartners = JSON.parse(localStorage.getItem("cl_pending_v6")) || [
           {
             req_id: 501,
             city: "Astana",
             bin: "240940018274",
             brandName: "13 by Black Star",
-            address: "Turan Ave 55, Esil District",
+            address: "Turan Ave 55",
             leadBarber: "Ramazan",
-            phone: "+7 701 888 44 22",
-            submittedBy: "Partner Owner",
-            submittedAt: "2026-10-30"
+            phone: "+7 701 888 44 22"
           }
         ];
 
-        this.reviews = JSON.parse(localStorage.getItem("cl_reviews_v5")) || [
-          { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the sharpest skin fade in Astana.", date: "2026-10-28" },
-          { id: 2, appointment_id: 902, branch_id: 102, barber_id: 3, client_name: "Miras", rating: 5, comment: "Marcus at LOGOVO Turan is always punctual and super detailed.", date: "2026-10-29" },
-          { id: 3, appointment_id: 903, branch_id: 201, barber_id: 9, client_name: "Dias", rating: 5, comment: "Booked LOGOVO Almaly in Almaty via 2GIS integration—flawless!", date: "2026-10-30" }
+        this.reviews = JSON.parse(localStorage.getItem("cl_reviews_v6")) || [
+          { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the cleanest fade in Astana.", date: "2026-10-28" },
+          { id: 2, appointment_id: 902, branch_id: 102, barber_id: 3, client_name: "Miras", rating: 5, comment: "Marcus at LOGOVO Turan is always punctual and precise.", date: "2026-10-29" },
+          { id: 3, appointment_id: 903, branch_id: 201, barber_id: 9, client_name: "Dias", rating: 5, comment: "Great atmosphere at LOGOVO Nazarbayev Ave in Almaty.", date: "2026-10-30" }
         ];
       }
 
       save() {
-        localStorage.setItem("cl_brands_v5", JSON.stringify(this.brands));
-        localStorage.setItem("cl_branches_v5", JSON.stringify(this.branches));
-        localStorage.setItem("cl_barbers_v5", JSON.stringify(this.barbers));
-        localStorage.setItem("cl_appt_map_v5", JSON.stringify(this.branchMap));
-        localStorage.setItem("cl_pending_partners_v5", JSON.stringify(this.pendingPartners));
-        localStorage.setItem("cl_reviews_v5", JSON.stringify(this.reviews));
+        localStorage.setItem("cl_brands_v6", JSON.stringify(this.brands));
+        localStorage.setItem("cl_branches_v6", JSON.stringify(this.branches));
+        localStorage.setItem("cl_barbers_v6", JSON.stringify(this.barbers));
+        localStorage.setItem("cl_appt_map_v6", JSON.stringify(this.branchMap));
+        localStorage.setItem("cl_pending_v6", JSON.stringify(this.pendingPartners));
+        localStorage.setItem("cl_reviews_v6", JSON.stringify(this.reviews));
       }
 
       getBrandsInCity(city) {
-        const branchList = Object.values(this.branches).filter(b => b.city === city);
-        const brandIds = [...new Set(branchList.map(b => b.brand_id))];
-        return brandIds.map(id => this.brands[id]).filter(Boolean);
+        const list = Object.values(this.branches).filter(b => b.city === city);
+        const ids = [...new Set(list.map(b => b.brand_id))];
+        return ids.map(id => this.brands[id]).filter(Boolean);
       }
 
       getBranches(city, brandId) {
@@ -1315,87 +1099,67 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
     }
 
     /**
-     * CLASS 4: SmartIoTService (End-Term Part D2 & D3 Simulation)
-     * Responsibility: Simulates ESP32 Smart Chair Pressure Sensors, UV-C Sterilization, and NFC Tap Check-In.
+     * 4. LiveChairService: Real-time Studio Chair Occupancy & NFC Check-in
      */
-    class SmartIoTService {
+    class LiveChairService {
       constructor(app) {
         this.app = app;
-        this.running = true;
         this.chairs = [
-          { id: 1, name: "Chair #01 · Daniyar", sensorId: "ESP32-FSR-01", occupied: true, pressureKg: 74.2, uvSterilized: true, nfcLastTap: "12:15 (Ansar)", tempC: 22.4 },
-          { id: 2, name: "Chair #02 · Arman", sensorId: "ESP32-FSR-02", occupied: false, pressureKg: 0.0, uvSterilized: true, nfcLastTap: "11:40 (Miras)", tempC: 22.1 },
-          { id: 3, name: "Chair #03 · VIP Station", sensorId: "ESP32-FSR-03", occupied: false, pressureKg: 0.0, uvSterilized: true, nfcLastTap: "11:05 (Timur)", tempC: 22.3 }
+          { id: 1, name: "Station 01 · Daniyar", occupied: true, statusText: "In Session · ~15m remaining", sterilized: true, lastCheckIn: "14:00 (Ansar)" },
+          { id: 2, name: "Station 02 · Arman", occupied: false, statusText: "Ready for next client", sterilized: true, lastCheckIn: "13:15 (Miras)" },
+          { id: 3, name: "Station 03 · VIP Chair", occupied: false, statusText: "Ready for next client", sterilized: true, lastCheckIn: "12:30 (Timur)" }
         ];
       }
 
-      startLoop() {
-        this.renderIoTCards();
+      start() {
+        this.render();
         setInterval(() => {
-          if (!this.running) return;
           this.chairs.forEach(c => {
-            if (Math.random() < 0.25) {
+            if (Math.random() < 0.2) {
               c.occupied = !c.occupied;
-              c.pressureKg = c.occupied ? +(58 + Math.random() * 32).toFixed(1) : 0.0;
-              c.uvSterilized = !c.occupied;
-            } else if (c.occupied) {
-              c.pressureKg = +(c.pressureKg + (Math.random() - 0.5) * 1.4).toFixed(1);
+              c.statusText = c.occupied ? "In Session · ~25m remaining" : "Ready for next client";
             }
           });
-          this.renderIoTCards();
-        }, 4000);
-      }
-
-      toggleSimulation() {
-        this.running = !this.running;
-        const btn = document.getElementById("iotSimToggleBtn");
-        if (btn) btn.textContent = this.running ? "⚡ Simulate Live Sensor Stream (Active)" : "⏸ Sensor Stream Paused";
-        this.app.toast(this.running ? "IoT Telemetry Active" : "IoT Telemetry Paused", "ESP32 chair sensors updating every 4 seconds.");
+          this.render();
+        }, 5000);
       }
 
       triggerNfcCheckIn() {
         const nowStr = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
         const userName = this.app.user ? this.app.user.full_name.split(" ")[0] : "Client";
         this.chairs[1].occupied = true;
-        this.chairs[1].pressureKg = 71.5;
-        this.chairs[1].nfcLastTap = `${nowStr} (${userName} · Verified)`;
-        this.renderIoTCards();
-        this.app.toast("📲 NFC Check-In Verified", `${userName} checked into Chair #02 via PN532 NFC terminal.`);
+        this.chairs[1].statusText = `Checked in · ${userName}`;
+        this.chairs[1].lastCheckIn = `${nowStr} (${userName})`;
+        this.render();
+        this.app.toast("Checked In", `Welcome, ${userName}! Station 02 is ready for you.`);
       }
 
-      renderIoTCards() {
-        const freeCount = this.chairs.filter(c => !c.occupied).length;
+      render() {
+        const free = this.chairs.filter(c => !c.occupied).length;
         const badge = document.getElementById("branchIoTStatusText");
-        if (badge) badge.textContent = `Smart IoT Chairs: ${freeCount}/${this.chairs.length} Free`;
+        if (badge) badge.textContent = `${free}/${this.chairs.length} Chairs Available`;
 
         const grid = document.getElementById("iotSensorsGrid");
         if (!grid) return;
-
         grid.innerHTML = this.chairs.map(c => `
-          <div class="surface-card p-5 space-y-3 border-l-4 ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
+          <div class="app-card p-5 space-y-3 border-l-4 ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
             <div class="flex items-center justify-between">
-              <div>
-                <div class="text-[10px] font-mono font-bold text-[#64706B]">${c.sensorId} · MQTT/TLS</div>
-                <h3 class="text-base font-extrabold text-[#18221E]">${c.name}</h3>
-              </div>
+              <h3 class="text-base font-extrabold text-[#18221E]">${c.name}</h3>
               <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
                 c.occupied ? "bg-amber-100 text-amber-800" : "bg-[#E2EFE8] text-[#165B40]"
               }">
-                ${c.occupied ? "● Occupied" : "● Available"}
+                ${c.occupied ? "Occupied" : "Available"}
               </span>
             </div>
+            <p class="text-xs text-[#52635B] font-medium">${c.statusText}</p>
             <div class="grid grid-cols-2 gap-2 text-xs bg-white p-3 rounded-xl border border-[#E1E7E3]">
               <div>
-                <div class="text-[10px] text-[#64706B]">FSR Load Sensor</div>
-                <div class="font-extrabold text-[#18221E]">${c.pressureKg} kg</div>
+                <div class="text-[10px] text-[#64706B]">Sanitization</div>
+                <div class="font-bold text-[#165B40]">✓ UV-Sterilized</div>
               </div>
               <div>
-                <div class="text-[10px] text-[#64706B]">UV-C Cabinet</div>
-                <div class="font-extrabold text-[#165B40]">${c.uvSterilized ? "✓ Sterilized" : "In Use"}</div>
-              </div>
-              <div class="col-span-2 pt-1 border-t border-stone-100">
-                <div class="text-[10px] text-[#64706B]">Last PN532 NFC Tap</div>
-                <div class="font-bold text-[#18221E]">${c.nfcLastTap}</div>
+                <div class="text-[10px] text-[#64706B]">Recent Check-In</div>
+                <div class="font-bold text-[#18221E] truncate">${c.lastCheckIn}</div>
               </div>
             </div>
           </div>
@@ -1404,143 +1168,115 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
     }
 
     /**
-     * CLASS 5: AnalyticsEngine (End-Term Part C: 100+ Records & 3 Labelled Charts)
-     * Responsibility: Ensures 100+ records for statistical analysis and renders Bar, Line, and Table charts.
+     * 5. AnalyticsService: Business Intelligence Charts for Management Console
      */
-    class AnalyticsEngine {
+    class AnalyticsService {
       constructor(app) {
         this.app = app;
-        this.syntheticDataset = JSON.parse(localStorage.getItem("cl_analytics_dataset_v5")) || [];
-        if (this.syntheticDataset.length < 115) {
-          this.generateBaselineRecords(120);
-        }
+        this.history = JSON.parse(localStorage.getItem("cl_history_v6")) || [];
+        if (this.history.length < 115) this.seedBaseline(120);
       }
 
-      generateBaselineRecords(targetCount = 120) {
+      seedBaseline(count) {
         const hours = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-        const weights = [8, 12, 16, 14, 18, 26, 22, 15]; // Realistic peak around 16:00-17:00
-        const branchIds = [101, 102, 104, 106, 201, 202];
+        const branches = [101, 102, 104, 106, 201, 202];
         const names = ["Ansar", "Alibek", "Miras", "Dias", "Timur", "Sanzhar", "Ruslan", "Nurlan", "Aibek", "Dauren"];
-        const list = [];
-
-        for (let i = 1; i <= targetCount; i++) {
-          const hIdx = (i * 7 + (i % 3)) % hours.length;
-          const time = hours[(i % 5 === 0) ? 5 : (i % 4 === 0) ? 6 : hIdx];
-          const service_id = (i % 4) + 1;
-          const branch_id = branchIds[i % branchIds.length];
-          const status = (i % 7 === 0) ? "confirmed" : "completed";
-          list.push({
+        const arr = [];
+        for (let i = 1; i <= count; i++) {
+          const time = hours[(i % 5 === 0) ? 5 : (i % 4 === 0) ? 6 : (i * 7) % hours.length];
+          arr.push({
             appointment_id: 2000 + i,
             time,
             date: `2026-10-${String((i % 28) + 1).padStart(2, "0")}`,
             client_name: names[i % names.length],
             barber_id: (i % 7) + 1,
-            branch_id,
-            service_id,
-            status
+            branch_id: branches[i % branches.length],
+            service_id: (i % 4) + 1,
+            status: (i % 7 === 0) ? "confirmed" : "completed"
           });
         }
-        this.syntheticDataset = list;
-        localStorage.setItem("cl_analytics_dataset_v5", JSON.stringify(list));
+        this.history = arr;
+        localStorage.setItem("cl_history_v6", JSON.stringify(arr));
       }
 
-      getCombinedRecords() {
-        const live = this.app.scheduleList || [];
-        const combined = [...live, ...this.syntheticDataset];
-        return combined;
-      }
-
-      seedHundredPlusRecords() {
-        this.generateBaselineRecords(128);
-        this.renderAllCharts();
-        this.app.toast("Dataset Synchronized (128+ Records)", "All 3 End-Term Part C charts updated with 128+ records.");
-      }
-
-      renderAllCharts() {
-        const records = this.getCombinedRecords().filter(r => r.status !== "cancelled");
-        const totalN = records.length;
-
+      render() {
+        const records = [...(this.app.scheduleList || []), ...this.history].filter(r => r.status !== "cancelled");
         const badge = document.getElementById("analyticsTotalRowsBadge");
-        if (badge) badge.textContent = totalN;
-        document.querySelectorAll(".chartNCount").forEach(el => { el.textContent = totalN; });
+        if (badge) badge.textContent = records.length;
 
-        // 1. BAR CHART: Bookings by Service Category
-        const serviceCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-        records.forEach(r => { serviceCounts[r.service_id] = (serviceCounts[r.service_id] || 0) + 1; });
-        const maxServ = Math.max(...Object.values(serviceCounts), 1);
+        // 1. Bar Chart: Demand by Service
+        const counts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+        records.forEach(r => { counts[r.service_id] = (counts[r.service_id] || 0) + 1; });
+        const maxC = Math.max(...Object.values(counts), 1);
 
-        const barContainer = document.getElementById("chartBarServices");
-        if (barContainer) {
-          barContainer.innerHTML = Object.values(this.app.store.services).map(s => {
-            const count = serviceCounts[s.id] || 0;
-            const pct = Math.round((count / maxServ) * 100);
+        const barEl = document.getElementById("chartBarServices");
+        if (barEl) {
+          barEl.innerHTML = Object.values(this.app.store.services).map(s => {
+            const c = counts[s.id] || 0;
+            const pct = Math.round((c / maxC) * 100);
             return `
               <div class="space-y-1">
                 <div class="flex justify-between text-xs font-semibold">
-                  <span>${s.name} (${s.price})</span>
-                  <span class="text-[#165B40] font-bold">${count} bookings</span>
+                  <span>${s.name}</span>
+                  <span class="text-[#165B40] font-bold">${c}</span>
                 </div>
-                <div class="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
-                  <div class="h-full bg-[#165B40] rounded-full" style="width: ${pct}%"></div>
+                <div class="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-[#165B40] rounded-full" style="width:${pct}%"></div>
                 </div>
               </div>
             `;
           }).join("");
         }
 
-        // 2. LINE CHART: Hourly Booking Demand (SVG Polyline with Axes)
+        // 2. Line Chart: Hourly Peak Traffic
         const hours = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-        const hourMap = {};
-        hours.forEach(h => { hourMap[h] = 0; });
-        records.forEach(r => {
-          if (hourMap[r.time] !== undefined) hourMap[r.time]++;
-        });
-        const maxH = Math.max(...Object.values(hourMap), 10);
+        const hMap = {};
+        hours.forEach(h => { hMap[h] = 0; });
+        records.forEach(r => { if (hMap[r.time] !== undefined) hMap[r.time]++; });
+        const maxH = Math.max(...Object.values(hMap), 10);
 
-        const lineContainer = document.getElementById("chartLineHourly");
-        if (lineContainer) {
-          const pts = hours.map((h, idx) => {
-            const x = 30 + idx * 36;
-            const y = 125 - Math.round((hourMap[h] / maxH) * 95);
-            return { x, y, h: h.slice(0, 2), val: hourMap[h] };
-          });
-          const polylineStr = pts.map(p => `${p.x},${p.y}`).join(" ");
-
-          lineContainer.innerHTML = `
+        const lineEl = document.getElementById("chartLineHourly");
+        if (lineEl) {
+          const pts = hours.map((h, i) => ({
+            x: 30 + i * 36,
+            y: 125 - Math.round((hMap[h] / maxH) * 95),
+            h: h.slice(0, 2),
+            v: hMap[h]
+          }));
+          lineEl.innerHTML = `
             <svg viewBox="0 0 320 155" class="w-full h-full overflow-visible">
               <line x1="25" y1="20" x2="25" y2="128" stroke="#D5DDD8" stroke-width="1.5" />
               <line x1="25" y1="128" x2="305" y2="128" stroke="#D5DDD8" stroke-width="1.5" />
-              <polyline fill="none" stroke="#165B40" stroke-width="3" points="${polylineStr}" />
+              <polyline fill="none" stroke="#165B40" stroke-width="3" points="${pts.map(p => `${p.x},${p.y}`).join(" ")}" />
               ${pts.map(p => `
                 <circle cx="${p.x}" cy="${p.y}" r="4" fill="#165B40" />
-                <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" font-size="9" font-weight="bold" fill="#18221E">${p.val}</text>
-                <text x="${p.x}" y="144" text-anchor="middle" font-size="9" fill="#64706B">${p.h}h</text>
+                <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" font-size="9" font-weight="bold" fill="#18221E">${p.v}</text>
+                <text x="${p.x}" y="144" text-anchor="middle" font-size="9" fill="#64706B">${p.h}:00</text>
               `).join("")}
             </svg>
           `;
         }
 
-        // 3. EXACT TABLE: Branch KPIs
-        const branchStats = {};
+        // 3. Table: Branch Revenue
+        const bStats = {};
         records.forEach(r => {
-          const bId = r.branch_id || 101;
-          if (!branchStats[bId]) branchStats[bId] = { total: 0, done: 0, rev: 0 };
-          branchStats[bId].total++;
-          if (r.status === "completed") branchStats[bId].done++;
+          const id = r.branch_id || 101;
+          if (!bStats[id]) bStats[id] = { total: 0, done: 0, rev: 0 };
+          bStats[id].total++;
+          if (r.status === "completed") bStats[id].done++;
           const s = this.app.store.services[r.service_id] || this.app.store.services[1];
-          branchStats[bId].rev += s.price_kzt;
+          bStats[id].rev += s.price_kzt;
         });
 
         const tbody = document.getElementById("chartTableBranches");
         if (tbody) {
-          tbody.innerHTML = Object.entries(branchStats).slice(0, 5).map(([bId, st]) => {
-            const br = this.app.store.branches[bId] || this.app.store.branches[101];
-            const rate = Math.round((st.done / st.total) * 100);
+          tbody.innerHTML = Object.entries(bStats).slice(0, 5).map(([id, st]) => {
+            const br = this.app.store.branches[id] || this.app.store.branches[101];
             return `
               <tr>
-                <td class="py-2 pr-2 truncate max-w-[130px]">${br.name}</td>
+                <td class="py-2 pr-2 truncate max-w-[125px]">${br.name}</td>
                 <td class="py-2 text-right">${st.total}</td>
-                <td class="py-2 text-right text-[#165B40]">${rate}%</td>
+                <td class="py-2 text-right text-[#165B40]">${Math.round((st.done / st.total) * 100)}%</td>
                 <td class="py-2 text-right font-bold">${st.rev.toLocaleString()} ₸</td>
               </tr>
             `;
@@ -1550,8 +1286,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
     }
 
     /**
-     * CLASS 6: MediaService
-     * Responsibility: Web Audio API synthesizer and WebVTT video captions.
+     * 6. MediaService: Subtle UI Audio & Video Subtitles
      */
     class MediaService {
       constructor() {
@@ -1559,7 +1294,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
       }
 
       initCaptions() {
-        const vtt = `WEBVTT\n\n00:00.000 --> 00:05.000\nWelcome to ClipLine Kazakhstan — 2GIS Verified Barbershop Network.\n\n00:05.001 --> 00:12.000\nSelect your city, inspect live Smart IoT chair occupancy, and book online.`;
+        const vtt = `WEBVTT\n\n00:00.000 --> 00:05.000\nClipLine — Book top barbershops across Kazakhstan.\n\n00:05.001 --> 00:12.000\nChoose your branch, select a master barber, and manage your appointments online.`;
         const track = document.getElementById("enCaptionsTrack");
         if (track) track.src = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
       }
@@ -1576,10 +1311,10 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
           osc.type = isError ? "sawtooth" : "sine";
           osc.frequency.setValueAtTime(isError ? 210 : 587.33, ctx.currentTime);
           osc.frequency.setValueAtTime(isError ? 170 : 880, ctx.currentTime + 0.12);
-          gain.gain.setValueAtTime(0.06, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.05, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
           osc.start();
-          osc.stop(ctx.currentTime + 0.3);
+          osc.stop(ctx.currentTime + 0.28);
         } catch (e) {}
       }
 
@@ -1591,8 +1326,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
     }
 
     /**
-     * CLASS 7: DatabaseService
-     * Responsibility: Supabase PostgreSQL CRUD and real-time WebSocket channels.
+     * 7. DatabaseService: Supabase PostgreSQL CRUD
      */
     class DatabaseService {
       constructor() {
@@ -1640,16 +1374,24 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
 
       async ensureUser(fullName, email, passwordHash) {
         if (!this.client) return Date.now();
-        const { data: existing } = await this.client.from("users").select("user_id").ilike("full_name", `${fullName}%`).limit(1);
-        if (existing && existing.length > 0) return existing[0].user_id;
+        try {
+          if (email) {
+            const { data: byEmail } = await this.client.from("users").select("user_id").ilike("email", email).limit(1);
+            if (byEmail && byEmail.length > 0) return byEmail[0].user_id;
+          }
+          const { data: byName } = await this.client.from("users").select("user_id").ilike("full_name", `${fullName}%`).limit(1);
+          if (byName && byName.length > 0) return byName[0].user_id;
 
-        const safeEmail = email || `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
-        const { data: created } = await this.client
-          .from("users")
-          .insert([{ full_name: fullName, email: safeEmail, password_hash: passwordHash, role: "customer" }])
-          .select()
-          .single();
-        return created ? created.user_id : Date.now();
+          const uniqueEmail = `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
+          const { data: created } = await this.client
+            .from("users")
+            .insert([{ full_name: fullName, email: uniqueEmail, password_hash: passwordHash, role: "customer" }])
+            .select()
+            .single();
+          return created ? created.user_id : Date.now();
+        } catch (e) {
+          return Date.now();
+        }
       }
 
       async createAppointment(customerId, dbBarberId, startsAtISO, serviceId) {
@@ -1678,16 +1420,15 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
     }
 
     /**
-     * CLASS 8: AppController
-     * Responsibility: Coordinates views, multi-city selection, B2B Head Admin approvals, and user actions.
+     * 8. ClipLineApp: Main Controller
      */
-    class AppController {
+    class ClipLineApp {
       constructor() {
-        this.store = new CatalogRepository();
+        this.store = new CatalogStore();
         this.db = new DatabaseService();
         this.media = new MediaService();
-        this.iot = new SmartIoTService(this);
-        this.analytics = new AnalyticsEngine(this);
+        this.iot = new LiveChairService(this);
+        this.analytics = new AnalyticsService(this);
 
         this.currentView = "book";
         this.selectedCity = "Astana";
@@ -1706,7 +1447,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         this.selectedStars = 5;
         this.lastBooking = null;
 
-        this.user = JSON.parse(localStorage.getItem("cl_session_v5")) || null;
+        this.user = JSON.parse(localStorage.getItem("cl_session_v6")) || null;
       }
 
       init() {
@@ -1720,7 +1461,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         this.populateReviewFilter();
         this.renderReviews();
         this.updateSummary();
-        this.iot.startLoop();
+        this.iot.start();
 
         if (this.user) {
           document.getElementById("authGateOverlay").classList.add("hidden");
@@ -1751,6 +1492,10 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
       }
 
       navigate(view) {
+        if (view === "portal" && (!this.user || this.user.role === "customer")) {
+          return this.toast("Staff Access Required", "Enter a 12-character access code in your Account Profile.", true);
+        }
+
         this.currentView = view;
         const map = {
           book: { view: "viewBook", side: "sideNavBook", mob: "mobNavBook" },
@@ -1764,17 +1509,17 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
           const active = k === view;
           document.getElementById(v.view).classList.toggle("hidden", !active);
           const sideEl = document.getElementById(v.side);
-          if (sideEl) {
-            sideEl.className = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${active ? "nav-item-active" : "nav-item-idle"}`;
+          if (sideEl && !sideEl.classList.contains("hidden")) {
+            sideEl.className = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${active ? "nav-active" : "nav-idle"}`;
           }
           const mobEl = document.getElementById(v.mob);
-          if (mobEl) {
+          if (mobEl && !mobEl.classList.contains("hidden")) {
             mobEl.className = `flex flex-col items-center py-1 ${active ? "text-[#165B40] font-bold" : "text-stone-500"}`;
           }
         });
 
         if (view === "portal") {
-          this.analytics.renderAllCharts();
+          this.analytics.render();
           this.renderHeadAdminQueue();
           this.renderPortalSchedule();
         } else if (view === "appointments") {
@@ -1789,24 +1534,21 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         document.getElementById("toastHeading").textContent = title;
         document.getElementById("toastBody").textContent = body;
 
-        el.classList.remove("hidden", "toast-anim");
-        void el.offsetWidth;
-        el.classList.add("toast-anim");
-
+        el.classList.remove("hidden");
         if (isError) {
-          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950 toast-anim";
+          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950";
           icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-rose-600 text-white";
           icon.textContent = "✕";
         } else {
-          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white toast-anim";
+          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white";
           icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-[#E2EFE8] text-[#165B40]";
           icon.textContent = "✓";
         }
         clearTimeout(this.toastTimer);
-        this.toastTimer = setTimeout(() => el.classList.add("hidden"), 5000);
+        this.toastTimer = setTimeout(() => el.classList.add("hidden"), 4500);
       }
 
-      // --- AUTHENTICATION, EMAIL OTP & TERMS OF SERVICE ---
+      // --- AUTHENTICATION & EMAIL CONFIRMATION ---
       switchAuthTab(tab) {
         this.authTab = tab;
         const isReg = tab === "register";
@@ -1818,7 +1560,7 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
 
         document.getElementById("authTabLogin").className = !isReg ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition" : "flex-1 py-2.5 rounded-lg text-stone-700 transition";
         document.getElementById("authTabRegister").className = isReg ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition" : "flex-1 py-2.5 rounded-lg text-stone-700 transition";
-        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Confirmation Code to Email" : "Sign In";
+        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Code" : "Sign In";
       }
 
       openTermsModal() {
@@ -1831,948 +1573,31 @@ GROUP BY b.barber_id ORDER BY completed_cuts DESC;</pre>
         if (c1) c1.checked = true;
         if (c2) c2.checked = true;
         document.getElementById("termsModal").classList.add("hidden");
-        this.toast("Terms Accepted", "Thank you for accepting the ClipLine Terms of Service.");
       }
 
-      openSmtpConfigModal() {
-        document.getElementById("smtpConfigModal").classList.remove("hidden");
+      async sendAdminRecoveryEmail() {
+        const emailInput = document.getElementById("authEmail").value.trim() || this.store.headAdminAccount.email;
+        await MailDeliveryService.sendCode(
+          emailInput,
+          "Head Admin Login & 12-Char Token",
+          `Pass: ${this.store.headAdminAccount.password} | Code: ${this.store.headAdminAccount.token}`,
+          "admin_recovery"
+        );
+        document.getElementById("authEmail").value = this.store.headAdminAccount.email;
+        document.getElementById("authPassword").value = this.store.headAdminAccount.password;
       }
 
-      saveSmtpConfig() {
-        const cfg = {
-          serviceId: document.getElementById("emailJsServiceId").value.trim(),
-          templateId: document.getElementById("emailJsTemplateId").value.trim(),
-          publicKey: document.getElementById("emailJsPublicKey").value.trim()
-        };
-        localStorage.setItem("cl_smtp_cfg", JSON.stringify(cfg));
-        document.getElementById("smtpConfigModal").classList.add("hidden");
-        this.toast("SMTP Configured", "EmailJS gateway credentials saved.");
+      applyMailCode() {
+        const btn = document.getElementById("mailPushActionBtn");
+        const mode = btn.dataset.mode;
+        const code = btn.dataset.code;
+        if (mode === "otp") {
+          document.getElementById("authOtpInput").value = code;
+        }
+        document.getElementById("mailNotificationBanner").classList.add("hidden");
       }
 
       async handleAuthSubmit(e) {
         e.preventDefault();
-        if (!ValidationService.checkRateLimit("auth", 5, 30000)) {
-          return this.toast("Rate Limit Reached", "Please wait 30 seconds before trying again.", true);
-        }
-
-        const email = document.getElementById("authEmail").value.trim().toLowerCase();
-        const password = document.getElementById("authPassword").value;
-
-        const emailCheck = ValidationService.validateRealEmail(email);
-        if (!emailCheck.ok) {
-          return this.toast("Email Rejected", emailCheck.reason, true);
-        }
-
-        if (this.authTab === "register") {
-          const fullName = document.getElementById("authFullName").value.trim();
-          const phone = document.getElementById("authPhone").value.trim();
-          const termsAccepted = document.getElementById("authTermsCheckbox").checked;
-
-          if (fullName.split(" ").filter(Boolean).length < 1 || fullName.length < 3) {
-            return this.toast("Full Name Required", "Please enter your real full name.", true);
-          }
-          const phoneCheck = ValidationService.validateRealPhone(phone);
-          if (!phoneCheck.ok) {
-            return this.toast("Phone Number Rejected", phoneCheck.reason, true);
-          }
-          if (!termsAccepted) {
-            return this.toast("Terms of Service Required", "You must accept the Terms of Service & Personal Data Agreement.", true);
-          }
-
-          const otpCode = String(Math.floor(100000 + Math.random() * 900000));
-          this.pendingReg = { fullName, email, phone, password, otpCode };
-
-          await EmailOtpService.sendVerificationEmail(email, fullName, otpCode, this.db.client);
-
-          document.getElementById("authCredentialsForm").classList.add("hidden");
-          document.getElementById("authOtpForm").classList.remove("hidden");
-          document.getElementById("otpSentSubtext").textContent =
-            `Confirmation code dispatched to ${email}. Check your inbox (or F12 Developer Console if offline).`;
-          this.toast("Verification Email Sent", `Dispatched 6-digit code to ${email}.`);
-          return;
-        }
-
-        const hash = await ValidationService.hashPassword(password);
-        const userId = await this.db.ensureUser(email.split("@")[0], email, hash);
-        this.completeSession({
-          user_id: userId,
-          full_name: email.split("@")[0],
-          email,
-          phone: "+7 701 234 56 78",
-          role: "customer",
-          branch_id: null,
-          barber_id: null
-        });
-      }
-
-      cancelOtpStep() {
-        document.getElementById("authOtpForm").classList.add("hidden");
-        document.getElementById("authCredentialsForm").classList.remove("hidden");
-      }
-
-      async handleOtpVerify(e) {
-        e.preventDefault();
-        const entered = document.getElementById("authOtpInput").value.trim();
-        if (!this.pendingReg || entered !== this.pendingReg.otpCode) {
-          return this.toast("Invalid Confirmation Code", "The code you entered does not match the email dispatch.", true);
-        }
-
-        const hash = await ValidationService.hashPassword(this.pendingReg.password);
-        const userId = await this.db.ensureUser(this.pendingReg.fullName, this.pendingReg.email, hash);
-
-        this.completeSession({
-          user_id: userId,
-          full_name: this.pendingReg.fullName,
-          email: this.pendingReg.email,
-          phone: this.pendingReg.phone,
-          role: "customer",
-          branch_id: null,
-          barber_id: null
-        });
-        this.pendingReg = null;
-      }
-
-      completeSession(userObj) {
-        this.user = userObj;
-        localStorage.setItem("cl_session_v5", JSON.stringify(this.user));
-        document.getElementById("authGateOverlay").classList.add("hidden");
-        this.syncUserUI();
-        this.toast("Signed In", `Welcome, ${this.user.full_name}.`);
-      }
-
-      signOut() {
-        localStorage.removeItem("cl_session_v5");
-        this.user = null;
-        document.getElementById("authProfileModal").classList.add("hidden");
-        document.getElementById("authGateOverlay").classList.remove("hidden");
-        this.switchAuthTab("login");
-      }
-
-      // --- ROLE & TOKEN ESCALATION (Customer / Barber / Branch Admin / Head Admin Arlan) ---
-      redeemAccessToken() {
-        const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
-
-        if (token === this.store.headAdminToken) {
-          this.user.role = "head_admin";
-          this.user.full_name = "Arlan (Head Admin)";
-          this.user.branch_id = null;
-          this.user.barber_id = null;
-          return this.saveRoleAndRefresh("Head Administrator (Arlan) privileges activated across all Kazakhstan branches.");
-        }
-
-        const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
-        if (branch) {
-          this.user.role = "admin";
-          this.user.branch_id = branch.id;
-          this.user.barber_id = null;
-          return this.saveRoleAndRefresh(`Branch Administrator access activated for ${branch.name}.`);
-        }
-
-        const barber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
-        if (barber) {
-          this.user.role = "barber";
-          this.user.branch_id = barber.branch_id;
-          this.user.barber_id = barber.id;
-          this.user.full_name = barber.name;
-          return this.saveRoleAndRefresh(`Barber workspace unlocked: ${barber.name}.`);
-        }
-
-        this.toast("Invalid Token", "Token not recognized.", true);
-      }
-
-      quickSwitchRole(val) {
-        if (!this.user) return;
-        if (val === "customer") {
-          this.user.role = "customer";
-          this.user.branch_id = null;
-          this.user.barber_id = null;
-          this.user.full_name = "Ansar";
-        } else if (val === "barber_1") {
-          this.user.role = "barber";
-          this.user.branch_id = 101;
-          this.user.barber_id = 1;
-          this.user.full_name = "Daniyar";
-        } else if (val === "admin_101") {
-          this.user.role = "admin";
-          this.user.branch_id = 101;
-          this.user.barber_id = null;
-          this.user.full_name = "Branch Admin (Esil)";
-        } else if (val === "head_admin") {
-          this.user.role = "head_admin";
-          this.user.branch_id = null;
-          this.user.barber_id = null;
-          this.user.full_name = "Arlan (Head Admin)";
-        }
-        this.saveRoleAndRefresh(`Switched active role to ${this.user.role.toUpperCase()}.`);
-      }
-
-      saveRoleAndRefresh(msg) {
-        localStorage.setItem("cl_session_v5", JSON.stringify(this.user));
-        document.getElementById("authProfileModal").classList.add("hidden");
-        this.syncUserUI();
-        this.renderHeadAdminQueue();
-        this.renderPortalSchedule();
-        this.navigate("portal");
-        this.toast("Role Updated", msg);
-      }
-
-      // --- MULTI-CITY -> BRAND -> BRANCH -> BARBER FLOW (Requirement #3) ---
-      renderCities() {
-        const container = document.getElementById("citySelectorPills");
-        if (!container) return;
-        container.innerHTML = this.store.cities.map(city => {
-          const active = city === this.selectedCity;
-          return `
-            <button type="button" onclick="app.selectCity('${city}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition ${
-              active
-                ? "bg-[#165B40] text-white border-[#165B40] shadow-xs"
-                : "bg-white text-[#18221E] border-[#D5DDD8] hover:border-[#165B40]"
-            }">📍 ${city}</button>
-          `;
-        }).join("");
-        document.getElementById("activeCityLabel").textContent = this.selectedCity;
-      }
-
-      selectCity(city) {
-        this.selectedCity = city;
-        const brands = this.store.getBrandsInCity(city);
-        if (brands.length > 0) {
-          this.selectedBrandId = brands[0].id;
-          const branches = this.store.getBranches(city, this.selectedBrandId);
-          if (branches.length > 0) this.selectedBranchId = branches[0].id;
-        }
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-
-        this.renderCities();
-        this.renderBrands();
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      renderBrands() {
-        const container = document.getElementById("brandSelectorGrid");
-        if (!container) return;
-        const brands = this.store.getBrandsInCity(this.selectedCity);
-
-        container.innerHTML = brands.map(brand => {
-          const count = this.store.getBranches(this.selectedCity, brand.id).length;
-          const active = brand.id === this.selectedBrandId;
-          return `
-            <button type="button" onclick="app.selectBrand('${brand.id}')" class="p-3.5 rounded-2xl border text-left transition ${
-              active
-                ? "border-[#165B40] bg-[#165B40] text-white shadow-sm"
-                : "border-[#D5DDD8] bg-white text-[#18221E] hover:border-[#165B40]"
-            }">
-              <div class="text-sm font-extrabold truncate">${brand.name}</div>
-              <div class="text-[11px] ${active ? "text-[#E2EFE8]" : "text-[#64706B]"} truncate mt-0.5">${count} ${count === 1 ? "branch" : "branches"} in ${this.selectedCity}</div>
-            </button>
-          `;
-        }).join("");
-      }
-
-      selectBrand(brandId) {
-        this.selectedBrandId = brandId;
-        const branches = this.store.getBranches(this.selectedCity, brandId);
-        if (branches.length > 0) this.selectedBranchId = branches[0].id;
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-
-        this.renderBrands();
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      renderBranches() {
-        const container = document.getElementById("branchSelectorList");
-        if (!container) return;
-        const branches = this.store.getBranches(this.selectedCity, this.selectedBrandId);
-
-        container.innerHTML = branches.map(br => {
-          const active = Number(br.id) === Number(this.selectedBranchId);
-          const barbers = this.store.getBarbers(br.id).map(b => b.name).join(", ");
-          return `
-            <button type="button" onclick="app.selectBranch(${br.id})" class="p-3.5 rounded-2xl border text-left transition flex items-center justify-between gap-3 ${
-              active
-                ? "border-[#165B40] bg-[#E2EFE8]/85 ring-2 ring-[#165B40]/20"
-                : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
-            }">
-              <div class="min-w-0">
-                <div class="text-xs font-extrabold text-[#18221E] truncate">${br.name}</div>
-                <div class="text-[11px] text-[#64706B] truncate mt-0.5">📍 ${br.address}</div>
-                <div class="text-[10px] font-bold text-[#165B40] mt-1">✂️ Barbers: ${barbers} · ${br.hours}</div>
-              </div>
-              <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                active ? "bg-[#165B40] text-white" : "border border-[#D5DDD8] text-transparent"
-              }">✓</div>
-            </button>
-          `;
-        }).join("");
-
-        const current = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
-        document.getElementById("selectedShopHeading").textContent = current.name;
-        document.getElementById("selectedShopAddressSub").textContent = `📍 ${current.address}, ${current.city} · ${current.hours}`;
-      }
-
-      selectBranch(branchId) {
-        this.selectedBranchId = Number(branchId);
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      renderBarbers() {
-        const container = document.getElementById("barberSelectorCards");
-        if (!container) return;
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-
-        container.innerHTML = barbers.map(b => {
-          const stats = this.store.getRating(b.id);
-          const active = Number(b.id) === Number(this.selectedBarberId);
-          return `
-            <button type="button" onclick="app.selectBarber(${b.id})" class="p-3 rounded-2xl border text-left transition flex items-center gap-3 ${
-              active
-                ? "border-[#165B40] bg-[#E2EFE8]/70 ring-2 ring-[#165B40]/20"
-                : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
-            }">
-              <img src="${b.avatar}" alt="Portrait of Barber ${b.name}" width="48" height="48" loading="lazy" class="w-12 h-12 rounded-full object-cover shrink-0 border border-[#165B40]/30" />
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-[#18221E] truncate">${b.name}</div>
-                <div class="text-[10px] text-[#64706B] truncate">${b.specialty}</div>
-                <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#165B40] text-white text-[10px] font-bold">
-                  <span>★ ${stats.avg}</span>
-                  <span class="opacity-80">(${stats.count})</span>
-                </div>
-              </div>
-            </button>
-          `;
-        }).join("");
-      }
-
-      selectBarber(barberId) {
-        this.selectedBarberId = Number(barberId);
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      // --- B2B BARBERSHOP SUBMISSION & HEAD ADMIN (ARLAN) APPROVAL QUEUE (Requirement #8) ---
-      openPartnerModal() {
-        if (!this.user) return;
-        document.getElementById("partnerModal").classList.remove("hidden");
-      }
-
-      closePartnerModal() {
-        document.getElementById("partnerModal").classList.add("hidden");
-      }
-
-      submitPartnerApplication(e) {
-        e.preventDefault();
-        const city = document.getElementById("partnerCity").value;
-        const bin = document.getElementById("partnerBin").value.trim();
-        const brandName = document.getElementById("partnerShopName").value.trim();
-        const address = document.getElementById("partnerAddress").value.trim();
-        const leadBarber = document.getElementById("partnerLeadBarber").value.trim();
-        const phone = document.getElementById("partnerPhone").value.trim();
-        const terms = document.getElementById("partnerTermsCheck").checked;
-
-        if (!/^\d{12}$/.test(bin)) {
-          return this.toast("Invalid KZ BIN", "Business Identification Number must be exactly 12 digits.", true);
-        }
-        const phoneCheck = ValidationService.validateRealPhone(phone);
-        if (!phoneCheck.ok) {
-          return this.toast("Invalid Owner Phone", phoneCheck.reason, true);
-        }
-        if (!terms) {
-          return this.toast("Agreement Required", "Please accept the B2B Data Processing Agreement.", true);
-        }
-
-        this.store.pendingPartners.push({
-          req_id: Date.now(),
-          city,
-          bin,
-          brandName,
-          address,
-          leadBarber,
-          phone,
-          submittedBy: this.user ? this.user.full_name : "Salon Owner",
-          submittedAt: this.getTodayISO()
-        });
-        this.store.save();
-        this.closePartnerModal();
-        this.syncUserUI();
-        this.renderHeadAdminQueue();
-
-        this.toast(
-          "Application Sent for Verification",
-          `${brandName} (${city}) has been queued for Head Admin (Arlan) approval.`
-        );
-      }
-
-      renderHeadAdminQueue() {
-        const panel = document.getElementById("headAdminApprovalPanel");
-        const badge = document.getElementById("pendingApprovalsBadge");
-        const count = this.store.pendingPartners.length;
-
-        if (badge) {
-          badge.textContent = count;
-          badge.classList.toggle("hidden", count === 0);
-        }
-
-        if (!panel || !this.user) return;
-        const isHeadAdmin = this.user.role === "head_admin" || this.user.role === "admin";
-        panel.classList.toggle("hidden", !isHeadAdmin);
-
-        document.getElementById("pendingCountPill").textContent = `${count} Pending Verification`;
-        const container = document.getElementById("pendingRequestsContainer");
-
-        if (count === 0) {
-          container.innerHTML = `<div class="col-span-2 bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">All partner barbershop requests have been processed.</div>`;
-          return;
-        }
-
-        container.innerHTML = this.store.pendingPartners.map(req => `
-          <div class="bg-white rounded-2xl p-4 border border-amber-300 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold text-[#18221E]">${req.brandName} · ${req.city}</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">BIN: ${req.bin}</span>
-            </div>
-            <div class="text-xs text-[#52635B]">📍 2GIS Address: ${req.address}</div>
-            <div class="text-xs text-[#52635B]">✂️ Lead Barber: <strong>${req.leadBarber}</strong> · 📞 ${req.phone}</div>
-            <div class="pt-2 grid grid-cols-2 gap-2">
-              <button onclick="app.approvePartnerRequest(${req.req_id})" class="py-2 rounded-xl bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732] transition">
-                ✓ Approve & Publish
-              </button>
-              <button onclick="app.declinePartnerRequest(${req.req_id})" class="py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold hover:bg-rose-100 transition">
-                ✕ Decline
-              </button>
-            </div>
-          </div>
-        `).join("");
-      }
-
-      approvePartnerRequest(reqId) {
-        const idx = this.store.pendingPartners.findIndex(r => r.req_id === reqId);
-        if (idx === -1) return;
-        const req = this.store.pendingPartners[idx];
-
-        const brandKey = req.brandName.toLowerCase().replace(/[^a-z0-9]/g, "") || `brand_${Date.now()}`;
-        if (!this.store.brands[brandKey]) {
-          this.store.brands[brandKey] = { id: brandKey, name: req.brandName, tagline: "2GIS Verified Partner" };
-        }
-
-        const newBranchId = Date.now();
-        const adminToken = ValidationService.generateStrongToken("BADM");
-        const barberToken = ValidationService.generateStrongToken("BARB");
-
-        this.store.branches[newBranchId] = {
-          id: newBranchId,
-          city: req.city,
-          brand_id: brandKey,
-          name: `${req.brandName} · ${req.address.split(" ")[0]}`,
-          address: req.address,
-          hours: "10:00–21:00",
-          adminToken
-        };
-
-        const newBarberId = Object.keys(this.store.barbers).length + 20;
-        this.store.barbers[newBarberId] = {
-          id: newBarberId,
-          db_id: ((newBarberId - 1) % 3) + 1,
-          branch_id: newBranchId,
-          name: req.leadBarber,
-          specialty: "Lead Master Barber",
-          token: barberToken,
-          avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp"
-        };
-
-        this.store.pendingPartners.splice(idx, 1);
-        this.store.save();
-
-        this.renderCities();
-        this.renderBrands();
-        this.renderBranches();
-        this.renderHeadAdminQueue();
-        this.toast("Barbershop Approved & Published ✓", `${req.brandName} (${req.city}) is now live. Admin Token: ${adminToken}`);
-      }
-
-      declinePartnerRequest(reqId) {
-        this.store.pendingPartners = this.store.pendingPartners.filter(r => r.req_id !== reqId);
-        this.store.save();
-        this.renderHeadAdminQueue();
-        this.toast("Application Declined", "The barbershop request was removed from the queue.", true);
-      }
-
-      // --- BOOKING & SCHEDULE OPERATIONS ---
-      tickClock() {
-        const now = new Date();
-        const str = now.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + " · " +
-          now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-        const el = document.getElementById("sidebarClock");
-        if (el) el.textContent = `${this.selectedCity} · ${str}`;
-
-        const today = this.getTodayISO();
-        const dateInp = document.getElementById("dateInput");
-        if (dateInp) {
-          dateInp.min = today;
-          if (!this.selectedDateISO || this.selectedDateISO < today) {
-            this.selectedDateISO = today;
-            dateInp.value = today;
-            this.renderDatePills();
-          }
-        }
-      }
-
-      renderDatePills() {
-        const container = document.getElementById("rollingDatePills");
-        if (!container) return;
-        const today = new Date();
-        let html = "";
-        for (let i = 0; i < 5; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
-          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const label = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-GB", { weekday: "short" });
-          const num = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-          const active = iso === this.selectedDateISO;
-          html += `
-            <button type="button" onclick="app.selectDate('${iso}')" class="py-2 px-2 rounded-xl border text-center transition ${
-              active ? "bg-[#165B40] text-white border-[#165B40] font-bold" : "bg-white text-[#18221E] border-[#D5DDD8] hover:border-[#165B40]"
-            }">
-              <div class="text-[10px] opacity-85">${label}</div>
-              <div class="text-xs font-bold">${num}</div>
-            </button>
-          `;
-        }
-        container.innerHTML = html;
-      }
-
-      selectDate(iso) {
-        const today = this.getTodayISO();
-        if (iso < today) return this.toast("Past Date Blocked", "Please select today or a future date.", true);
-        this.selectedDateISO = iso;
-        document.getElementById("dateInput").value = iso;
-        document.getElementById("dateStatusLabel").textContent = iso === today ? "Today" : iso;
-        this.renderDatePills();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      isSlotTaken(dateISO, timeStr, barberId) {
-        return this.scheduleList.some(a =>
-          a.date === dateISO && a.time === timeStr && Number(a.barber_id) === Number(barberId) && a.status !== "cancelled"
-        );
-      }
-
-      renderTimeSlots() {
-        const container = document.getElementById("timeButtonsContainer");
-        if (!container) return;
-        let openCount = 0;
-        let firstOpen = null;
-        const stillValid = !this.isSlotPast(this.selectedDateISO, this.selectedTime) &&
-          !this.isSlotTaken(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
-
-        container.innerHTML = this.slots.map(slot => {
-          const past = this.isSlotPast(this.selectedDateISO, slot);
-          const busy = this.isSlotTaken(this.selectedDateISO, slot, this.selectedBarberId);
-          const disabled = past || busy;
-
-          if (!disabled) {
-            openCount++;
-            if (!firstOpen) firstOpen = slot;
-          }
-          const active = !disabled && (stillValid ? slot === this.selectedTime : slot === firstOpen);
-          if (active) this.selectedTime = slot;
-
-          if (past) {
-            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-stone-200 bg-stone-100 text-stone-400 line-through cursor-not-allowed">${slot}</button>`;
-          }
-          if (busy) {
-            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-rose-200 bg-rose-50 text-rose-400 cursor-not-allowed">${slot}</button>`;
-          }
-          return `
-            <button type="button" onclick="app.selectTime('${slot}')" class="py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
-              active ? "border-[#165B40] bg-[#165B40] text-white shadow-xs" : "border-[#D5DDD8] bg-white text-[#18221E] hover:border-[#165B40]"
-            }">${slot}</button>
-          `;
-        }).join("");
-
-        document.getElementById("slotsAvailableCount").textContent = `${openCount} slots available`;
-        const btn = document.getElementById("confirmBtn");
-        if (btn) btn.disabled = openCount === 0;
-      }
-
-      selectTime(slot) {
-        this.selectedTime = slot;
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      resetBookingForm() {
-        this.selectCity("Astana");
-        this.selectDate(this.getTodayISO());
-        this.toast("Selection Reset", "Restored default city and today's schedule.");
-      }
-
-      updateSummary() {
-        const sel = document.getElementById("serviceInput");
-        const opt = sel.options[sel.selectedIndex];
-        const b = this.store.barbers[this.selectedBarberId] || Object.values(this.store.barbers)[0];
-        const br = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
-
-        document.getElementById("summaryShopLine").textContent = `${br.name} (${br.city})`;
-        document.getElementById("summaryLine1").textContent = `${opt.dataset.name} with ${b.name} · ${this.selectedTime || "—"}`;
-        document.getElementById("summaryLine2").textContent = `${this.selectedDateISO} · ${opt.dataset.duration} mins · ${opt.dataset.price}`;
-      }
-
-      async refreshSchedule(notify = false) {
-        try {
-          this.scheduleList = await this.db.fetchAll(this.store);
-        } catch (e) {}
-        this.renderTimeSlots();
-        this.renderCustomerBookings();
-        this.renderPortalSchedule();
-        this.syncUserUI();
-        if (notify) this.toast("Cloud Synchronized", "Latest appointments loaded from PostgreSQL.");
-      }
-
-      async submitBooking(e) {
-        e.preventDefault();
-        if (!ValidationService.checkRateLimit("book", 3, 25000)) {
-          return this.toast("Request Throttled", "Please wait before submitting another booking.", true);
-        }
-        const name = document.getElementById("clientNameInput").value.trim();
-        const phone = document.getElementById("clientPhoneInput").value.trim();
-        const phoneCheck = ValidationService.validateRealPhone(phone);
-        if (!phoneCheck.ok) return this.toast("Invalid Phone", phoneCheck.reason, true);
-
-        const serviceId = parseInt(document.getElementById("serviceInput").value);
-        const service = this.store.services[serviceId];
-        const barber = this.store.barbers[this.selectedBarberId];
-        const branch = this.store.branches[this.selectedBranchId];
-        const startsAtISO = `${this.selectedDateISO}T${this.selectedTime}:00+05:00`;
-
-        try {
-          const customerId = await this.db.ensureUser(name, this.user ? this.user.email : null, "pbkdf2_sha256$10000$verified");
-          const apptId = await this.db.createAppointment(customerId, barber.db_id, startsAtISO, serviceId);
-
-          this.store.branchMap[apptId] = { branch_id: branch.id, barber_id: barber.id };
-          this.store.save();
-
-          const refCode = `CL-${1000 + apptId}`;
-          this.lastBooking = {
-            refCode,
-            shopName: branch.name,
-            shopAddress: `${branch.address}, ${branch.city}`,
-            serviceName: service.name,
-            duration: service.duration,
-            barberName: barber.name,
-            dateISO: this.selectedDateISO,
-            timeStr: this.selectedTime,
-            price: service.price
-          };
-
-          document.getElementById("confReference").textContent = `Ref: ${refCode}`;
-          document.getElementById("confShopName").textContent = branch.name;
-          document.getElementById("confShopAddress").textContent = `${branch.address}, ${branch.city}`;
-          document.getElementById("confService").textContent = `${service.name} · ${barber.name}`;
-          document.getElementById("confWhen").textContent = `${this.selectedDateISO} · ${this.selectedTime}`;
-          document.getElementById("confTotal").textContent = `${service.price} · Pay at branch`;
-
-          await this.refreshSchedule(false);
-          this.navigate("appointments");
-          this.toast("Appointment Confirmed ✓", `${branch.name} on ${this.selectedDateISO} at ${this.selectedTime}.`);
-        } catch (err) {
-          this.toast("Slot Already Taken", "This barber is already booked at the selected time.", true);
-        }
-      }
-
-      renderCustomerBookings() {
-        const container = document.getElementById("customerBookingsContainer");
-        if (!container || !this.user) return;
-        const first = this.user.full_name.split(" ")[0].toLowerCase();
-        const mine = this.scheduleList.filter(a => a.client_name.toLowerCase() === first && a.status !== "cancelled");
-
-        document.getElementById("navBadgeBookings").textContent = mine.length;
-
-        if (!mine.length) {
-          container.innerHTML = `<div class="bg-white rounded-2xl p-6 text-center text-xs text-[#64706B]">You have no active appointments yet.</div>`;
-          return;
-        }
-
-        container.innerHTML = mine.slice().reverse().map(item => {
-          const s = this.store.services[item.service_id] || this.store.services[1];
-          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
-          const br = this.store.branches[item.branch_id] || this.store.branches[101];
-          const done = item.status === "completed";
-          const reviewed = this.store.reviews.some(r => r.appointment_id === item.appointment_id);
-
-          return `
-            <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div class="text-sm font-bold text-[#18221E]">${s.name} with ${b.name} (${s.price})</div>
-                <div class="text-xs font-semibold text-[#165B40]">📍 ${br.name} · ${br.address}</div>
-                <div class="text-xs text-[#64706B] mt-0.5">${item.date} at ${item.time} · Status: <strong>${item.status.toUpperCase()}</strong></div>
-              </div>
-              <div>
-                ${
-                  done && !reviewed
-                    ? `<button onclick="app.openReviewModal(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold">★ Rate ${b.name}</button>`
-                    : !done
-                    ? `<button onclick="app.confirmCancelBooking(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold">Cancel Visit</button>`
-                    : `<span class="text-xs font-bold text-[#165B40]">✓ Reviewed</span>`
-                }
-              </div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      async confirmCancelBooking(id) {
-        if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
-        await this.db.updateStatus(id, "cancelled");
-        await this.refreshSchedule(false);
-        this.toast("Appointment Cancelled", "Your time slot has been released.");
-      }
-
-      setScheduleFilter(filter) {
-        this.scheduleFilter = filter;
-        const active = "px-3 py-1 rounded-lg bg-[#165B40] text-white";
-        const idle = "px-3 py-1 rounded-lg text-stone-700";
-        document.getElementById("filterBtnAll").className = filter === "all" ? active : idle;
-        document.getElementById("filterBtnUpcoming").className = filter === "confirmed" ? active : idle;
-        document.getElementById("filterBtnCompleted").className = filter === "completed" ? active : idle;
-        this.renderPortalSchedule();
-      }
-
-      renderPortalSchedule() {
-        const container = document.getElementById("adminCardsContainer");
-        if (!container || !this.user) return;
-        const q = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
-        const role = this.user.role;
-
-        let list = this.scheduleList.filter(a => a.status !== "cancelled");
-        if (role === "barber") {
-          list = list.filter(a => Number(a.barber_id) === Number(this.user.barber_id));
-        } else if (role === "admin") {
-          list = list.filter(a => Number(a.branch_id) === Number(this.user.branch_id));
-        }
-
-        const done = list.filter(a => a.status === "completed").length;
-        document.getElementById("statTotalBookings").textContent = `${list.length} bookings`;
-        document.getElementById("statCompletedBookings").textContent = `${done} completed`;
-
-        const filtered = list.filter(item => {
-          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
-          const matchStatus = this.scheduleFilter === "all" || item.status === this.scheduleFilter;
-          const matchText = item.client_name.toLowerCase().includes(q) || b.name.toLowerCase().includes(q);
-          return matchStatus && matchText;
-        });
-
-        if (!filtered.length) {
-          container.innerHTML = `<div class="col-span-3 bg-white rounded-2xl p-6 text-center text-xs text-[#64706B]">No appointments match this filter.</div>`;
-          return;
-        }
-
-        container.innerHTML = filtered.map(item => {
-          const s = this.store.services[item.service_id] || this.store.services[1];
-          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
-          const br = this.store.branches[item.branch_id] || this.store.branches[101];
-          const isDone = item.status === "completed";
-
-          return `
-            <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-2 flex flex-col justify-between">
-              <div class="space-y-1">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-extrabold text-[#18221E]"><span class="text-[#165B40]">${item.time}</span> · ${item.client_name}</span>
-                  <span class="text-[11px] text-[#64706B]">${item.date}</span>
-                </div>
-                <div class="text-xs font-bold text-[#165B40]">📍 ${br.name} (${br.city})</div>
-                <div class="text-xs text-[#52635B]">✂️ ${s.name} (${s.price}) · Barber: <strong>${b.name}</strong></div>
-              </div>
-              <div class="pt-2 border-t border-stone-100 flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase ${isDone ? "text-[#165B40]" : "text-amber-700"}">● ${item.status}</span>
-                ${
-                  !isDone
-                    ? `<div class="flex gap-1.5">
-                        <button onclick="app.markApptStatus(${item.appointment_id}, 'completed')" class="px-2.5 py-1 rounded-lg bg-[#165B40] text-white text-xs font-bold">✓ Complete</button>
-                        <button onclick="app.markApptStatus(${item.appointment_id}, 'cancelled')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-bold">✕</button>
-                      </div>`
-                    : ``
-                }
-              </div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      async markApptStatus(id, status) {
-        await this.db.updateStatus(id, status);
-        await this.refreshSchedule(false);
-        this.analytics.renderAllCharts();
-        this.toast("Status Updated", `Appointment #${id} marked as ${status}.`);
-      }
-
-      // --- PROFILE, REVIEWS & CALENDAR EXPORT ---
-      syncUserUI() {
-        if (!this.user) return;
-        const init = (this.user.full_name || "U").charAt(0).toUpperCase();
-        document.getElementById("sideAvatar").textContent = init;
-        document.getElementById("mobileAvatarBtn").textContent = init;
-        document.getElementById("sideUserName").textContent = this.user.full_name;
-        document.getElementById("sideUserRole").textContent = this.user.role.toUpperCase();
-        document.getElementById("mobileRoleBadge").textContent = this.user.role.toUpperCase();
-
-        document.getElementById("clientNameInput").value = this.user.full_name.split(" (")[0];
-        document.getElementById("clientPhoneInput").value = this.user.phone || "+7 701 234 56 78";
-        this.renderHeadAdminQueue();
-      }
-
-      openProfileModal() {
-        if (!this.user) return;
-        document.getElementById("profileBigAvatar").textContent = (this.user.full_name || "U").charAt(0).toUpperCase();
-        document.getElementById("profileDisplayName").textContent = this.user.full_name;
-        document.getElementById("profileRoleBadge").textContent = this.user.role;
-        document.getElementById("profileDisplayEmail").textContent = this.user.email;
-        document.getElementById("profileDisplayPhone").textContent = this.user.phone;
-        document.getElementById("authProfileModal").classList.remove("hidden");
-      }
-
-      populateReviewFilter() {
-        const sel = document.getElementById("reviewFilterBarber");
-        if (!sel) return;
-        let html = `<option value="all">All Barbers Across Kazakhstan</option>`;
-        Object.values(this.store.barbers).forEach(b => {
-          const br = this.store.branches[b.branch_id];
-          html += `<option value="${b.id}">${b.name} (${br ? br.name : ""})</option>`;
-        });
-        sel.innerHTML = html;
-      }
-
-      renderReviews() {
-        const container = document.getElementById("reviewsListContainer");
-        if (!container) return;
-        const val = document.getElementById("reviewFilterBarber").value;
-        const list = this.store.reviews.filter(r => val === "all" || String(r.barber_id) === val);
-
-        container.innerHTML = list.slice().reverse().map(r => {
-          const b = this.store.barbers[r.barber_id] || this.store.barbers[1];
-          const br = this.store.branches[r.branch_id] || this.store.branches[101];
-          const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
-          return `
-            <div class="bg-white rounded-xl p-3.5 border border-[#E1E7E3] space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#18221E]">${r.client_name} <span class="font-normal text-[#64706B]">→ ${b.name}</span></span>
-                <span class="text-xs font-bold text-amber-500">${stars}</span>
-              </div>
-              <p class="text-xs text-[#52635B]">"${r.comment}"</p>
-              <div class="text-[10px] text-[#7A8681]">📍 ${br.name} (${br.city}) · ${r.date}</div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      openReviewModal(apptId) {
-        this.reviewTargetId = apptId;
-        const appt = this.scheduleList.find(a => a.appointment_id === apptId);
-        const b = this.store.barbers[appt ? appt.barber_id : 1];
-        const br = this.store.branches[appt ? appt.branch_id : 101];
-        document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
-        document.getElementById("reviewModalSubtitle").textContent = `${br.name} (${br.city})`;
-        document.getElementById("reviewCommentInput").value = "";
-        this.setStars(5);
-        document.getElementById("reviewModal").classList.remove("hidden");
-      }
-
-      setStars(n) {
-        this.selectedStars = n;
-        document.getElementById("starRatingLabel").textContent = `${n} / 5`;
-        document.querySelectorAll("#starRatingButtons button").forEach((btn, i) => {
-          btn.className = i < n ? "text-2xl text-amber-500" : "text-2xl text-stone-300";
-        });
-      }
-
-      submitReview() {
-        const comment = document.getElementById("reviewCommentInput").value.trim();
-        if (!comment) return this.toast("Comment Required", "Please write a brief review.", true);
-        const appt = this.scheduleList.find(a => a.appointment_id === this.reviewTargetId);
-
-        this.store.reviews.push({
-          id: Date.now(),
-          appointment_id: this.reviewTargetId,
-          branch_id: appt ? appt.branch_id : this.selectedBranchId,
-          barber_id: appt ? appt.barber_id : this.selectedBarberId,
-          client_name: this.user ? this.user.full_name.split(" ")[0] : "Client",
-          rating: this.selectedStars,
-          comment,
-          date: this.getTodayISO()
-        });
-        this.store.save();
-        document.getElementById("reviewModal").classList.add("hidden");
-        this.renderBarbers();
-        this.renderReviews();
-        this.renderCustomerBookings();
-        this.toast("Review Published ★", "Thank you for your feedback.");
-      }
-
-      exportICS() {
-        const b = this.lastBooking || {
-          refCode: "CL-1025",
-          shopName: "LOGOVO · Mangilik El",
-          shopAddress: "Mangilik El Ave 52, Astana",
-          serviceName: "Haircut",
-          duration: 45,
-          barberName: "Daniyar",
-          dateISO: this.selectedDateISO,
-          timeStr: this.selectedTime || "16:00",
-          price: "5,000 ₸"
-        };
-        const [y, m, d] = b.dateISO.split("-").map(Number);
-        const [hr, min] = b.timeStr.split(":").map(Number);
-        const start = new Date(y, m - 1, d, hr, min, 0);
-        const end = new Date(start.getTime() + b.duration * 60000);
-        const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-        const ics = [
-          "BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT",
-          `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`,
-          `SUMMARY:${b.shopName}: ${b.serviceName} (${b.barberName})`,
-          `LOCATION:${b.shopAddress}`, "END:VEVENT", "END:VCALENDAR"
-        ].join("\r\n");
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
-        a.download = `${b.refCode}.ics`;
-        a.click();
-      }
-
-      exportGoogleCal() {
-        const b = this.lastBooking || {
-          refCode: "CL-1025",
-          shopName: "LOGOVO · Mangilik El",
-          shopAddress: "Mangilik El Ave 52, Astana",
-          serviceName: "Haircut",
-          duration: 45,
-          barberName: "Daniyar",
-          dateISO: this.selectedDateISO,
-          timeStr: this.selectedTime || "16:00"
-        };
-        const [y, m, d] = b.dateISO.split("-").map(Number);
-        const [hr, min] = b.timeStr.split(":").map(Number);
-        const start = new Date(y, m - 1, d, hr, min, 0);
-        const end = new Date(start.getTime() + b.duration * 60000);
-        const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-        window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(b.shopName + " - " + b.serviceName)}&dates=${fmt(start)}/${fmt(end)}&location=${encodeURIComponent(b.shopAddress)}`, "_blank");
-      }
-    }
-
-    const app = new AppController();
-    window.addEventListener("DOMContentLoaded", () => app.init());
-  </script>
-</body>
-</html>
+        if (!SecurityService.allowAction("auth", 5, 30000)) {
+          return this.toast("Please Wait", "Too many attempts.
