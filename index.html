@@ -1553,4 +1553,1035 @@
         });
 
         if (view === "portal") {
-          this.analytics.
+          this.analytics.render();
+          this.renderHeadAdminQueue();
+          this.renderPortalSchedule();
+        } else if (view === "appointments") {
+          this.renderCustomerBookings();
+        }
+      }
+
+      toast(title, body, isError = false) {
+        this.media.playChime(isError);
+        const el = document.getElementById("bottomPopupToast");
+        const icon = document.getElementById("toastIcon");
+        const head = document.getElementById("toastHeading");
+        const bEl = document.getElementById("toastBody");
+        if (!el || !icon || !head || !bEl) return;
+
+        head.textContent = title;
+        bEl.textContent = body;
+        el.classList.remove("hidden");
+
+        if (isError) {
+          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[85] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950";
+          icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-rose-600 text-white";
+          icon.textContent = "✕";
+        } else {
+          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[85] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white";
+          icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-[#E2EFE8] text-[#165B40]";
+          icon.textContent = "✓";
+        }
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => el.classList.add("hidden"), 4500);
+      }
+
+      // --- AUTHENTICATION & EMAIL CONFIRMATION ---
+      switchAuthTab(tab) {
+        this.authTab = tab;
+        const isReg = tab === "register";
+        document.getElementById("regNameRow").classList.toggle("hidden", !isReg);
+        document.getElementById("regPhoneRow").classList.toggle("hidden", !isReg);
+        document.getElementById("regTermsRow").classList.toggle("hidden", !isReg);
+        document.getElementById("authOtpForm").classList.add("hidden");
+        document.getElementById("authCredentialsForm").classList.remove("hidden");
+
+        document.getElementById("authMainHeading").textContent = isReg ? "Create your account" : "Sign in to your account";
+        document.getElementById("authTabLogin").className = !isReg
+          ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
+          : "flex-1 py-2.5 rounded-lg text-stone-700 hover:text-[#165B40] transition";
+        document.getElementById("authTabRegister").className = isReg
+          ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
+          : "flex-1 py-2.5 rounded-lg text-stone-700 hover:text-[#165B40] transition";
+        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Code" : "Sign In";
+      }
+
+      quickFillLogin(preset) {
+        this.switchAuthTab("login");
+        if (preset === "head_admin") {
+          document.getElementById("authEmail").value = this.store.headAdminAccount.email;
+          document.getElementById("authPassword").value = this.store.headAdminAccount.password;
+        } else {
+          document.getElementById("authEmail").value = "ansar@clipline.kz";
+          document.getElementById("authPassword").value = "Ansar2026!";
+        }
+      }
+
+      openTermsModal() {
+        document.getElementById("termsModal").classList.remove("hidden");
+      }
+
+      acceptTermsFromModal() {
+        const c1 = document.getElementById("authTermsCheckbox");
+        const c2 = document.getElementById("partnerTermsCheck");
+        if (c1) c1.checked = true;
+        if (c2) c2.checked = true;
+        document.getElementById("termsModal").classList.add("hidden");
+      }
+
+      async sendAdminRecoveryEmail() {
+        const emailInput = document.getElementById("authEmail").value.trim() || this.store.headAdminAccount.email;
+        document.getElementById("authEmail").value = this.store.headAdminAccount.email;
+        document.getElementById("authPassword").value = this.store.headAdminAccount.password;
+        await MailDeliveryService.sendCode(
+          emailInput,
+          "Head Admin Password & 12-Char Code",
+          `${this.store.headAdminAccount.password} | ${this.store.headAdminAccount.token}`,
+          "admin_recovery"
+        );
+      }
+
+      applyMailCode() {
+        const btn = document.getElementById("mailPushActionBtn");
+        if (btn && btn.dataset.mode === "otp") {
+          const inp = document.getElementById("authOtpInput");
+          if (inp) inp.value = btn.dataset.code;
+        }
+        document.getElementById("mailNotificationBanner").classList.add("hidden");
+      }
+
+      async handleAuthSubmit(e) {
+        e.preventDefault();
+        if (!SecurityService.allowAction("auth", 6, 25000)) {
+          return this.toast("Please Wait", "Too many attempts. Try again in a few seconds.", true);
+        }
+
+        const email = document.getElementById("authEmail").value.trim().toLowerCase();
+        const password = document.getElementById("authPassword").value;
+
+        const emailCheck = SecurityService.validateEmail(email);
+        if (!emailCheck.ok) return this.toast("Invalid Email", emailCheck.msg, true);
+
+        if (this.authTab === "register") {
+          const fullName = document.getElementById("authFullName").value.trim();
+          const phone = document.getElementById("authPhone").value.trim();
+          const terms = document.getElementById("authTermsCheckbox").checked;
+
+          if (fullName.length < 2) return this.toast("Name Required", "Please enter your full name.", true);
+          const phoneCheck = SecurityService.validatePhone(phone);
+          if (!phoneCheck.ok) return this.toast("Invalid Phone", phoneCheck.msg, true);
+          if (!terms) return this.toast("Terms of Service", "Please accept the Terms of Service to register.", true);
+
+          const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+          this.pendingReg = { fullName, email, phone, password, otpCode };
+
+          document.getElementById("authCredentialsForm").classList.add("hidden");
+          document.getElementById("authOtpForm").classList.remove("hidden");
+          document.getElementById("otpSentSubtext").textContent = `We sent a 6-digit confirmation code to ${email}.`;
+
+          await MailDeliveryService.sendCode(email, "Email Confirmation Code", otpCode, "otp");
+          return;
+        }
+
+        if (email === this.store.headAdminAccount.email && password === this.store.headAdminAccount.password) {
+          const hash = await SecurityService.hashPassword(password);
+          const userId = await this.db.ensureUser("Arlan", email, hash);
+          return this.completeSession({
+            user_id: userId,
+            full_name: "Arlan Shikibaev",
+            email,
+            phone: "+7 701 777 88 99",
+            role: "head_admin",
+            branch_id: null,
+            barber_id: null
+          });
+        }
+
+        const hash = await SecurityService.hashPassword(password);
+        const rawName = email.split("@")[0];
+        const capName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        const userId = await this.db.ensureUser(capName, email, hash);
+        this.completeSession({
+          user_id: userId,
+          full_name: capName,
+          email,
+          phone: "+7 701 234 56 78",
+          role: "customer",
+          branch_id: null,
+          barber_id: null
+        });
+      }
+
+      async resendOtpCode() {
+        if (!this.pendingReg) return;
+        this.pendingReg.otpCode = String(Math.floor(100000 + Math.random() * 900000));
+        await MailDeliveryService.sendCode(this.pendingReg.email, "New Confirmation Code", this.pendingReg.otpCode, "otp");
+      }
+
+      cancelOtpStep() {
+        document.getElementById("authOtpForm").classList.add("hidden");
+        document.getElementById("authCredentialsForm").classList.remove("hidden");
+      }
+
+      async handleOtpVerify(e) {
+        e.preventDefault();
+        const entered = document.getElementById("authOtpInput").value.trim();
+        if (!this.pendingReg || entered !== this.pendingReg.otpCode) {
+          return this.toast("Invalid Code", "The confirmation code does not match.", true);
+        }
+
+        const hash = await SecurityService.hashPassword(this.pendingReg.password);
+        const userId = await this.db.ensureUser(this.pendingReg.fullName, this.pendingReg.email, hash);
+
+        this.completeSession({
+          user_id: userId,
+          full_name: this.pendingReg.fullName,
+          email: this.pendingReg.email,
+          phone: this.pendingReg.phone,
+          role: "customer",
+          branch_id: null,
+          barber_id: null
+        });
+        this.pendingReg = null;
+      }
+
+      completeSession(userObj) {
+        this.user = userObj;
+        SafeStorage.set("cl_session_v7", this.user);
+        document.getElementById("authGateOverlay").classList.add("hidden");
+        document.getElementById("mailNotificationBanner").classList.add("hidden");
+        this.syncUserUI();
+        this.toast("Signed In", `Welcome, ${this.user.full_name}.`);
+      }
+
+      signOut() {
+        SafeStorage.remove("cl_session_v7");
+        this.user = null;
+        document.getElementById("authProfileModal").classList.add("hidden");
+        document.getElementById("authGateOverlay").classList.remove("hidden");
+        this.switchAuthTab("login");
+      }
+
+      // --- 12-CHARACTER ACCESS TOKEN ESCALATION ---
+      redeemAccessToken() {
+        const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
+        if (!token) return;
+
+        if (token === this.store.headAdminAccount.token) {
+          this.user.role = "head_admin";
+          this.user.full_name = "Arlan Shikibaev";
+          this.user.branch_id = null;
+          this.user.barber_id = null;
+          return this.saveRoleAndNavigate("Head Admin access activated.");
+        }
+
+        const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
+        if (branch) {
+          this.user.role = "admin";
+          this.user.branch_id = branch.id;
+          this.user.barber_id = null;
+          return this.saveRoleAndNavigate(`Branch Admin access activated for ${branch.name}.`);
+        }
+
+        const barber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
+        if (barber) {
+          this.user.role = "barber";
+          this.user.branch_id = barber.branch_id;
+          this.user.barber_id = barber.id;
+          this.user.full_name = barber.name;
+          return this.saveRoleAndNavigate(`Barber access activated for ${barber.name}.`);
+        }
+
+        this.toast("Invalid Access Code", "The 12-character code was not recognized.", true);
+      }
+
+      saveRoleAndNavigate(msg) {
+        SafeStorage.set("cl_session_v7", this.user);
+        document.getElementById("staffInviteKeyInput").value = "";
+        document.getElementById("authProfileModal").classList.add("hidden");
+        this.syncUserUI();
+        this.navigate("portal");
+        this.toast("Access Granted", msg);
+      }
+
+      // --- CITY -> NETWORK -> BRANCH -> BARBER FLOW ---
+      renderCities() {
+        const container = document.getElementById("citySelectorPills");
+        if (!container) return;
+        container.innerHTML = this.store.cities.map(city => {
+          const active = city === this.selectedCity;
+          return `
+            <button type="button" onclick="window.app.selectCity('${city}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition ${
+              active
+                ? "bg-[#165B40] text-white border-[#165B40]"
+                : "bg-white text-[#18221E] border-[#D5DDD8] hover:border-[#165B40]"
+            }">${city}</button>
+          `;
+        }).join("");
+        const lbl = document.getElementById("activeCityLabel");
+        if (lbl) lbl.textContent = this.selectedCity;
+      }
+
+      selectCity(city) {
+        this.selectedCity = city;
+        const brands = this.store.getBrandsInCity(city);
+        if (brands.length > 0) {
+          this.selectedBrandId = brands[0].id;
+          const branches = this.store.getBranches(city, this.selectedBrandId);
+          if (branches.length > 0) this.selectedBranchId = branches[0].id;
+        }
+        const barbers = this.store.getBarbers(this.selectedBranchId);
+        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
+
+        this.renderCities();
+        this.renderBrands();
+        this.renderBranches();
+        this.renderBarbers();
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
+      renderBrands() {
+        const container = document.getElementById("brandSelectorGrid");
+        if (!container) return;
+        const brands = this.store.getBrandsInCity(this.selectedCity);
+
+        container.innerHTML = brands.map(brand => {
+          const count = this.store.getBranches(this.selectedCity, brand.id).length;
+          const active = brand.id === this.selectedBrandId;
+          return `
+            <button type="button" onclick="window.app.selectBrand('${brand.id}')" class="p-3.5 rounded-2xl border text-left transition ${
+              active
+                ? "border-[#165B40] bg-[#165B40] text-white shadow-sm"
+                : "border-[#D5DDD8] bg-white text-[#18221E] hover:border-[#165B40]"
+            }">
+              <div class="text-sm font-extrabold truncate">${brand.name}</div>
+              <div class="text-[11px] ${active ? "text-[#E2EFE8]" : "text-[#64706B]"} truncate mt-0.5">${count} ${count === 1 ? "location" : "locations"}</div>
+            </button>
+          `;
+        }).join("");
+      }
+
+      selectBrand(brandId) {
+        this.selectedBrandId = brandId;
+        const branches = this.store.getBranches(this.selectedCity, brandId);
+        if (branches.length > 0) this.selectedBranchId = branches[0].id;
+        const barbers = this.store.getBarbers(this.selectedBranchId);
+        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
+
+        this.renderBrands();
+        this.renderBranches();
+        this.renderBarbers();
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
+      renderBranches() {
+        const container = document.getElementById("branchSelectorList");
+        if (!container) return;
+        const branches = this.store.getBranches(this.selectedCity, this.selectedBrandId);
+
+        container.innerHTML = branches.map(br => {
+          const active = Number(br.id) === Number(this.selectedBranchId);
+          const barbers = this.store.getBarbers(br.id).map(b => b.name).join(", ");
+          return `
+            <button type="button" onclick="window.app.selectBranch(${br.id})" class="p-3.5 rounded-2xl border text-left transition flex items-center justify-between gap-3 ${
+              active
+                ? "border-[#165B40] bg-[#E2EFE8]/85 ring-2 ring-[#165B40]/20"
+                : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
+            }">
+              <div class="min-w-0">
+                <div class="text-xs font-extrabold text-[#18221E] truncate">${br.name}</div>
+                <div class="text-[11px] text-[#64706B] truncate mt-0.5">📍 ${br.address}</div>
+                <div class="text-[10px] font-bold text-[#165B40] mt-1">✂️ ${barbers} · ${br.hours}</div>
+              </div>
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                active ? "bg-[#165B40] text-white" : "border border-[#D5DDD8] text-transparent"
+              }">✓</div>
+            </button>
+          `;
+        }).join("");
+
+        const current = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
+        document.getElementById("selectedShopHeading").textContent = current.name;
+        document.getElementById("selectedShopAddressSub").textContent = `📍 ${current.address}, ${current.city} · ${current.hours}`;
+      }
+
+      selectBranch(branchId) {
+        this.selectedBranchId = Number(branchId);
+        const barbers = this.store.getBarbers(this.selectedBranchId);
+        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
+        this.renderBranches();
+        this.renderBarbers();
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
+      renderBarbers() {
+        const container = document.getElementById("barberSelectorCards");
+        if (!container) return;
+        const barbers = this.store.getBarbers(this.selectedBranchId);
+
+        container.innerHTML = barbers.map(b => {
+          const stats = this.store.getRating(b.id);
+          const active = Number(b.id) === Number(this.selectedBarberId);
+          return `
+            <button type="button" onclick="window.app.selectBarber(${b.id})" class="p-3 rounded-2xl border text-left transition flex items-center gap-3 ${
+              active
+                ? "border-[#165B40] bg-[#E2EFE8]/70 ring-2 ring-[#165B40]/20"
+                : "border-[#D5DDD8] bg-white hover:border-[#165B40]"
+            }">
+              <img src="${b.avatar}" alt="${b.name}" width="48" height="48" loading="lazy" class="w-12 h-12 rounded-full object-cover shrink-0 border border-[#165B40]/30" />
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-[#18221E] truncate">${b.name}</div>
+                <div class="text-[10px] text-[#64706B] truncate">${b.specialty}</div>
+                <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#165B40] text-white text-[10px] font-bold">
+                  <span>★ ${stats.avg}</span>
+                  <span class="opacity-80">(${stats.count})</span>
+                </div>
+              </div>
+            </button>
+          `;
+        }).join("");
+      }
+
+      selectBarber(barberId) {
+        this.selectedBarberId = Number(barberId);
+        this.renderBarbers();
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
+      // --- PARTNER BARBERSHOP WORKFLOW & HEAD ADMIN APPROVALS ---
+      openPartnerModal() {
+        document.getElementById("partnerModal").classList.remove("hidden");
+      }
+
+      submitPartnerApplication(e) {
+        e.preventDefault();
+        const city = document.getElementById("partnerCity").value;
+        const bin = document.getElementById("partnerBin").value.trim();
+        const brandName = document.getElementById("partnerShopName").value.trim();
+        const address = document.getElementById("partnerAddress").value.trim();
+        const leadBarber = document.getElementById("partnerLeadBarber").value.trim();
+        const phone = document.getElementById("partnerPhone").value.trim();
+
+        if (!/^\d{12}$/.test(bin)) {
+          return this.toast("Invalid BIN", "Business Identification Number must be 12 digits.", true);
+        }
+        const phoneCheck = SecurityService.validatePhone(phone);
+        if (!phoneCheck.ok) return this.toast("Invalid Phone", phoneCheck.msg, true);
+
+        this.store.pendingPartners.push({
+          req_id: Date.now(),
+          city,
+          bin,
+          brandName,
+          address,
+          leadBarber,
+          phone
+        });
+        this.store.save();
+        document.getElementById("partnerModal").classList.add("hidden");
+        this.syncUserUI();
+        this.renderHeadAdminQueue();
+        this.toast("Application Submitted", `${brandName} has been sent to Head Administration for review.`);
+      }
+
+      renderHeadAdminQueue() {
+        const panel = document.getElementById("headAdminApprovalPanel");
+        const badge = document.getElementById("pendingApprovalsBadge");
+        const count = this.store.pendingPartners.length;
+
+        if (badge) {
+          badge.textContent = count;
+          badge.classList.toggle("hidden", count === 0);
+        }
+
+        if (!panel || !this.user) return;
+        panel.classList.toggle("hidden", this.user.role !== "head_admin");
+
+        document.getElementById("pendingCountPill").textContent = `${count} Pending`;
+        const container = document.getElementById("pendingRequestsContainer");
+
+        if (count === 0) {
+          container.innerHTML = `<div class="col-span-2 bg-white rounded-xl p-4 text-center text-xs text-[#64706B]">No pending barbershop applications.</div>`;
+          return;
+        }
+
+        container.innerHTML = this.store.pendingPartners.map(req => `
+          <div class="bg-white rounded-2xl p-4 border border-amber-300 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-[#18221E]">${req.brandName} · ${req.city}</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">BIN: ${req.bin}</span>
+            </div>
+            <div class="text-xs text-[#52635B]">📍 ${req.address}</div>
+            <div class="text-xs text-[#52635B]">✂️ Lead Barber: <strong>${req.leadBarber}</strong> · ${req.phone}</div>
+            <div class="pt-2 grid grid-cols-2 gap-2">
+              <button type="button" onclick="window.app.approvePartnerRequest(${req.req_id})" class="py-2 rounded-xl bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732] transition">
+                ✓ Approve
+              </button>
+              <button type="button" onclick="window.app.declinePartnerRequest(${req.req_id})" class="py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold hover:bg-rose-100 transition">
+                ✕ Decline
+              </button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      approvePartnerRequest(reqId) {
+        const idx = this.store.pendingPartners.findIndex(r => r.req_id === reqId);
+        if (idx === -1) return;
+        const req = this.store.pendingPartners[idx];
+
+        const brandKey = req.brandName.toLowerCase().replace(/[^a-z0-9]/g, "") || `brand_${Date.now()}`;
+        if (!this.store.brands[brandKey]) {
+          this.store.brands[brandKey] = { id: brandKey, name: req.brandName, tagline: "Partner Network" };
+        }
+
+        const newBranchId = Date.now();
+        const adminToken = SecurityService.generate12CharCode();
+        const barberToken = SecurityService.generate12CharCode();
+
+        this.store.branches[newBranchId] = {
+          id: newBranchId,
+          city: req.city,
+          brand_id: brandKey,
+          name: `${req.brandName} · ${req.address.split(" ")[0]}`,
+          address: req.address,
+          hours: "10:00–21:00",
+          adminToken
+        };
+
+        const newBarberId = Object.keys(this.store.barbers).length + 20;
+        this.store.barbers[newBarberId] = {
+          id: newBarberId,
+          db_id: ((newBarberId - 1) % 3) + 1,
+          branch_id: newBranchId,
+          name: req.leadBarber,
+          specialty: "Master Barber",
+          token: barberToken,
+          avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&h=160&q=75&fm=webp"
+        };
+
+        this.store.pendingPartners.splice(idx, 1);
+        this.store.save();
+
+        this.renderCities();
+        this.renderBrands();
+        this.renderBranches();
+        this.renderHeadAdminQueue();
+        MailDeliveryService.sendCode(req.brandName, "Approved Branch Admin Code", adminToken, "token_info");
+        this.toast("Branch Approved", `${req.brandName} is now live.`);
+      }
+
+      declinePartnerRequest(reqId) {
+        this.store.pendingPartners = this.store.pendingPartners.filter(r => r.req_id !== reqId);
+        this.store.save();
+        this.renderHeadAdminQueue();
+        this.toast("Declined", "Partner request removed.", true);
+      }
+
+      // --- BOOKING & SCHEDULE ---
+      tickClock() {
+        const now = new Date();
+        const str = now.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + " · " +
+          now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+        const el = document.getElementById("sidebarClock");
+        if (el) el.textContent = `${this.selectedCity} · ${str}`;
+
+        const today = this.getTodayISO();
+        const dateInp = document.getElementById("dateInput");
+        if (dateInp) {
+          dateInp.min = today;
+          if (!dateInp.value || this.selectedDateISO < today) {
+            this.selectedDateISO = today;
+            dateInp.value = today;
+          }
+        }
+      }
+
+      renderDatePills() {
+        const container = document.getElementById("rollingDatePills");
+        if (!container) return;
+        const today = new Date();
+        let html = "";
+        for (let i = 0; i < 5; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() + i);
+          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const label = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-GB", { weekday: "short" });
+          const num = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+          const active = iso === this.selectedDateISO;
+          html += `
+            <button type="button" onclick="window.app.selectDate('${iso}')" class="py-2 px-2 rounded-xl border text-center transition ${
+              active ? "bg-[#165B40] text-white border-[#165B40] font-bold" : "bg-white text-[#18221E] border-[#D5DDD8] hover:border-[#165B40]"
+            }">
+              <div class="text-[10px] opacity-85">${label}</div>
+              <div class="text-xs font-bold">${num}</div>
+            </button>
+          `;
+        }
+        container.innerHTML = html;
+      }
+
+      selectDate(iso) {
+        const today = this.getTodayISO();
+        if (iso < today) return this.toast("Invalid Date", "Please select today or a future date.", true);
+        this.selectedDateISO = iso;
+        const inp = document.getElementById("dateInput");
+        if (inp) inp.value = iso;
+        document.getElementById("dateStatusLabel").textContent = iso === today ? "Today" : iso;
+        this.renderDatePills();
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
+      isSlotTaken(dateISO, timeStr, barberId) {
+        return this.scheduleList.some(a =>
+          a.date === dateISO && a.time === timeStr && Number(a.barber_id) === Number(barberId) && a.status !== "cancelled"
+        );
+      }
+
+      renderTimeSlots() {
+        const container = document.getElementById("timeButtonsContainer");
+        if (!container) return;
+        let openCount = 0;
+        let firstOpen = null;
+        const stillValid = !this.isSlotPast(this.selectedDateISO, this.selectedTime) &&
+          !this.isSlotTaken(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
+
+        container.innerHTML = this.slots.map(slot => {
+          const past = this.isSlotPast(this.selectedDateISO, slot);
+          const busy = this.isSlotTaken(this.selectedDateISO, slot, this.selectedBarberId);
+          const disabled = past || busy;
+
+          if (!disabled) {
+            openCount++;
+            if (!firstOpen) firstOpen = slot;
+          }
+          const active = !disabled && (stillValid ? slot === this.selectedTime : slot === firstOpen);
+          if (active) this.selectedTime = slot;
+
+          if (past) {
+            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-stone-200 bg-stone-100 text-stone-400 line-through cursor-not-allowed">${slot}</button>`;
+          }
+          if (busy) {
+            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-rose-200 bg-rose-50 text-rose-400 cursor-not-allowed">${slot}</button>`;
+          }
+          return `
+            <button type="button" onclick="window.app.selectTime('${slot}')" class="py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
+              active ? "border-[#165B40] bg-[#165B40] text-white shadow-xs" : "border-[#D5DDD8] bg-white text-[#18221E] hover:border-[#165B40]"
+            }">${slot}</button>
+          `;
+        }).join("");
+
+        document.getElementById("slotsAvailableCount").textContent = `${openCount} available`;
+        const btn = document.getElementById("confirmBtn");
+        if (btn) btn.disabled = openCount === 0;
+      }
+
+      selectTime(slot) {
+        this.selectedTime = slot;
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
+      resetBookingForm() {
+        this.selectCity("Astana");
+        this.selectDate(this.getTodayISO());
+      }
+
+      updateSummary() {
+        const sel = document.getElementById("serviceInput");
+        if (!sel) return;
+        const opt = sel.options[sel.selectedIndex];
+        const b = this.store.barbers[this.selectedBarberId] || Object.values(this.store.barbers)[0];
+        const br = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
+
+        document.getElementById("summaryShopLine").textContent = `${br.name} (${br.city})`;
+        document.getElementById("summaryLine1").textContent = `${opt.dataset.name} with ${b.name} · ${this.selectedTime || "—"}`;
+        document.getElementById("summaryLine2").textContent = `${this.selectedDateISO} · ${opt.dataset.duration} mins · ${opt.dataset.price}`;
+      }
+
+      async refreshSchedule(notify = false) {
+        try {
+          this.scheduleList = await this.db.fetchAll(this.store);
+        } catch (e) {}
+        this.renderTimeSlots();
+        this.renderCustomerBookings();
+        this.renderPortalSchedule();
+        this.syncUserUI();
+        if (notify) this.toast("Updated", "Schedule refreshed.");
+      }
+
+      async submitBooking(e) {
+        e.preventDefault();
+        if (!SecurityService.allowAction("book", 4, 20000)) {
+          return this.toast("Please Wait", "Wait a moment before booking another visit.", true);
+        }
+        const name = document.getElementById("clientNameInput").value.trim();
+        const phone = document.getElementById("clientPhoneInput").value.trim();
+        const phoneCheck = SecurityService.validatePhone(phone);
+        if (!phoneCheck.ok) return this.toast("Invalid Phone", phoneCheck.msg, true);
+
+        const serviceId = parseInt(document.getElementById("serviceInput").value);
+        const service = this.store.services[serviceId];
+        const barber = this.store.barbers[this.selectedBarberId];
+        const branch = this.store.branches[this.selectedBranchId];
+        const startsAtISO = `${this.selectedDateISO}T${this.selectedTime}:00+05:00`;
+
+        try {
+          const customerId = await this.db.ensureUser(name, this.user ? this.user.email : null, "pbkdf2_sha256$10000$verified");
+          const apptId = await this.db.createAppointment(customerId, barber.db_id, startsAtISO, serviceId);
+
+          this.store.branchMap[apptId] = { branch_id: branch.id, barber_id: barber.id };
+          this.store.save();
+
+          const refCode = `CL-${1000 + apptId}`;
+          this.lastBooking = {
+            refCode,
+            shopName: branch.name,
+            shopAddress: `${branch.address}, ${branch.city}`,
+            serviceName: service.name,
+            duration: service.duration,
+            barberName: barber.name,
+            dateISO: this.selectedDateISO,
+            timeStr: this.selectedTime,
+            price: service.price
+          };
+
+          document.getElementById("confReference").textContent = refCode;
+          document.getElementById("confShopName").textContent = branch.name;
+          document.getElementById("confShopAddress").textContent = `${branch.address}, ${branch.city}`;
+          document.getElementById("confService").textContent = `${service.name} · ${barber.name}`;
+          document.getElementById("confWhen").textContent = `${this.selectedDateISO} · ${this.selectedTime}`;
+          document.getElementById("confTotal").textContent = service.price;
+
+          await this.refreshSchedule(false);
+          this.navigate("appointments");
+          this.toast("Booking Confirmed", `${branch.name} · ${this.selectedDateISO} at ${this.selectedTime}`);
+        } catch (err) {
+          this.toast("Slot Unavailable", "This barber is already booked at that time.", true);
+        }
+      }
+
+      renderCustomerBookings() {
+        const container = document.getElementById("customerBookingsContainer");
+        if (!container || !this.user) return;
+        const first = this.user.full_name.split(" ")[0].toLowerCase();
+        const mine = this.scheduleList.filter(a => a.client_name.toLowerCase() === first && a.status !== "cancelled");
+
+        document.getElementById("navBadgeBookings").textContent = mine.length;
+
+        if (!mine.length) {
+          container.innerHTML = `<div class="bg-white rounded-2xl p-6 text-center text-xs text-[#64706B]">No appointments yet.</div>`;
+          return;
+        }
+
+        container.innerHTML = mine.slice().reverse().map(item => {
+          const s = this.store.services[item.service_id] || this.store.services[1];
+          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
+          const br = this.store.branches[item.branch_id] || this.store.branches[101];
+          const done = item.status === "completed";
+          const reviewed = this.store.reviews.some(r => r.appointment_id === item.appointment_id);
+
+          return `
+            <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div class="text-sm font-bold text-[#18221E]">${s.name} with ${b.name} (${s.price})</div>
+                <div class="text-xs font-semibold text-[#165B40]">📍 ${br.name} · ${br.address}</div>
+                <div class="text-xs text-[#64706B] mt-0.5">${item.date} at ${item.time}</div>
+              </div>
+              <div>
+                ${
+                  done && !reviewed
+                    ? `<button type="button" onclick="window.app.openReviewModal(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold">★ Rate Visit</button>`
+                    : !done
+                    ? `<button type="button" onclick="window.app.confirmCancelBooking(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold">Cancel</button>`
+                    : `<span class="text-xs font-bold text-[#165B40]">✓ Completed</span>`
+                }
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      async confirmCancelBooking(id) {
+        if (!window.confirm("Cancel this appointment?")) return;
+        await this.db.updateStatus(id, "cancelled");
+        await this.refreshSchedule(false);
+        this.toast("Cancelled", "Your appointment has been cancelled.");
+      }
+
+      setScheduleFilter(filter) {
+        this.scheduleFilter = filter;
+        const active = "px-3 py-1 rounded-lg bg-[#165B40] text-white";
+        const idle = "px-3 py-1 rounded-lg text-stone-700";
+        document.getElementById("filterBtnAll").className = filter === "all" ? active : idle;
+        document.getElementById("filterBtnUpcoming").className = filter === "confirmed" ? active : idle;
+        document.getElementById("filterBtnCompleted").className = filter === "completed" ? active : idle;
+        this.renderPortalSchedule();
+      }
+
+      renderPortalSchedule() {
+        const container = document.getElementById("adminCardsContainer");
+        if (!container || !this.user) return;
+        const q = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
+        const role = this.user.role;
+
+        const staffTokensPanel = document.getElementById("branchStaffTokensPanel");
+        if (role === "admin" && this.user.branch_id) {
+          const br = this.store.branches[this.user.branch_id];
+          document.getElementById("workspaceRoleOverline").textContent = "BRANCH ADMINISTRATION";
+          document.getElementById("workspaceTitle").textContent = br.name;
+          document.getElementById("workspaceDescription").textContent = `${br.address}, ${br.city}`;
+          staffTokensPanel.classList.remove("hidden");
+          const branchBarbers = this.store.getBarbers(br.id);
+          document.getElementById("branchStaffTokensGrid").innerHTML = branchBarbers.map(b => `
+            <div class="bg-white p-3 rounded-xl border border-[#D5DDD8] flex items-center justify-between">
+              <span class="font-bold text-[#18221E]">✂️ ${b.name}</span>
+              <code class="text-[#165B40] font-extrabold">${b.token}</code>
+            </div>
+          `).join("");
+        } else if (role === "barber" && this.user.barber_id) {
+          const b = this.store.barbers[this.user.barber_id];
+          const br = this.store.branches[b.branch_id];
+          document.getElementById("workspaceRoleOverline").textContent = "BARBER WORKSPACE";
+          document.getElementById("workspaceTitle").textContent = `${b.name}'s Queue`;
+          document.getElementById("workspaceDescription").textContent = `${br.name} · ${br.address}`;
+          staffTokensPanel.classList.add("hidden");
+        } else if (role === "head_admin") {
+          document.getElementById("workspaceRoleOverline").textContent = "NETWORK HEADQUARTERS";
+          document.getElementById("workspaceTitle").textContent = "ClipLine Kazakhstan Overview";
+          document.getElementById("workspaceDescription").textContent = "Full network oversight, partner approvals, and multi-city schedules.";
+          staffTokensPanel.classList.add("hidden");
+        }
+
+        let list = this.scheduleList.filter(a => a.status !== "cancelled");
+        if (role === "barber") {
+          list = list.filter(a => Number(a.barber_id) === Number(this.user.barber_id));
+        } else if (role === "admin") {
+          list = list.filter(a => Number(a.branch_id) === Number(this.user.branch_id));
+        }
+
+        const done = list.filter(a => a.status === "completed").length;
+        document.getElementById("statTotalBookings").textContent = `${list.length} bookings`;
+        document.getElementById("statCompletedBookings").textContent = `${done} completed`;
+
+        const filtered = list.filter(item => {
+          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
+          const matchStatus = this.scheduleFilter === "all" || item.status === this.scheduleFilter;
+          const matchText = item.client_name.toLowerCase().includes(q) || b.name.toLowerCase().includes(q);
+          return matchStatus && matchText;
+        });
+
+        if (!filtered.length) {
+          container.innerHTML = `<div class="col-span-3 bg-white rounded-2xl p-6 text-center text-xs text-[#64706B]">No appointments in queue.</div>`;
+          return;
+        }
+
+        container.innerHTML = filtered.map(item => {
+          const s = this.store.services[item.service_id] || this.store.services[1];
+          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
+          const br = this.store.branches[item.branch_id] || this.store.branches[101];
+          const isDone = item.status === "completed";
+
+          return `
+            <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] space-y-2 flex flex-col justify-between">
+              <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-extrabold text-[#18221E]"><span class="text-[#165B40]">${item.time}</span> · ${item.client_name}</span>
+                  <span class="text-[11px] text-[#64706B]">${item.date}</span>
+                </div>
+                <div class="text-xs font-bold text-[#165B40]">📍 ${br.name}</div>
+                <div class="text-xs text-[#52635B]">✂️ ${s.name} (${s.price}) · ${b.name}</div>
+              </div>
+              <div class="pt-2 border-t border-stone-100 flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase ${isDone ? "text-[#165B40]" : "text-amber-700"}">● ${item.status}</span>
+                ${
+                  !isDone
+                    ? `<div class="flex gap-1.5">
+                        <button type="button" onclick="window.app.markApptStatus(${item.appointment_id}, 'completed')" class="px-2.5 py-1 rounded-lg bg-[#165B40] text-white text-xs font-bold">✓ Complete</button>
+                        <button type="button" onclick="window.app.markApptStatus(${item.appointment_id}, 'cancelled')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-bold">✕</button>
+                      </div>`
+                    : ``
+                }
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      async markApptStatus(id, status) {
+        await this.db.updateStatus(id, status);
+        await this.refreshSchedule(false);
+        this.analytics.render();
+        this.toast("Updated", `Appointment marked as ${status}.`);
+      }
+
+      // --- USER UI & REVIEWS ---
+      syncUserUI() {
+        if (!this.user) return;
+        const init = (this.user.full_name || "U").charAt(0).toUpperCase();
+        document.getElementById("sideAvatar").textContent = init;
+        document.getElementById("mobileAvatarBtn").textContent = init;
+        document.getElementById("sideUserName").textContent = this.user.full_name;
+
+        const roleMap = { customer: "Customer", barber: "Barber", admin: "Branch Admin", head_admin: "Head Admin" };
+        document.getElementById("sideUserRole").textContent = roleMap[this.user.role] || "Customer";
+
+        const isStaff = this.user.role !== "customer";
+        document.getElementById("sideNavPortal").classList.toggle("hidden", !isStaff);
+        document.getElementById("mobNavPortal").classList.toggle("hidden", !isStaff);
+
+        document.getElementById("clientNameInput").value = this.user.full_name;
+        document.getElementById("clientPhoneInput").value = this.user.phone || "+7 701 234 56 78";
+        this.renderHeadAdminQueue();
+      }
+
+      openProfileModal() {
+        if (!this.user) return;
+        document.getElementById("profileBigAvatar").textContent = (this.user.full_name || "U").charAt(0).toUpperCase();
+        document.getElementById("profileDisplayName").textContent = this.user.full_name;
+        document.getElementById("profileRoleBadge").textContent = this.user.role.replace("_", " ");
+        document.getElementById("profileDisplayEmail").textContent = this.user.email;
+        document.getElementById("profileDisplayPhone").textContent = this.user.phone;
+        document.getElementById("authProfileModal").classList.remove("hidden");
+      }
+
+      populateReviewFilter() {
+        const sel = document.getElementById("reviewFilterBarber");
+        if (!sel) return;
+        let html = `<option value="all">All Barbers</option>`;
+        Object.values(this.store.barbers).forEach(b => {
+          const br = this.store.branches[b.branch_id];
+          html += `<option value="${b.id}">${b.name} (${br ? br.name : ""})</option>`;
+        });
+        sel.innerHTML = html;
+      }
+
+      renderReviews() {
+        const container = document.getElementById("reviewsListContainer");
+        if (!container) return;
+        const val = document.getElementById("reviewFilterBarber").value;
+        const list = this.store.reviews.filter(r => val === "all" || String(r.barber_id) === val);
+
+        container.innerHTML = list.slice().reverse().map(r => {
+          const b = this.store.barbers[r.barber_id] || this.store.barbers[1];
+          const br = this.store.branches[r.branch_id] || this.store.branches[101];
+          const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+          return `
+            <div class="bg-white rounded-xl p-3.5 border border-[#E1E7E3] space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#18221E]">${r.client_name} <span class="font-normal text-[#64706B]">→ ${b.name}</span></span>
+                <span class="text-xs font-bold text-amber-500">${stars}</span>
+              </div>
+              <p class="text-xs text-[#52635B]">"${r.comment}"</p>
+              <div class="text-[10px] text-[#7A8681]">📍 ${br.name} · ${r.date}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      openReviewModal(apptId) {
+        this.reviewTargetId = apptId;
+        const appt = this.scheduleList.find(a => a.appointment_id === apptId);
+        const b = this.store.barbers[appt ? appt.barber_id : 1];
+        const br = this.store.branches[appt ? appt.branch_id : 101];
+        document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
+        document.getElementById("reviewModalSubtitle").textContent = br.name;
+        document.getElementById("reviewCommentInput").value = "";
+        this.setStars(5);
+        document.getElementById("reviewModal").classList.remove("hidden");
+      }
+
+      setStars(n) {
+        this.selectedStars = n;
+        document.getElementById("starRatingLabel").textContent = `${n} / 5`;
+        document.querySelectorAll("#starRatingButtons button").forEach((btn, i) => {
+          btn.className = i < n ? "text-2xl text-amber-500" : "text-2xl text-stone-300";
+        });
+      }
+
+      submitReview() {
+        const comment = document.getElementById("reviewCommentInput").value.trim();
+        if (!comment) return this.toast("Comment Required", "Please write a short comment.", true);
+        const appt = this.scheduleList.find(a => a.appointment_id === this.reviewTargetId);
+
+        this.store.reviews.push({
+          id: Date.now(),
+          appointment_id: this.reviewTargetId,
+          branch_id: appt ? appt.branch_id : this.selectedBranchId,
+          barber_id: appt ? appt.barber_id : this.selectedBarberId,
+          client_name: this.user ? this.user.full_name.split(" ")[0] : "Client",
+          rating: this.selectedStars,
+          comment,
+          date: this.getTodayISO()
+        });
+        this.store.save();
+        document.getElementById("reviewModal").classList.add("hidden");
+        this.renderBarbers();
+        this.renderReviews();
+        this.renderCustomerBookings();
+        this.toast("Review Submitted", "Thank you for your feedback!");
+      }
+
+      exportICS() {
+        const b = this.lastBooking || {
+          refCode: "CL-1025",
+          shopName: "LOGOVO · Mangilik El",
+          shopAddress: "Mangilik El Ave 52, Astana",
+          serviceName: "Haircut",
+          duration: 45,
+          barberName: "Daniyar",
+          dateISO: this.selectedDateISO,
+          timeStr: this.selectedTime || "16:00"
+        };
+        const [y, m, d] = b.dateISO.split("-").map(Number);
+        const [hr, min] = b.timeStr.split(":").map(Number);
+        const start = new Date(y, m - 1, d, hr, min, 0);
+        const end = new Date(start.getTime() + b.duration * 60000);
+        const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        const ics = [
+          "BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT",
+          `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`,
+          `SUMMARY:${b.shopName}: ${b.serviceName} (${b.barberName})`,
+          `LOCATION:${b.shopAddress}`, "END:VEVENT", "END:VCALENDAR"
+        ].join("\r\n");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+        a.download = `${b.refCode}.ics`;
+        a.click();
+      }
+
+      exportGoogleCal() {
+        const b = this.lastBooking || {
+          refCode: "CL-1025",
+          shopName: "LOGOVO · Mangilik El",
+          shopAddress: "Mangilik El Ave 52, Astana",
+          serviceName: "Haircut",
+          duration: 45,
+          barberName: "Daniyar",
+          dateISO: this.selectedDateISO,
+          timeStr: this.selectedTime || "16:00"
+        };
+        const [y, m, d] = b.dateISO.split("-").map(Number);
+        const [hr, min] = b.timeStr.split(":").map(Number);
+        const start = new Date(y, m - 1, d, hr, min, 0);
+        const end = new Date(start.getTime() + b.duration * 60000);
+        const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(b.shopName + " - " + b.serviceName)}&dates=${fmt(start)}/${fmt(end)}&location=${encodeURIComponent(b.shopAddress)}`, "_blank");
+      }
+    }
+
+    // Bind explicitly to window so inline onclick handlers never fail
+    window.app = new ClipLineApp();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => window.app.init());
+    } else {
+      window.app.init();
+    }
+  </script>
+</body>
+</html>
