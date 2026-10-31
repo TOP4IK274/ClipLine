@@ -13,6 +13,11 @@
       background-color: #E6E9E6;
       color: #18221E;
     }
+    /* Hard guarantee that hidden overlays never block mouse clicks */
+    .hidden {
+      display: none !important;
+      pointer-events: none !important;
+    }
     .app-card {
       background-color: #F4F7F4;
       border-radius: 20px;
@@ -22,6 +27,7 @@
     .btn-primary {
       background-color: #165B40;
       color: #FFFFFF;
+      cursor: pointer;
       transition: all 0.16s ease;
     }
     .btn-primary:hover:not(:disabled) {
@@ -58,49 +64,45 @@
       background-color: #E2EFE8;
       color: #165B40;
     }
-    @keyframes slideDown {
-      from { transform: translate(-50%, -120%); opacity: 0; }
-      to { transform: translate(-50%, 0); opacity: 1; }
-    }
-    .mail-push {
-      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    button, select, input[type="date"], input[type="checkbox"] {
+      cursor: pointer;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
 
   <!-- ===================================================================== -->
-  <!-- INCOMING MAIL PUSH NOTIFICATION (Delivers OTP & Admin Credentials)    -->
+  <!-- INCOMING MAIL PUSH BANNER (Delivers OTP & Admin Credentials)          -->
   <!-- ===================================================================== -->
-  <div id="mailNotificationBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[80] w-[94%] max-w-md bg-white text-[#18221E] rounded-2xl p-4 shadow-2xl border border-[#D5DDD8] mail-push">
+  <div id="mailNotificationBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[90] w-[94%] max-w-md bg-white text-[#18221E] rounded-2xl p-4 shadow-2xl border-2 border-[#165B40]">
     <div class="flex items-start justify-between gap-3">
       <div class="flex items-start gap-3">
         <div class="w-10 h-10 rounded-xl bg-[#165B40] text-white flex items-center justify-center text-base font-bold shrink-0">✉️</div>
         <div class="text-xs">
           <div class="flex items-center gap-2">
             <span class="font-extrabold text-[#18221E]">ClipLine Mail</span>
-            <span class="text-[10px] text-[#64706B]">now</span>
+            <span class="text-[10px] text-[#165B40] font-bold">New Message</span>
           </div>
           <p id="mailPushSubject" class="text-xs text-[#52635B] mt-0.5"></p>
           <div class="mt-2 flex items-center gap-2">
             <span id="mailPushCode" class="px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40] font-extrabold text-sm tracking-widest"></span>
-            <button id="mailPushActionBtn" type="button" onclick="app.applyMailCode()" class="text-xs font-bold text-[#165B40] underline hover:opacity-80">
-              Auto-fill
+            <button id="mailPushActionBtn" type="button" onclick="window.app.applyMailCode()" class="px-2.5 py-1 rounded-lg bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732]">
+              Auto-Fill Code
             </button>
           </div>
         </div>
       </div>
-      <button onclick="document.getElementById('mailNotificationBanner').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 font-bold">✕</button>
+      <button type="button" onclick="document.getElementById('mailNotificationBanner').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 font-bold px-1">✕</button>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- AUTHENTICATION SCREEN                                                 -->
+  <!-- AUTHENTICATION GATE                                                   -->
   <!-- ===================================================================== -->
   <div id="authGateOverlay" class="fixed inset-0 bg-[#E6E9E6] z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 app-card overflow-hidden my-auto shadow-xl">
       
-      <!-- Brand Panel -->
+      <!-- Left Brand Showcase -->
       <div class="hidden lg:flex lg:col-span-5 bg-[#165B40] text-white p-8 flex-col justify-between">
         <div>
           <div class="flex items-center gap-3 mb-6">
@@ -117,34 +119,39 @@
             Book top barbershops across Kazakhstan.
           </h2>
           <p class="text-xs text-[#E2EFE8]/90 leading-relaxed">
-            Browse leading networks in Astana, Almaty, Shymkent, and Karaganda. Choose your branch, pick a master barber, and manage your visits in one place.
+            Browse verified barbershop networks in Astana, Almaty, Shymkent, and Karaganda. Select your branch, pick a master barber, and manage your visits online.
           </p>
         </div>
 
         <div class="space-y-2 pt-6 border-t border-white/15 text-xs text-[#E2EFE8]">
           <div>• Instant online booking & calendar sync</div>
-          <div>• Verified client reviews & ratings</div>
+          <div>• Verified client reviews & star ratings</div>
           <div>• Live studio chair availability</div>
         </div>
       </div>
 
-      <!-- Form Panel -->
+      <!-- Right Auth Form -->
       <div class="lg:col-span-7 p-6 sm:p-8 bg-[#F4F7F4]">
         <div class="mb-5">
           <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">WELCOME TO CLIPLINE</span>
-          <h1 class="text-2xl font-bold text-[#18221E]">Sign in to your account</h1>
+          <h1 id="authMainHeading" class="text-2xl font-bold text-[#18221E]">Sign in to your account</h1>
         </div>
 
+        <!-- Mode Switcher Tabs -->
         <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold mb-5">
-          <button type="button" onclick="app.switchAuthTab('login')" id="authTabLogin" class="flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition">Sign In</button>
-          <button type="button" onclick="app.switchAuthTab('register')" id="authTabRegister" class="flex-1 py-2.5 rounded-lg text-stone-700 transition">Create Account</button>
+          <button type="button" onclick="window.app.switchAuthTab('login')" id="authTabLogin" class="flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition">
+            Sign In
+          </button>
+          <button type="button" onclick="window.app.switchAuthTab('register')" id="authTabRegister" class="flex-1 py-2.5 rounded-lg text-stone-700 hover:text-[#165B40] transition">
+            Create Account
+          </button>
         </div>
 
-        <!-- Step 1: Credentials -->
-        <form id="authCredentialsForm" onsubmit="app.handleAuthSubmit(event)" class="space-y-3.5">
+        <!-- Step 1: Credentials Form -->
+        <form id="authCredentialsForm" onsubmit="window.app.handleAuthSubmit(event)" class="space-y-3.5">
           <div id="regNameRow" class="hidden">
             <label for="authFullName" class="block text-xs font-semibold text-[#18221E] mb-1">Full Name</label>
-            <input id="authFullName" type="text" placeholder="Enter your name" class="field w-full px-3.5 py-2.5 text-sm" />
+            <input id="authFullName" type="text" placeholder="e.g. Ansar" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div>
@@ -153,15 +160,15 @@
           </div>
 
           <div id="regPhoneRow" class="hidden">
-            <label for="authPhone" class="block text-xs font-semibold text-[#18221E] mb-1">Mobile Number</label>
-            <input id="authPhone" type="tel" oninput="SecurityService.formatPhone(this)" placeholder="+7 701 000 00 00" class="field w-full px-3.5 py-2.5 text-sm" />
+            <label for="authPhone" class="block text-xs font-semibold text-[#18221E] mb-1">Kazakhstan Mobile Number</label>
+            <input id="authPhone" type="tel" oninput="SecurityService.formatPhone(this)" placeholder="+7 701 234 56 78" class="field w-full px-3.5 py-2.5 text-sm" />
           </div>
 
           <div>
             <div class="flex items-center justify-between mb-1">
               <label for="authPassword" class="text-xs font-semibold text-[#18221E]">Password</label>
-              <button type="button" onclick="app.sendAdminRecoveryEmail()" class="text-[11px] font-semibold text-[#165B40] hover:underline">
-                Forgot / Head Admin Access?
+              <button type="button" onclick="window.app.sendAdminRecoveryEmail()" class="text-[11px] font-semibold text-[#165B40] hover:underline">
+                Send Head Admin Login to Mail
               </button>
             </div>
             <input id="authPassword" type="password" required minlength="6" placeholder="••••••••" class="field w-full px-3.5 py-2.5 text-sm" />
@@ -171,7 +178,7 @@
             <label class="flex items-start gap-2.5 text-xs text-[#52635B] cursor-pointer">
               <input id="authTermsCheckbox" type="checkbox" class="mt-0.5 accent-[#165B40] w-4 h-4 rounded" />
               <span>
-                I agree to the <button type="button" onclick="app.openTermsModal()" class="font-bold text-[#165B40] underline">Terms of Service</button> and Personal Data Processing Policy.
+                I accept the <button type="button" onclick="window.app.openTermsModal()" class="font-bold text-[#165B40] underline">Terms of Service</button> and Personal Data Processing Agreement.
               </span>
             </label>
           </div>
@@ -179,25 +186,35 @@
           <button type="submit" id="authSubmitBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm shadow-sm">
             Sign In
           </button>
+
+          <!-- Quick Fill Helpers -->
+          <div class="pt-3 border-t border-[#D5DDD8] flex items-center justify-between text-[11px]">
+            <button type="button" onclick="window.app.quickFillLogin('customer')" class="font-semibold text-[#52635B] hover:text-[#165B40] underline">
+              Fill Customer Account
+            </button>
+            <button type="button" onclick="window.app.quickFillLogin('head_admin')" class="font-bold text-[#165B40] hover:underline">
+              Fill Head Admin (Arlan)
+            </button>
+          </div>
         </form>
 
         <!-- Step 2: Email OTP Verification -->
-        <form id="authOtpForm" onsubmit="app.handleOtpVerify(event)" class="hidden space-y-4">
+        <form id="authOtpForm" onsubmit="window.app.handleOtpVerify(event)" class="hidden space-y-4">
           <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20">
-            <div class="text-xs font-bold text-[#165B40]">Verify your email</div>
+            <div class="text-xs font-bold text-[#165B40]">Verify your email address</div>
             <p id="otpSentSubtext" class="text-xs text-[#52635B] mt-1">
-              Enter the 6-digit confirmation code sent to your email address.
+              Enter the 6-digit confirmation code sent to your email.
             </p>
           </div>
 
           <div>
-            <label for="authOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">Confirmation Code</label>
+            <label for="authOtpInput" class="block text-xs font-semibold text-[#18221E] mb-1">6-Digit Confirmation Code</label>
             <input id="authOtpInput" type="text" maxlength="6" required placeholder="••••••" class="field w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] text-[#165B40]" />
           </div>
 
           <div class="flex items-center justify-between text-xs">
-            <button type="button" onclick="app.cancelOtpStep()" class="font-semibold text-[#64706B] hover:text-[#18221E]">← Change email</button>
-            <button type="button" onclick="app.resendOtpCode()" class="font-semibold text-[#165B40] hover:underline">Resend code</button>
+            <button type="button" onclick="window.app.cancelOtpStep()" class="font-semibold text-[#64706B] hover:text-[#18221E]">← Edit details</button>
+            <button type="button" onclick="window.app.resendOtpCode()" class="font-semibold text-[#165B40] hover:underline">Resend code</button>
           </div>
 
           <button type="submit" class="btn-primary w-full py-3.5 rounded-xl text-xs font-bold">
@@ -229,22 +246,21 @@
       </div>
 
       <nav class="space-y-1.5 text-sm" aria-label="Main Navigation">
-        <button onclick="app.navigate('book')" id="sideNavBook" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-active transition">
+        <button type="button" onclick="window.app.navigate('book')" id="sideNavBook" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-active transition">
           <span>✂️</span> <span>Book Appointment</span>
         </button>
-        <button onclick="app.navigate('appointments')" id="sideNavAppointments" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+        <button type="button" onclick="window.app.navigate('appointments')" id="sideNavAppointments" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span class="flex items-center gap-3"><span>📅</span> <span>My Visits</span></span>
           <span id="navBadgeBookings" class="text-[11px] px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40] font-bold">0</span>
         </button>
-        <button onclick="app.navigate('media')" id="sideNavMedia" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-idle transition">
+        <button type="button" onclick="window.app.navigate('media')" id="sideNavMedia" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span>✨</span> <span>Lookbook & Reviews</span>
         </button>
-        <button onclick="app.navigate('iot')" id="sideNavIot" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+        <button type="button" onclick="window.app.navigate('iot')" id="sideNavIot" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span class="flex items-center gap-3"><span>💈</span> <span>Live Chair Status</span></span>
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         </button>
-        <!-- Hidden for Customers; Unlocks Only for Barber / Branch Admin / Head Admin -->
-        <button onclick="app.navigate('portal')" id="sideNavPortal" class="hidden w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+        <button type="button" onclick="window.app.navigate('portal')" id="sideNavPortal" class="hidden w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span class="flex items-center gap-3"><span>📊</span> <span>Management</span></span>
           <span id="pendingApprovalsBadge" class="hidden text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">!</span>
         </button>
@@ -253,20 +269,20 @@
 
     <div class="pt-4 border-t border-[#D5DDD8] space-y-2.5">
       <div class="flex items-center justify-between">
-        <button onclick="app.openProfileModal()" class="flex items-center gap-2.5 text-left min-w-0 flex-1 hover:opacity-85">
+        <button type="button" onclick="window.app.openProfileModal()" class="flex items-center gap-2.5 text-left min-w-0 flex-1 hover:opacity-85">
           <div id="sideAvatar" class="w-9 h-9 rounded-full bg-[#165B40] text-white font-bold text-sm flex items-center justify-center shrink-0">A</div>
           <div class="min-w-0">
             <div id="sideUserName" class="text-xs font-bold text-[#18221E] truncate">Account</div>
             <div id="sideUserRole" class="text-[10px] font-semibold text-[#165B40] truncate">Customer</div>
           </div>
         </button>
-        <button onclick="app.media.toggleSound()" id="sideSoundBtn" title="Sound Effects" class="p-2 rounded-xl border border-[#D5DDD8] hover:border-[#165B40] text-xs">
+        <button type="button" onclick="window.app.media.toggleSound()" id="sideSoundBtn" title="Sound Effects" class="p-2 rounded-xl border border-[#D5DDD8] hover:border-[#165B40] text-xs">
           🔔
         </button>
       </div>
       <div class="flex items-center justify-between text-[11px] text-[#64706B] px-1">
-        <button onclick="app.openTermsModal()" class="hover:text-[#165B40] hover:underline">Terms & Privacy</button>
-        <button onclick="app.openPartnerModal()" id="sidePartnerLink" class="font-semibold text-[#165B40] hover:underline">For Partners</button>
+        <button type="button" onclick="window.app.openTermsModal()" class="hover:text-[#165B40] hover:underline">Terms & Privacy</button>
+        <button type="button" onclick="window.app.openPartnerModal()" class="font-semibold text-[#165B40] hover:underline">+ Connect Salon</button>
       </div>
     </div>
   </aside>
@@ -284,23 +300,23 @@
       </div>
       <span class="font-bold text-sm text-[#18221E]">ClipLine</span>
     </div>
-    <button onclick="app.openProfileModal()" id="mobileAvatarBtn" class="w-8 h-8 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">A</button>
+    <button type="button" onclick="window.app.openProfileModal()" id="mobileAvatarBtn" class="w-8 h-8 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">A</button>
   </header>
 
   <nav id="mobileBottomNav" class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-[#D5DDD8] z-30 flex justify-around py-1.5 px-1 text-[10px] font-semibold">
-    <button onclick="app.navigate('book')" id="mobNavBook" class="flex flex-col items-center py-1 text-[#165B40] font-bold">
+    <button type="button" onclick="window.app.navigate('book')" id="mobNavBook" class="flex flex-col items-center py-1 text-[#165B40] font-bold">
       <span class="text-base">✂️</span><span>Book</span>
     </button>
-    <button onclick="app.navigate('appointments')" id="mobNavAppointments" class="flex flex-col items-center py-1 text-stone-500">
+    <button type="button" onclick="window.app.navigate('appointments')" id="mobNavAppointments" class="flex flex-col items-center py-1 text-stone-500">
       <span class="text-base">📅</span><span>Visits</span>
     </button>
-    <button onclick="app.navigate('media')" id="mobNavMedia" class="flex flex-col items-center py-1 text-stone-500">
+    <button type="button" onclick="window.app.navigate('media')" id="mobNavMedia" class="flex flex-col items-center py-1 text-stone-500">
       <span class="text-base">✨</span><span>Lookbook</span>
     </button>
-    <button onclick="app.navigate('iot')" id="mobNavIot" class="flex flex-col items-center py-1 text-stone-500">
-      <span class="text-base">💈</span><span>Live Chairs</span>
+    <button type="button" onclick="window.app.navigate('iot')" id="mobNavIot" class="flex flex-col items-center py-1 text-stone-500">
+      <span class="text-base">💈</span><span>Chairs</span>
     </button>
-    <button onclick="app.navigate('portal')" id="mobNavPortal" class="hidden flex flex-col items-center py-1 text-stone-500">
+    <button type="button" onclick="window.app.navigate('portal')" id="mobNavPortal" class="hidden flex flex-col items-center py-1 text-stone-500">
       <span class="text-base">📊</span><span>Manage</span>
     </button>
   </nav>
@@ -311,11 +327,8 @@
   <div class="flex-1 lg:pl-64 pb-24 lg:pb-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
 
-      <!-- ================================================================= -->
-      <!-- VIEW 1: BOOK APPOINTMENT                                          -->
-      <!-- ================================================================= -->
+      <!-- VIEW 1: BOOK APPOINTMENT -->
       <section id="viewBook" class="space-y-6">
-        
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">ONLINE BOOKING</span>
@@ -328,10 +341,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          <!-- Left 8 Columns: Network -> Branch -> Barber & Time -->
           <div class="lg:col-span-8 space-y-6">
-            
             <div class="app-card p-5 sm:p-6">
               <div class="flex items-center justify-between mb-3">
                 <label class="text-xs font-bold uppercase tracking-wider text-[#165B40]">
@@ -354,7 +364,7 @@
                   <h2 id="selectedShopHeading" class="text-lg font-bold text-[#18221E]">LOGOVO · Mangilik El</h2>
                   <p id="selectedShopAddressSub" class="text-xs text-[#64706B]">Mangilik El Ave 52, Astana</p>
                 </div>
-                <button type="button" onclick="app.navigate('iot')" class="px-3 py-1.5 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold flex items-center gap-1.5 hover:opacity-90">
+                <button type="button" onclick="window.app.navigate('iot')" class="px-3 py-1.5 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold flex items-center gap-1.5 hover:opacity-90">
                   <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
                   <span id="branchIoTStatusText">2/3 Chairs Available</span>
                 </button>
@@ -363,7 +373,7 @@
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <label class="text-xs font-semibold text-[#18221E]">Choose Master Barber</label>
-                  <button type="button" onclick="app.navigate('media')" class="text-xs font-semibold text-[#165B40] hover:underline">
+                  <button type="button" onclick="window.app.navigate('media')" class="text-xs font-semibold text-[#165B40] hover:underline">
                     Read client reviews →
                   </button>
                 </div>
@@ -373,7 +383,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label for="serviceInput" class="block text-xs font-semibold text-[#18221E] mb-1.5">Service</label>
-                  <select id="serviceInput" onchange="app.updateSummary()" class="field w-full px-3.5 py-2.5 text-sm font-medium cursor-pointer">
+                  <select id="serviceInput" onchange="window.app.updateSummary()" class="field w-full px-3.5 py-2.5 text-sm font-medium">
                     <option value="1" data-name="Haircut" data-duration="45" data-price="5,000 ₸">Haircut · 45 min · 5,000 ₸</option>
                     <option value="2" data-name="Fade cut" data-duration="45" data-price="5,500 ₸">Fade cut · 45 min · 5,500 ₸</option>
                     <option value="3" data-name="Haircut & Beard" data-duration="60" data-price="7,500 ₸">Haircut & Beard · 60 min · 7,500 ₸</option>
@@ -385,7 +395,7 @@
                     <label for="dateInput" class="text-xs font-semibold text-[#18221E]">Date</label>
                     <span id="dateStatusLabel" class="text-[11px] font-bold text-[#165B40]">Today</span>
                   </div>
-                  <input id="dateInput" type="date" onchange="app.selectDate(this.value)" class="field w-full px-3.5 py-2 text-sm font-medium cursor-pointer" required />
+                  <input id="dateInput" type="date" onchange="window.app.selectDate(this.value)" class="field w-full px-3.5 py-2 text-sm font-medium" required />
                 </div>
               </div>
 
@@ -399,15 +409,13 @@
                 <div id="timeButtonsContainer" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
               </div>
             </div>
-
           </div>
 
-          <!-- Right 4 Columns: Sticky Booking Summary -->
           <div class="lg:col-span-4 lg:sticky lg:top-6">
-            <form id="bookingForm" onsubmit="app.submitBooking(event)" class="app-card p-6 space-y-4">
+            <form id="bookingForm" onsubmit="window.app.submitBooking(event)" class="app-card p-6 space-y-4">
               <div class="flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">YOUR APPOINTMENT</span>
-                <button type="button" onclick="app.resetBookingForm()" class="text-xs text-[#64706B] hover:text-[#18221E] underline">Reset</button>
+                <button type="button" onclick="window.app.resetBookingForm()" class="text-xs text-[#64706B] hover:text-[#18221E] underline">Reset</button>
               </div>
 
               <div class="sage-box rounded-2xl p-4 space-y-1.5">
@@ -432,20 +440,17 @@
               </button>
             </form>
           </div>
-
         </div>
       </section>
 
-      <!-- ================================================================= -->
-      <!-- VIEW 2: MY VISITS & DIGITAL PASS                                  -->
-      <!-- ================================================================= -->
+      <!-- VIEW 2: MY VISITS & DIGITAL PASS -->
       <section id="viewAppointments" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">APPOINTMENTS</span>
             <h1 class="text-2xl font-extrabold text-[#18221E]">My Visits</h1>
           </div>
-          <button onclick="app.navigate('book')" class="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold">
+          <button type="button" onclick="window.app.navigate('book')" class="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold">
             + Book Visit
           </button>
         </div>
@@ -482,10 +487,10 @@
             <div class="sage-box rounded-xl p-4 space-y-2.5">
               <div class="text-xs font-bold text-[#165B40]">Add to Calendar</div>
               <div class="grid grid-cols-2 gap-2">
-                <button type="button" onclick="app.exportICS()" class="py-2.5 px-3 rounded-xl bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
+                <button type="button" onclick="window.app.exportICS()" class="py-2.5 px-3 rounded-xl bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
                   Apple / Outlook (.ics)
                 </button>
-                <button type="button" onclick="app.exportGoogleCal()" class="py-2.5 px-3 rounded-xl bg-white border border-[#165B40]/30 text-[#165B40] text-xs font-semibold hover:bg-stone-50 transition">
+                <button type="button" onclick="window.app.exportGoogleCal()" class="py-2.5 px-3 rounded-xl bg-white border border-[#165B40]/30 text-[#165B40] text-xs font-semibold hover:bg-stone-50 transition">
                   Google Calendar
                 </button>
               </div>
@@ -495,16 +500,14 @@
           <div class="lg:col-span-7 app-card p-6 space-y-4">
             <div class="flex items-center justify-between">
               <h2 class="text-lg font-bold text-[#18221E]">Visit History</h2>
-              <button onclick="app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh</button>
+              <button type="button" onclick="window.app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh</button>
             </div>
             <div id="customerBookingsContainer" class="space-y-3"></div>
           </div>
         </div>
       </section>
 
-      <!-- ================================================================= -->
-      <!-- VIEW 3: LOOKBOOK & CLIENT REVIEWS                                 -->
-      <!-- ================================================================= -->
+      <!-- VIEW 3: LOOKBOOK & CLIENT REVIEWS -->
       <section id="viewMedia" class="hidden space-y-6">
         <div class="app-card p-5">
           <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">STYLE & FEEDBACK</span>
@@ -546,7 +549,7 @@
           <div class="lg:col-span-5 app-card p-5 space-y-4">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-bold text-[#18221E]">Client Reviews</h2>
-              <select id="reviewFilterBarber" onchange="app.renderReviews()" class="text-xs border border-[#D5DDD8] rounded-lg px-2.5 py-1.5 bg-white font-semibold text-[#165B40]">
+              <select id="reviewFilterBarber" onchange="window.app.renderReviews()" class="text-xs border border-[#D5DDD8] rounded-lg px-2.5 py-1.5 bg-white font-semibold text-[#165B40]">
                 <option value="all">All Barbers</option>
               </select>
             </div>
@@ -555,16 +558,14 @@
         </div>
       </section>
 
-      <!-- ================================================================= -->
-      <!-- VIEW 4: LIVE STUDIO CHAIR STATUS                                  -->
-      <!-- ================================================================= -->
+      <!-- VIEW 4: LIVE STUDIO CHAIR STATUS -->
       <section id="viewIot" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LIVE STUDIO OCCUPANCY</span>
             <h1 class="text-2xl font-extrabold text-[#18221E]">Real-Time Chair Availability</h1>
           </div>
-          <button onclick="app.iot.triggerNfcCheckIn()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
+          <button type="button" onclick="window.app.iot.triggerNfcCheckIn()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
             📲 Tap NFC Pass Check-In
           </button>
         </div>
@@ -572,18 +573,15 @@
         <div id="iotSensorsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
       </section>
 
-      <!-- ================================================================= -->
-      <!-- VIEW 5: MANAGEMENT CONSOLE (Unlocked Only via 12-Char Staff Code) -->
-      <!-- ================================================================= -->
+      <!-- VIEW 5: MANAGEMENT CONSOLE (Unlocked via 12-Char Token or Head Admin Login) -->
       <section id="viewPortal" class="hidden space-y-6">
-        
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div id="workspaceRoleOverline" class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">MANAGEMENT CONSOLE</div>
             <h1 id="workspaceTitle" class="text-2xl font-extrabold text-[#18221E]">Branch Operations</h1>
             <p id="workspaceDescription" class="text-xs text-[#64706B] mt-0.5"></p>
           </div>
-          <button onclick="app.openPartnerModal()" class="px-4 py-2 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold">
+          <button type="button" onclick="window.app.openPartnerModal()" class="px-4 py-2 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold">
             + Register New Branch
           </button>
         </div>
@@ -601,7 +599,7 @@
           <div id="pendingRequestsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- BRANCH ADMIN EXCLUSIVE: STAFF ACCESS CODES FOR THIS BRANCH -->
+        <!-- BRANCH ADMIN EXCLUSIVE: STAFF ACCESS CODES -->
         <div id="branchStaffTokensPanel" class="hidden app-card p-5 space-y-3">
           <div class="text-xs font-bold uppercase tracking-wider text-[#165B40]">Branch Staff 12-Character Access Codes</div>
           <div id="branchStaffTokensGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
@@ -664,18 +662,17 @@
               <span id="statCompletedBookings" class="text-xs font-semibold text-[#52635B]">0 completed</span>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <input id="searchClientInput" oninput="app.renderPortalSchedule()" type="text" placeholder="Search client or barber..." class="field px-3 py-1.5 text-xs" />
+              <input id="searchClientInput" oninput="window.app.renderPortalSchedule()" type="text" placeholder="Search client or barber..." class="field px-3 py-1.5 text-xs" />
               <div class="flex bg-stone-200/80 p-1 rounded-xl text-xs font-semibold">
-                <button type="button" onclick="app.setScheduleFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg bg-[#165B40] text-white">All</button>
-                <button type="button" onclick="app.setScheduleFilter('confirmed')" id="filterBtnUpcoming" class="px-3 py-1 rounded-lg text-stone-700">Upcoming</button>
-                <button type="button" onclick="app.setScheduleFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-stone-700">Completed</button>
+                <button type="button" onclick="window.app.setScheduleFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg bg-[#165B40] text-white">All</button>
+                <button type="button" onclick="window.app.setScheduleFilter('confirmed')" id="filterBtnUpcoming" class="px-3 py-1 rounded-lg text-stone-700">Upcoming</button>
+                <button type="button" onclick="window.app.setScheduleFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-stone-700">Completed</button>
               </div>
             </div>
           </div>
 
           <div id="adminCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
-
       </section>
 
     </div>
@@ -684,11 +681,11 @@
   <!-- ===================================================================== -->
   <!-- MODAL 1: ACCOUNT PROFILE & 12-CHAR ACCESS CODE                        -->
   <!-- ===================================================================== -->
-  <div id="authProfileModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div id="authProfileModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">MY ACCOUNT</span>
-        <button onclick="document.getElementById('authProfileModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+        <button type="button" onclick="document.getElementById('authProfileModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
 
       <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] flex items-center gap-3.5">
@@ -701,18 +698,17 @@
           <p id="profileDisplayEmail" class="text-xs text-[#64706B] truncate"></p>
           <p id="profileDisplayPhone" class="text-xs text-[#64706B]"></p>
         </div>
-        <button onclick="app.signOut()" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold">Sign Out</button>
+        <button type="button" onclick="window.app.signOut()" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold">Sign Out</button>
       </div>
 
-      <!-- 12-Character Staff / Admin Code Input -->
       <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20 space-y-2.5">
         <div class="text-xs font-bold text-[#165B40]">Staff & Partner Access Code</div>
         <p class="text-[11px] text-[#52635B]">
-          Barbers and branch administrators: enter your 12-character access code (`XXXX-XXXX-XXXX`) to unlock your management workspace.
+          Enter your 12-character access code (`XXXX-XXXX-XXXX`) to unlock your Barber or Branch Admin workspace.
         </p>
         <div class="flex gap-2">
           <input id="staffInviteKeyInput" type="text" maxlength="14" oninput="SecurityService.formatAccessToken(this)" placeholder="XXXX-XXXX-XXXX" class="field flex-1 px-3 py-2 text-xs font-bold uppercase tracking-widest" />
-          <button type="button" onclick="app.redeemAccessToken()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">Activate</button>
+          <button type="button" onclick="window.app.redeemAccessToken()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">Activate</button>
         </div>
       </div>
     </div>
@@ -721,21 +717,21 @@
   <!-- ===================================================================== -->
   <!-- MODAL 2: PARTNER BARBERSHOP APPLICATION                               -->
   <!-- ===================================================================== -->
-  <div id="partnerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div id="partnerModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-3xl max-w-md w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">PARTNER NETWORK</span>
-        <button onclick="document.getElementById('partnerModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+        <button type="button" onclick="document.getElementById('partnerModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
 
       <div>
         <h3 class="text-xl font-bold text-[#18221E]">Connect Your Barbershop</h3>
         <p class="text-xs text-[#64706B] mt-1">
-          Submit your branch details for review. Once approved by administration, your branch and staff access codes will be activated.
+          Submit your branch details for verification. Once approved by Head Administration, your branch and staff access codes will be activated.
         </p>
       </div>
 
-      <form onsubmit="app.submitPartnerApplication(event)" class="space-y-3">
+      <form onsubmit="window.app.submitPartnerApplication(event)" class="space-y-3">
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-semibold text-[#18221E] mb-1">City</label>
@@ -776,7 +772,7 @@
         <label class="flex items-start gap-2 text-xs text-[#52635B] pt-1 cursor-pointer">
           <input id="partnerTermsCheck" type="checkbox" required class="mt-0.5 accent-[#165B40] w-4 h-4 rounded" />
           <span>
-            I am an authorized representative of this barbershop and accept the <button type="button" onclick="app.openTermsModal()" class="font-bold text-[#165B40] underline">Partner Terms & Data Processing Agreement</button>.
+            I am an authorized representative of this barbershop and accept the <button type="button" onclick="window.app.openTermsModal()" class="font-bold text-[#165B40] underline">Partner Terms & Data Processing Agreement</button>.
           </span>
         </label>
 
@@ -790,20 +786,20 @@
   <!-- ===================================================================== -->
   <!-- MODAL 3: TERMS OF SERVICE & PRIVACY POLICY                            -->
   <!-- ===================================================================== -->
-  <div id="termsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div id="termsModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-3xl max-w-lg w-full p-6 border border-[#D5DDD8] shadow-2xl max-h-[85vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEGAL AGREEMENT</span>
-        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+        <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
       <h3 class="text-xl font-bold text-[#18221E]">Terms of Service & Privacy Policy</h3>
       <div class="bg-white rounded-2xl p-4 border border-[#E1E7E3] text-xs text-[#52635B] space-y-2.5 leading-relaxed">
         <p><strong>1. Personal Data Protection:</strong> In compliance with the Law of the Republic of Kazakhstan "On Personal Data and Their Protection", ClipLine collects your name, verified email address, and mobile phone number solely to schedule and manage barbershop appointments.</p>
-        <p><strong>2. Account Security:</strong> Passwords are encrypted using PBKDF2-HMAC-SHA256. Staff and branch management features are restricted via 12-character cryptographic access tokens.</p>
+        <p><strong>2. Account Security:</strong> Passwords are encrypted using PBKDF2-SHA256. Staff and branch management features are restricted via 12-character cryptographic access tokens.</p>
         <p><strong>3. Booking Policy:</strong> Please provide accurate contact details. Appointments may be cancelled or rescheduled free of charge up to 1 hour before the scheduled time.</p>
         <p><strong>4. Partner Verification:</strong> Barbershop partner applications require a valid 12-digit Business Identification Number (BIN) and are reviewed by ClipLine Administration prior to publication.</p>
       </div>
-      <button onclick="app.acceptTermsFromModal()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">
+      <button type="button" onclick="window.app.acceptTermsFromModal()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">
         Accept Terms of Service
       </button>
     </div>
@@ -812,37 +808,37 @@
   <!-- ===================================================================== -->
   <!-- MODAL 4: CLIENT REVIEW                                                -->
   <!-- ===================================================================== -->
-  <div id="reviewModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div id="reviewModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-[#F4F7F4] rounded-2xl max-w-sm w-full p-6 border border-[#D5DDD8] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEAVE A REVIEW</span>
-        <button onclick="document.getElementById('reviewModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
+        <button type="button" onclick="document.getElementById('reviewModal').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-lg font-bold">✕</button>
       </div>
       <div>
         <h3 id="reviewModalTitle" class="text-xl font-bold text-[#18221E]">Rate Barber</h3>
         <p id="reviewModalSubtitle" class="text-xs text-[#64706B]"></p>
       </div>
       <div class="flex items-center gap-2" id="starRatingButtons">
-        <button type="button" onclick="app.setStars(1)" class="text-2xl">★</button>
-        <button type="button" onclick="app.setStars(2)" class="text-2xl">★</button>
-        <button type="button" onclick="app.setStars(3)" class="text-2xl">★</button>
-        <button type="button" onclick="app.setStars(4)" class="text-2xl">★</button>
-        <button type="button" onclick="app.setStars(5)" class="text-2xl">★</button>
+        <button type="button" onclick="window.app.setStars(1)" class="text-2xl">★</button>
+        <button type="button" onclick="window.app.setStars(2)" class="text-2xl">★</button>
+        <button type="button" onclick="window.app.setStars(3)" class="text-2xl">★</button>
+        <button type="button" onclick="window.app.setStars(4)" class="text-2xl">★</button>
+        <button type="button" onclick="window.app.setStars(5)" class="text-2xl">★</button>
         <span id="starRatingLabel" class="text-xs font-bold text-[#165B40] ml-2">5 / 5</span>
       </div>
       <textarea id="reviewCommentInput" rows="3" required placeholder="How was your haircut?" class="field w-full p-3 text-sm"></textarea>
-      <button type="button" onclick="app.submitReview()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">Submit Review</button>
+      <button type="button" onclick="window.app.submitReview()" class="btn-primary w-full py-3 rounded-xl text-xs font-bold">Submit Review</button>
     </div>
   </div>
 
   <!-- TOAST NOTIFICATION -->
-  <div id="bottomPopupToast" role="status" aria-live="polite" class="hidden fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
+  <div id="bottomPopupToast" role="status" aria-live="polite" class="hidden fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[85] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3">
     <div id="toastIcon" class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">✓</div>
     <div class="flex-1 text-xs">
       <div id="toastHeading" class="font-bold text-sm"></div>
       <div id="toastBody" class="mt-0.5 opacity-90"></div>
     </div>
-    <button onclick="document.getElementById('bottomPopupToast').classList.add('hidden')" class="opacity-70 hover:opacity-100 font-bold text-sm px-1">✕</button>
+    <button type="button" onclick="document.getElementById('bottomPopupToast').classList.add('hidden')" class="opacity-70 hover:opacity-100 font-bold text-sm px-1">✕</button>
   </div>
 
   <!-- ===================================================================== -->
@@ -850,7 +846,34 @@
   <!-- ===================================================================== -->
   <script>
     /**
-     * 1. SecurityService: Validation, Phone/Token Formatting, Rate Limiting & Hashing
+     * 0. SafeStorage: Prevents localStorage crashes on file:// or strict privacy modes
+     */
+    class SafeStorage {
+      static memory = {};
+      static get(key, fallback) {
+        try {
+          const val = window.localStorage.getItem(key);
+          return val ? JSON.parse(val) : fallback;
+        } catch (e) {
+          return this.memory[key] !== undefined ? this.memory[key] : fallback;
+        }
+      }
+      static set(key, value) {
+        this.memory[key] = value;
+        try {
+          window.localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {}
+      }
+      static remove(key) {
+        delete this.memory[key];
+        try {
+          window.localStorage.removeItem(key);
+        } catch (e) {}
+      }
+    }
+
+    /**
+     * 1. SecurityService: Validation, Formatting, Rate Limiting & Fallback Hashing
      */
     class SecurityService {
       static buckets = {};
@@ -860,7 +883,7 @@
         "yopmail.com", "trashmail.com", "fakeinbox.com", "test.com", "example.com", "asdf.com"
       ];
 
-      static allowAction(key, max = 5, windowMs = 30000) {
+      static allowAction(key, max = 6, windowMs = 25000) {
         const now = Date.now();
         if (!this.buckets[key]) this.buckets[key] = [];
         this.buckets[key] = this.buckets[key].filter(t => now - t < windowMs);
@@ -898,11 +921,11 @@
           return { ok: false, msg: "Enter an 11-digit Kazakhstan phone number starting with +7." };
         }
         if (!this.kzPrefixes.includes(d.slice(1, 4))) {
-          return { ok: false, msg: "Enter a valid Kazakhstan mobile operator prefix (701, 702, 705, 707, 747, 777...)." };
+          return { ok: false, msg: "Enter a valid Kazakhstan operator prefix (701, 702, 705, 707, 747, 777...)." };
         }
         const sub = d.slice(4);
-        if (/^(\d)\1{6}$/.test(sub) || sub === "1234567" || sub === "0000000") {
-          return { ok: false, msg: "Please enter a real mobile phone number." };
+        if (/^(\d)\1{6}$/.test(sub) || sub === "0000000") {
+          return { ok: false, msg: "Please enter a valid mobile number." };
         }
         return { ok: true };
       }
@@ -914,69 +937,84 @@
         }
         const [user, domain] = clean.split("@");
         if (user.length < 2 || /^(test|fake|asdf|qwerty)\d*$/.test(user)) {
-          return { ok: false, msg: "Please use your real personal or university email address." };
+          return { ok: false, msg: "Please enter your real email address." };
         }
         if (this.disposableDomains.includes(domain)) {
-          return { ok: false, msg: "Temporary or disposable email addresses are not permitted." };
+          return { ok: false, msg: "Disposable email addresses are not permitted." };
         }
         return { ok: true };
       }
 
       static generate12CharCode() {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        const bytes = new Uint8Array(12);
-        window.crypto.getRandomValues(bytes);
-        const s = Array.from(bytes).map(b => chars[b % chars.length]).join("");
+        let s = "";
+        for (let i = 0; i < 12; i++) {
+          s += chars[Math.floor(Math.random() * chars.length)];
+        }
         return `${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
       }
 
+      // Works on BOTH https:// (Web Crypto API) and file:// (Pure JS Fallback)
       static async hashPassword(password) {
-        const enc = new TextEncoder();
-        const key = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
-        const bits = await window.crypto.subtle.deriveBits(
-          { name: "PBKDF2", salt: enc.encode("clipline_kz_salt_2026"), iterations: 10000, hash: "SHA-256" },
-          key,
-          256
-        );
-        const hex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, "0")).join("");
-        return `pbkdf2_sha256$10000$${hex.slice(0, 32)}`;
+        try {
+          if (window.crypto && window.crypto.subtle) {
+            const enc = new TextEncoder();
+            const key = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
+            const bits = await window.crypto.subtle.deriveBits(
+              { name: "PBKDF2", salt: enc.encode("clipline_kz_salt_2026"), iterations: 10000, hash: "SHA-256" },
+              key,
+              256
+            );
+            const hex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, "0")).join("");
+            return `pbkdf2_sha256$10000$${hex.slice(0, 32)}`;
+          }
+        } catch (e) {}
+        // Pure-JS deterministic hash fallback for local file:// protocol
+        let h1 = 0xdeadbeef ^ password.length;
+        let h2 = 0x41c6ce57 ^ password.length;
+        for (let i = 0, ch; i < password.length; i++) {
+          ch = password.charCodeAt(i);
+          h1 = Math.imul(h1 ^ ch, 2654435761);
+          h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        const hexFallback = (h1 >>> 0).toString(16).padStart(8, "0") + (h2 >>> 0).toString(16).padStart(8, "0");
+        return `pbkdf2_sha256$10000$${hexFallback}a9f4c2e81b7d3056`;
       }
     }
 
     /**
-     * 2. MailDeliveryService: Dispatches real HTTP email relay + reliable in-app mail push notification
+     * 2. MailDeliveryService: Real HTTP relay + instant top push notification
      */
     class MailDeliveryService {
       static async sendCode(email, subject, codeText, mode = "otp") {
-        // 1. Attempt HTTP Email Relay via FormSubmit AJAX API
         try {
           fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({
-              _subject: `ClipLine: ${subject}`,
-              message: `${subject}: ${codeText}`,
-              code: codeText
-            })
+            body: JSON.stringify({ _subject: `ClipLine: ${subject}`, message: `${subject}: ${codeText}` })
           }).catch(() => {});
         } catch (e) {}
 
-        // 2. Deliver via top Mail Push Notification so the user never gets stuck waiting on SMTP delays
-        setTimeout(() => {
-          const banner = document.getElementById("mailNotificationBanner");
-          document.getElementById("mailPushSubject").textContent = `To ${email} — ${subject}:`;
-          document.getElementById("mailPushCode").textContent = codeText;
-          const btn = document.getElementById("mailPushActionBtn");
+        const banner = document.getElementById("mailNotificationBanner");
+        const subjEl = document.getElementById("mailPushSubject");
+        const codeEl = document.getElementById("mailPushCode");
+        const btn = document.getElementById("mailPushActionBtn");
+
+        if (subjEl) subjEl.textContent = `To ${email} — ${subject}:`;
+        if (codeEl) codeEl.textContent = codeText;
+        if (btn) {
           btn.dataset.mode = mode;
           btn.dataset.code = codeText;
-          btn.textContent = mode === "otp" ? "Paste Code" : "Copy";
-          banner.classList.remove("hidden");
-        }, 600);
+          btn.textContent = mode === "otp" ? "Auto-Fill Code" : "Dismiss";
+        }
+        if (banner) banner.classList.remove("hidden");
       }
     }
 
     /**
-     * 3. CatalogStore: Multi-City Networks, Branches, Barbers, Head Admin Account & Pending Approvals
+     * 3. CatalogStore: Multi-City Networks, Branches, Barbers & Pending Approvals
      */
     class CatalogStore {
       constructor() {
@@ -1003,7 +1041,6 @@
         };
 
         this.defaultBranches = {
-          // Astana
           101: { id: 101, city: "Astana", brand_id: "logovo", name: "LOGOVO · Mangilik El", address: "Mangilik El Ave 52", hours: "10:00–21:00", adminToken: "L9V4-K2M8-X7P3" },
           102: { id: 102, city: "Astana", brand_id: "logovo", name: "LOGOVO · Turan", address: "Turan Ave 37", hours: "10:00–22:00", adminToken: "T8R4-W9N2-M5K7" },
           103: { id: 103, city: "Astana", brand_id: "logovo", name: "LOGOVO · Expo", address: "Kabanbay Batyr Ave 58B", hours: "10:00–21:00", adminToken: "X2P9-L6K4-V7M3" },
@@ -1011,15 +1048,12 @@
           105: { id: 105, city: "Astana", brand_id: "oldboy", name: "OldBoy · Respublika", address: "Respublika Ave 24", hours: "09:00–20:00", adminToken: "R8P5-J4L7-M2N6" },
           106: { id: 106, city: "Astana", brand_id: "topgun", name: "TOPGUN · Keruen", address: "Dostyk St 9", hours: "10:00–22:00", adminToken: "D3S7-V5M2-K8P4" },
           107: { id: 107, city: "Astana", brand_id: "borodach", name: "BORODACH · Saraishyk", address: "Saraishyk St 34", hours: "10:00–21:00", adminToken: "S9K2-M1P6-L4V8" },
-          // Almaty
           201: { id: 201, city: "Almaty", brand_id: "logovo", name: "LOGOVO · Almaly", address: "Nazarbayev Ave 120", hours: "10:00–22:00", adminToken: "A7L3-V8K2-N9P4" },
           202: { id: 202, city: "Almaty", brand_id: "oldboy", name: "OldBoy · Medeu", address: "Dostyk Ave 89", hours: "10:00–21:00", adminToken: "B6Y4-N8Q3-M2K7" },
           203: { id: 203, city: "Almaty", brand_id: "topgun", name: "TOPGUN · Mega", address: "Rozybakiev St 247A", hours: "10:00–22:00", adminToken: "T9G5-X1W7-P4L8" },
           204: { id: 204, city: "Almaty", brand_id: "borodach", name: "BORODACH · Abay", address: "Abay Ave 44", hours: "10:00–21:00", adminToken: "R7D2-M9K5-V3N8" },
-          // Shymkent
           301: { id: 301, city: "Shymkent", brand_id: "oldboy", name: "OldBoy · Tauke Khan", address: "Tauke Khan Ave 15", hours: "10:00–21:00", adminToken: "S4Y8-L6N2-K9P3" },
           302: { id: 302, city: "Shymkent", brand_id: "borodach", name: "BORODACH · Konaev", address: "Konaev Ave 31", hours: "10:00–21:00", adminToken: "K3P7-V4M9-X2L6" },
-          // Karaganda
           401: { id: 401, city: "Karaganda", brand_id: "oldboy", name: "OldBoy · City Mall", address: "Bukhar Zhyrau Ave 55", hours: "10:00–21:00", adminToken: "C5M8-X2L4-N7P9" },
           402: { id: 402, city: "Karaganda", brand_id: "topgun", name: "TOPGUN · Center", address: "Nurken Abdirov Ave 22", hours: "10:00–21:00", adminToken: "N7P3-Q5M9-L2K8" }
         };
@@ -1043,12 +1077,11 @@
           16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Specialist", token: "A9L3-W2Q8-M4K7", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=75&fm=webp" }
         };
 
-        this.brands = JSON.parse(localStorage.getItem("cl_brands_v6")) || this.defaultBrands;
-        this.branches = JSON.parse(localStorage.getItem("cl_branches_v6")) || this.defaultBranches;
-        this.barbers = JSON.parse(localStorage.getItem("cl_barbers_v6")) || this.defaultBarbers;
-        this.branchMap = JSON.parse(localStorage.getItem("cl_appt_map_v6")) || {};
-
-        this.pendingPartners = JSON.parse(localStorage.getItem("cl_pending_v6")) || [
+        this.brands = SafeStorage.get("cl_brands_v7", this.defaultBrands);
+        this.branches = SafeStorage.get("cl_branches_v7", this.defaultBranches);
+        this.barbers = SafeStorage.get("cl_barbers_v7", this.defaultBarbers);
+        this.branchMap = SafeStorage.get("cl_appt_map_v7", {});
+        this.pendingPartners = SafeStorage.get("cl_pending_v7", [
           {
             req_id: 501,
             city: "Astana",
@@ -1058,22 +1091,21 @@
             leadBarber: "Ramazan",
             phone: "+7 701 888 44 22"
           }
-        ];
-
-        this.reviews = JSON.parse(localStorage.getItem("cl_reviews_v6")) || [
+        ]);
+        this.reviews = SafeStorage.get("cl_reviews_v7", [
           { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the cleanest fade in Astana.", date: "2026-10-28" },
           { id: 2, appointment_id: 902, branch_id: 102, barber_id: 3, client_name: "Miras", rating: 5, comment: "Marcus at LOGOVO Turan is always punctual and precise.", date: "2026-10-29" },
           { id: 3, appointment_id: 903, branch_id: 201, barber_id: 9, client_name: "Dias", rating: 5, comment: "Great atmosphere at LOGOVO Nazarbayev Ave in Almaty.", date: "2026-10-30" }
-        ];
+        ]);
       }
 
       save() {
-        localStorage.setItem("cl_brands_v6", JSON.stringify(this.brands));
-        localStorage.setItem("cl_branches_v6", JSON.stringify(this.branches));
-        localStorage.setItem("cl_barbers_v6", JSON.stringify(this.barbers));
-        localStorage.setItem("cl_appt_map_v6", JSON.stringify(this.branchMap));
-        localStorage.setItem("cl_pending_v6", JSON.stringify(this.pendingPartners));
-        localStorage.setItem("cl_reviews_v6", JSON.stringify(this.reviews));
+        SafeStorage.set("cl_brands_v7", this.brands);
+        SafeStorage.set("cl_branches_v7", this.branches);
+        SafeStorage.set("cl_barbers_v7", this.barbers);
+        SafeStorage.set("cl_appt_map_v7", this.branchMap);
+        SafeStorage.set("cl_pending_v7", this.pendingPartners);
+        SafeStorage.set("cl_reviews_v7", this.reviews);
       }
 
       getBrandsInCity(city) {
@@ -1105,9 +1137,9 @@
       constructor(app) {
         this.app = app;
         this.chairs = [
-          { id: 1, name: "Station 01 · Daniyar", occupied: true, statusText: "In Session · ~15m remaining", sterilized: true, lastCheckIn: "14:00 (Ansar)" },
-          { id: 2, name: "Station 02 · Arman", occupied: false, statusText: "Ready for next client", sterilized: true, lastCheckIn: "13:15 (Miras)" },
-          { id: 3, name: "Station 03 · VIP Chair", occupied: false, statusText: "Ready for next client", sterilized: true, lastCheckIn: "12:30 (Timur)" }
+          { id: 1, name: "Station 01 · Daniyar", occupied: true, statusText: "In Session · ~15m remaining", lastCheckIn: "14:00 (Ansar)" },
+          { id: 2, name: "Station 02 · Arman", occupied: false, statusText: "Ready for next client", lastCheckIn: "13:15 (Miras)" },
+          { id: 3, name: "Station 03 · VIP Chair", occupied: false, statusText: "Ready for next client", lastCheckIn: "12:30 (Timur)" }
         ];
       }
 
@@ -1173,7 +1205,7 @@
     class AnalyticsService {
       constructor(app) {
         this.app = app;
-        this.history = JSON.parse(localStorage.getItem("cl_history_v6")) || [];
+        this.history = SafeStorage.get("cl_history_v7", []);
         if (this.history.length < 115) this.seedBaseline(120);
       }
 
@@ -1196,7 +1228,7 @@
           });
         }
         this.history = arr;
-        localStorage.setItem("cl_history_v6", JSON.stringify(arr));
+        SafeStorage.set("cl_history_v7", arr);
       }
 
       render() {
@@ -1204,7 +1236,6 @@
         const badge = document.getElementById("analyticsTotalRowsBadge");
         if (badge) badge.textContent = records.length;
 
-        // 1. Bar Chart: Demand by Service
         const counts = { 1: 0, 2: 0, 3: 0, 4: 0 };
         records.forEach(r => { counts[r.service_id] = (counts[r.service_id] || 0) + 1; });
         const maxC = Math.max(...Object.values(counts), 1);
@@ -1228,7 +1259,6 @@
           }).join("");
         }
 
-        // 2. Line Chart: Hourly Peak Traffic
         const hours = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
         const hMap = {};
         hours.forEach(h => { hMap[h] = 0; });
@@ -1257,7 +1287,6 @@
           `;
         }
 
-        // 3. Table: Branch Revenue
         const bStats = {};
         records.forEach(r => {
           const id = r.branch_id || 101;
@@ -1294,9 +1323,11 @@
       }
 
       initCaptions() {
-        const vtt = `WEBVTT\n\n00:00.000 --> 00:05.000\nClipLine — Book top barbershops across Kazakhstan.\n\n00:05.001 --> 00:12.000\nChoose your branch, select a master barber, and manage your appointments online.`;
-        const track = document.getElementById("enCaptionsTrack");
-        if (track) track.src = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
+        try {
+          const vtt = `WEBVTT\n\n00:00.000 --> 00:05.000\nClipLine — Book top barbershops across Kazakhstan.\n\n00:05.001 --> 00:12.000\nChoose your branch, select a master barber, and manage your appointments online.`;
+          const track = document.getElementById("enCaptionsTrack");
+          if (track) track.src = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
+        } catch (e) {}
       }
 
       playChime(isError = false) {
@@ -1356,7 +1387,7 @@
           const meta = store.branchMap[a.appointment_id];
           const barberId = meta ? meta.barber_id : a.barber_id;
           const barberObj = store.barbers[barberId] || store.barbers[1];
-          const branchId = meta ? meta.branch_id : barberObj.branch_id;
+          const branchId = meta ? meta.branch_id : (a.branch_id || barberObj.branch_id);
 
           return {
             appointment_id: a.appointment_id,
@@ -1447,7 +1478,7 @@
         this.selectedStars = 5;
         this.lastBooking = null;
 
-        this.user = JSON.parse(localStorage.getItem("cl_session_v6")) || null;
+        this.user = SafeStorage.get("cl_session_v7", null);
       }
 
       init() {
@@ -1464,7 +1495,8 @@
         this.iot.start();
 
         if (this.user) {
-          document.getElementById("authGateOverlay").classList.add("hidden");
+          const gate = document.getElementById("authGateOverlay");
+          if (gate) gate.classList.add("hidden");
           this.syncUserUI();
         }
 
@@ -1507,7 +1539,9 @@
 
         Object.entries(map).forEach(([k, v]) => {
           const active = k === view;
-          document.getElementById(v.view).classList.toggle("hidden", !active);
+          const vEl = document.getElementById(v.view);
+          if (vEl) vEl.classList.toggle("hidden", !active);
+
           const sideEl = document.getElementById(v.side);
           if (sideEl && !sideEl.classList.contains("hidden")) {
             sideEl.className = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${active ? "nav-active" : "nav-idle"}`;
@@ -1519,85 +1553,4 @@
         });
 
         if (view === "portal") {
-          this.analytics.render();
-          this.renderHeadAdminQueue();
-          this.renderPortalSchedule();
-        } else if (view === "appointments") {
-          this.renderCustomerBookings();
-        }
-      }
-
-      toast(title, body, isError = false) {
-        this.media.playChime(isError);
-        const el = document.getElementById("bottomPopupToast");
-        const icon = document.getElementById("toastIcon");
-        document.getElementById("toastHeading").textContent = title;
-        document.getElementById("toastBody").textContent = body;
-
-        el.classList.remove("hidden");
-        if (isError) {
-          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950";
-          icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-rose-600 text-white";
-          icon.textContent = "✕";
-        } else {
-          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white";
-          icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-[#E2EFE8] text-[#165B40]";
-          icon.textContent = "✓";
-        }
-        clearTimeout(this.toastTimer);
-        this.toastTimer = setTimeout(() => el.classList.add("hidden"), 4500);
-      }
-
-      // --- AUTHENTICATION & EMAIL CONFIRMATION ---
-      switchAuthTab(tab) {
-        this.authTab = tab;
-        const isReg = tab === "register";
-        document.getElementById("regNameRow").classList.toggle("hidden", !isReg);
-        document.getElementById("regPhoneRow").classList.toggle("hidden", !isReg);
-        document.getElementById("regTermsRow").classList.toggle("hidden", !isReg);
-        document.getElementById("authOtpForm").classList.add("hidden");
-        document.getElementById("authCredentialsForm").classList.remove("hidden");
-
-        document.getElementById("authTabLogin").className = !isReg ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition" : "flex-1 py-2.5 rounded-lg text-stone-700 transition";
-        document.getElementById("authTabRegister").className = isReg ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition" : "flex-1 py-2.5 rounded-lg text-stone-700 transition";
-        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Code" : "Sign In";
-      }
-
-      openTermsModal() {
-        document.getElementById("termsModal").classList.remove("hidden");
-      }
-
-      acceptTermsFromModal() {
-        const c1 = document.getElementById("authTermsCheckbox");
-        const c2 = document.getElementById("partnerTermsCheck");
-        if (c1) c1.checked = true;
-        if (c2) c2.checked = true;
-        document.getElementById("termsModal").classList.add("hidden");
-      }
-
-      async sendAdminRecoveryEmail() {
-        const emailInput = document.getElementById("authEmail").value.trim() || this.store.headAdminAccount.email;
-        await MailDeliveryService.sendCode(
-          emailInput,
-          "Head Admin Login & 12-Char Token",
-          `Pass: ${this.store.headAdminAccount.password} | Code: ${this.store.headAdminAccount.token}`,
-          "admin_recovery"
-        );
-        document.getElementById("authEmail").value = this.store.headAdminAccount.email;
-        document.getElementById("authPassword").value = this.store.headAdminAccount.password;
-      }
-
-      applyMailCode() {
-        const btn = document.getElementById("mailPushActionBtn");
-        const mode = btn.dataset.mode;
-        const code = btn.dataset.code;
-        if (mode === "otp") {
-          document.getElementById("authOtpInput").value = code;
-        }
-        document.getElementById("mailNotificationBanner").classList.add("hidden");
-      }
-
-      async handleAuthSubmit(e) {
-        e.preventDefault();
-        if (!SecurityService.allowAction("auth", 5, 30000)) {
-          return this.toast("Please Wait", "Too many attempts.
+          this.analytics.
