@@ -180,8 +180,11 @@
             </div>
 
             <div>
-              <label for="authPassword" class="block text-xs font-semibold mb-1">Password</label>
-              <input id="authPassword" type="password" required minlength="6" placeholder="••••••••" class="field w-full px-3.5 py-2.5 text-sm" />
+              <div class="flex items-center justify-between mb-1">
+                <label for="authPassword" class="text-xs font-semibold">Password</label>
+                <span id="passwordLiveBadge" class="text-[10px] font-semibold text-muted-theme">Min 8 chars (letters + numbers)</span>
+              </div>
+              <input id="authPassword" type="password" required minlength="8" oninput="window.app.validatePasswordLive(this.value)" placeholder="Minimum 8 characters" class="field w-full px-3.5 py-2.5 text-sm" />
             </div>
 
             <div id="regTermsRow" class="hidden pt-1">
@@ -231,7 +234,7 @@
         </div>
       </div>
 
-      <!-- Right 6 Columns: Visual Studio Showcase (Always Visible on Desktop lg+) -->
+      <!-- Right 6 Columns: Visual Studio Showcase -->
       <div class="hidden lg:flex lg:col-span-6 bg-[#113F2C] text-white p-12 flex-col justify-between relative overflow-hidden">
         <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80&fm=webp" alt="ClipLine Studio Interior" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" />
         
@@ -250,7 +253,6 @@
             Browse verified branches across LOGOVO, OldBoy, TOPGUN, and BORODACH. Check live studio occupancy, claim quiet-hour discounts at 12:00 and 18:00, and sync visits directly to your calendar.
           </p>
 
-          <!-- Featured Kazakh Master Barbers Preview -->
           <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 space-y-4 max-w-lg">
             <div class="flex items-center justify-between">
               <div>
@@ -278,9 +280,9 @@
                 </div>
               </div>
               <div class="flex items-center gap-2.5">
-                <img src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=80&fm=webp" alt="Sanzhar" class="w-10 h-10 rounded-full object-cover border border-white/30" />
+                <img src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=160&h=160&q=80&fm=webp" alt="Marcus" class="w-10 h-10 rounded-full object-cover border border-white/30" />
                 <div class="text-xs">
-                  <div class="font-bold">Sanzhar</div>
+                  <div class="font-bold">Marcus</div>
                   <div class="text-[10px] text-amber-300">★ 5.0 (1)</div>
                 </div>
               </div>
@@ -308,7 +310,7 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- DESKTOP LEFT SIDEBAR NAVIGATION (Persistent on lg+)                   -->
+  <!-- DESKTOP LEFT SIDEBAR NAVIGATION                                       -->
   <!-- ===================================================================== -->
   <aside class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 theme-sidebar border-r z-30 justify-between p-5">
     <div class="space-y-6">
@@ -356,7 +358,6 @@
       </div>
     </div>
 
-    <!-- Bottom Sidebar Profile & Partner Controls -->
     <div class="pt-4 border-t border-[#D5DDD8]/50 space-y-3">
       <button type="button" onclick="window.app.openProfileModal()" class="w-full flex items-center gap-2.5 p-2 rounded-xl surface-box hover:border-[#165B40] transition text-left">
         <div id="sideAvatar" class="w-9 h-9 rounded-full bg-[#165B40] text-white font-bold text-sm flex items-center justify-center shrink-0">A</div>
@@ -375,42 +376,36 @@
   </aside>
 
   <!-- ===================================================================== -->
-  <!-- MAIN CONTENT COLUMN (With Persistent Top Header Bar for QoL)          -->
+  <!-- MAIN CONTENT COLUMN                                                   -->
   <!-- ===================================================================== -->
   <div class="flex-1 lg:pl-64 flex flex-col min-h-screen pb-20 lg:pb-10">
 
-    <!-- Persistent Top Quality-of-Life Header Bar (Theme, Sound, Profile) -->
+    <!-- Top Quality-of-Life Header Bar -->
     <header class="theme-header backdrop-blur border-b sticky top-0 z-30 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <!-- Mobile Logo -->
         <div class="lg:hidden w-8 h-8 rounded-xl bg-[#165B40] flex items-center justify-center text-white">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle>
             <line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line>
           </svg>
         </div>
-        <!-- Back to Booking Button (Appears automatically on subpages) -->
         <button type="button" id="topBackToBookBtn" onclick="window.app.navigate('book')" class="hidden px-3 py-1.5 rounded-xl surface-box text-xs font-bold hover:border-[#165B40] transition flex items-center gap-1.5">
           <span>←</span> <span>Back to Booking</span>
         </button>
         <span id="topPageTitle" class="text-sm font-extrabold tracking-tight">Book Appointment</span>
       </div>
 
-      <!-- Right Controls: Theme Switcher, Sound Toggle, Profile & Settings -->
       <div class="flex items-center gap-2">
-        <!-- Theme Switcher (Light / Dark / System) -->
         <div class="flex items-center surface-box p-1 rounded-xl text-xs font-semibold" role="group" aria-label="Theme Switcher">
           <button type="button" onclick="window.app.theme.setMode('light')" id="topThemeLight" title="Light Mode" class="px-2 py-1 rounded-lg transition">☀️ <span class="hidden sm:inline">Light</span></button>
           <button type="button" onclick="window.app.theme.setMode('dark')" id="topThemeDark" title="Dark Mode" class="px-2 py-1 rounded-lg transition">🌙 <span class="hidden sm:inline">Dark</span></button>
           <button type="button" onclick="window.app.theme.setMode('system')" id="topThemeSystem" title="System Theme" class="px-2 py-1 rounded-lg transition">💻 <span class="hidden sm:inline">Auto</span></button>
         </div>
 
-        <!-- Sound Toggle -->
         <button type="button" onclick="window.app.media.toggleSound()" id="topSoundBtn" title="Toggle Sound Effects" class="px-2.5 py-1.5 rounded-xl surface-box text-xs font-semibold hover:border-[#165B40] transition">
           🔔
         </button>
 
-        <!-- Profile & Settings Trigger Button -->
         <button type="button" onclick="window.app.openProfileModal()" class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl surface-box hover:border-[#165B40] transition">
           <div id="topAvatar" class="w-6 h-6 rounded-full bg-[#165B40] text-white font-bold text-xs flex items-center justify-center">A</div>
           <span id="topUserName" class="text-xs font-bold max-w-[100px] truncate hidden sm:inline">Profile</span>
@@ -572,7 +567,6 @@
               </button>
             </form>
 
-            <!-- Selected Branch Information Card (Replaces removed "Included with every visit") -->
             <div class="app-card p-5 space-y-3">
               <div class="text-xs font-bold uppercase tracking-wider text-[#165B40]">Selected Branch Details</div>
               <div class="space-y-2 text-xs">
@@ -677,7 +671,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-7 space-y-6">
-            <!-- Working Multi-Source HTML5 Studio Video -->
             <div class="app-card p-5 space-y-3">
               <div class="flex items-center justify-between">
                 <h2 class="text-base font-bold">Inside Our Studios</h2>
@@ -690,7 +683,6 @@
               </video>
             </div>
 
-            <!-- Interactive Clickable Signature Cuts (Click to Inspect & Book) -->
             <div class="app-card p-5 space-y-3">
               <div class="flex items-center justify-between">
                 <h2 class="text-base font-bold">Signature Cuts (Click any style to inspect & book)</h2>
@@ -745,7 +737,7 @@
         </div>
       </section>
 
-      <!-- VIEW 4: READ-ONLY STUDIO CHAIR OCCUPANCY MONITOR (No Accidental Home Check-In) -->
+      <!-- VIEW 4: READ-ONLY STUDIO CHAIR OCCUPANCY MONITOR -->
       <section id="viewIot" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -921,7 +913,6 @@
         <button type="button" onclick="window.app.signOut()" class="px-3 py-1.5 rounded-lg bg-rose-500/15 text-rose-600 hover:bg-rose-500/25 text-xs font-bold">Sign Out</button>
       </div>
 
-      <!-- Editable Profile Settings Form -->
       <form onsubmit="window.app.saveProfileSettings(event)" class="surface-box rounded-2xl p-4 space-y-3">
         <div class="text-xs font-bold uppercase tracking-wider text-[#165B40]">Profile Preferences</div>
         <div>
@@ -935,7 +926,6 @@
         <button type="submit" class="btn-primary w-full py-2.5 rounded-xl text-xs font-bold">Save Profile Changes</button>
       </form>
 
-      <!-- Staff / Admin 12-Character Code Box -->
       <div class="sage-box rounded-2xl p-4 border border-[#165B40]/20 space-y-2.5">
         <div class="text-xs font-bold text-[#165B40]">Staff & Partner Access Code</div>
         <p class="text-[11px] text-muted-theme">
@@ -950,7 +940,7 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL 2: STYLE DETAIL & QUICK BOOKING (From Lookbook Gallery)         -->
+  <!-- MODAL 2: STYLE DETAIL & QUICK BOOKING                                 -->
   <!-- ===================================================================== -->
   <div id="styleDetailModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-md w-full overflow-hidden shadow-2xl">
@@ -1132,7 +1122,6 @@
 
     /**
      * CLASS 1: ThemeService
-     * Responsibility: Light, Dark, and OS System theme management.
      */
     class ThemeService {
       constructor() {
@@ -1170,7 +1159,7 @@
 
     /**
      * CLASS 2: SecurityService
-     * Responsibility: KZ Telecom carrier verification, email domain checks, rate limiting, and PBKDF2-SHA256 hashing.
+     * Responsibility: Strict Email Provider Check, Password Complexity, KZ Telecom Check, & PBKDF2-SHA256 Hashing.
      */
     class SecurityService {
       static buckets = {};
@@ -1189,9 +1178,11 @@
         "777": "Beeline KZ",
         "778": "Kcell / Activ KZ"
       };
-      static disposableDomains = [
-        "tempmail.com", "10minutemail.com", "mailinator.com", "guerrillamail.com",
-        "yopmail.com", "trashmail.com", "fakeinbox.com", "test.com", "example.com", "asdf.com"
+      static allowedEmailDomains = [
+        "gmail.com", "astanait.edu.kz", "nu.edu.kz", "kaznu.kz", "enu.kz",
+        "icloud.com", "outlook.com", "hotmail.com", "live.com", "yahoo.com",
+        "mail.ru", "inbox.ru", "bk.ru", "list.ru", "yandex.kz", "yandex.ru",
+        "proton.me", "protonmail.com", "clipline.kz"
       ];
 
       static allowAction(key, max = 6, windowMs = 25000) {
@@ -1246,16 +1237,30 @@
       static validateEmail(email) {
         const clean = email.trim().toLowerCase();
         if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(clean)) {
-          return { ok: false, msg: "Invalid email format." };
+          return { ok: false, msg: "Enter a valid email address." };
         }
         const [user, domain] = clean.split("@");
-        if (user.length < 2 || /^(test|fake|asdf|qwerty)\d*$/.test(user)) {
-          return { ok: false, msg: "Placeholder email usernames are blocked." };
+        if (user.length < 3 || /^(test|fake|asdf|qwerty|user|admin123)\d*$/.test(user) || /^(.)\1{3,}$/.test(user)) {
+          return { ok: false, msg: "Enter a real personal or university email username." };
         }
-        if (this.disposableDomains.includes(domain)) {
-          return { ok: false, msg: "Disposable email providers are blocked." };
+        const isKnownProvider = this.allowedEmailDomains.includes(domain) || domain.endsWith(".edu.kz");
+        if (!isKnownProvider) {
+          return { ok: false, msg: "Use a verified provider (@gmail.com, @astanait.edu.kz, @icloud.com, @mail.ru, @yandex.kz, @outlook.com)." };
         }
         return { ok: true, domain };
+      }
+
+      static validatePassword(password) {
+        if (!password || password.length < 8) {
+          return { ok: false, msg: "Password must be at least 8 characters long." };
+        }
+        if (!/[A-Za-z]/.test(password) || !/[0-9!@#$%^&*]/.test(password)) {
+          return { ok: false, msg: "Password must contain both letters and numbers." };
+        }
+        if (/^(.)\1{7,}$/.test(password) || password.toLowerCase() === "password1" || password === "12345678a") {
+          return { ok: false, msg: "Password is too weak." };
+        }
+        return { ok: true };
       }
 
       static generate12CharCode() {
@@ -1297,7 +1302,6 @@
 
     /**
      * CLASS 3: EmailVerificationService
-     * Responsibility: Dispatches verification email with proper GitHub Pages redirect URL & verifies 6-digit OTP.
      */
     class EmailVerificationService {
       static async sendOtpEmail(email, fullName, fallbackCode, supabaseClient) {
@@ -1316,7 +1320,6 @@
           } catch (e) {}
         }
 
-        // Secondary HTTP dispatch for 6-digit numeric code
         try {
           fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
             method: "POST",
@@ -1328,10 +1331,9 @@
           }).catch(() => {});
         } catch (e) {}
 
-        // Display subtle backup code link if university email firewall delays delivery
         const box = document.getElementById("instantVerifyCodeBox");
         if (box) {
-          box.innerHTML = `Didn't receive the email yet? <button type="button" onclick="document.getElementById('authOtpInput').value='${fallbackCode}'" class="underline font-extrabold">Use backup code (${fallbackCode})</button>`;
+          box.innerHTML = `University firewall delaying email? <button type="button" onclick="document.getElementById('authOtpInput').value='${fallbackCode}'" class="underline font-extrabold">Use backup code (${fallbackCode})</button>`;
         }
       }
 
@@ -1353,7 +1355,6 @@
 
     /**
      * CLASS 4: CatalogRepository
-     * Responsibility: Multi-city Kazakhstan 2GIS Barbershops, Kazakh Barber Profiles, and Real Review Counts.
      */
     class CatalogRepository {
       constructor() {
@@ -1366,7 +1367,7 @@
         };
 
         this.services = {
-          1: { id: 1, name: "Haircut", duration: 45, price: "5,000 ₸", price_kzt: 5000, desc: " tailored scissor and clipper haircut with hot towel neck shave and styling." },
+          1: { id: 1, name: "Haircut", duration: 45, price: "5,000 ₸", price_kzt: 5000, desc: "Tailored scissor and clipper haircut with hot towel neck shave and styling." },
           2: { id: 2, name: "Fade cut", duration: 45, price: "5,500 ₸", price_kzt: 5500, desc: "High-precision zero/skin fade with sharp razor line-up and textured top." },
           3: { id: 3, name: "Haircut & Beard", duration: 60, price: "7,500 ₸", price_kzt: 7500, desc: "Complete executive grooming package: custom haircut plus hot-towel beard sculpting." },
           4: { id: 4, name: "Beard trim", duration: 30, price: "3,500 ₸", price_kzt: 3500, desc: "Beard shaping, straight-razor cheek and neck line-up, and nourishing beard oil finish." }
@@ -1397,7 +1398,6 @@
           402: { id: 402, city: "Karaganda", brand_id: "topgun", name: "TOPGUN · Center", address: "Nurken Abdirov Ave 22", hours: "10:00–21:00", adminToken: "N7P3-Q5M9-L2K8" }
         };
 
-        // Authentic Central Asian / Kazakh Male Portraits
         this.defaultBarbers = {
           1: { id: 1, db_id: 1, branch_id: 101, name: "Daniyar", specialty: "Master Skin Fade · 6 yrs", token: "D4N9-X7L2-K8M3", avatar: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=200&h=200&q=80&fm=webp" },
           2: { id: 2, db_id: 2, branch_id: 101, name: "Arman", specialty: "Beard & Razor Sculpt · 5 yrs", token: "R8M3-K9Q2-V5P7", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&h=200&q=80&fm=webp" },
@@ -1417,26 +1417,13 @@
           16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Specialist · 5 yrs", token: "A9L3-W2Q8-M4K7", avatar: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=200&h=200&q=80&fm=webp" }
         };
 
-        this.brands = SafeStorage.get("cl_brands_v10", this.defaultBrands);
-        this.branches = SafeStorage.get("cl_branches_v10", this.defaultBranches);
-        this.barbers = SafeStorage.get("cl_barbers_v10", this.defaultBarbers);
-        this.branchMap = SafeStorage.get("cl_appt_map_v10", {});
-        this.verifiedUsers = SafeStorage.get("cl_verified_users_v10", {
-          "arlan@clipline.kz": {
-            full_name: "Arlan Shikibaev",
-            email: "arlan@clipline.kz",
-            phone: "+7 701 777 88 99",
-            role: "head_admin"
-          },
-          "ansar@clipline.kz": {
-            full_name: "Ansar",
-            email: "ansar@clipline.kz",
-            phone: "+7 701 234 56 78",
-            role: "customer"
-          }
-        });
+        this.brands = SafeStorage.get("cl_brands_v11", this.defaultBrands);
+        this.branches = SafeStorage.get("cl_branches_v11", this.defaultBranches);
+        this.barbers = SafeStorage.get("cl_barbers_v11", this.defaultBarbers);
+        this.branchMap = SafeStorage.get("cl_appt_map_v11", {});
+        this.verifiedUsers = SafeStorage.get("cl_verified_users_v11", {});
 
-        this.pendingPartners = SafeStorage.get("cl_pending_v10", [
+        this.pendingPartners = SafeStorage.get("cl_pending_v11", [
           {
             req_id: 501,
             city: "Astana",
@@ -1448,8 +1435,7 @@
           }
         ]);
 
-        // Exact, real reviews (No artificial +12 padding)
-        this.reviews = SafeStorage.get("cl_reviews_v10", [
+        this.reviews = SafeStorage.get("cl_reviews_v11", [
           { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the cleanest skin fade in Astana.", date: "2026-10-28" },
           { id: 2, appointment_id: 904, branch_id: 101, barber_id: 1, client_name: "Ansar", rating: 5, comment: "Sharp razor work and great conversation. Highly recommend Daniyar.", date: "2026-10-30" },
           { id: 3, appointment_id: 905, branch_id: 101, barber_id: 2, client_name: "Timur", rating: 5, comment: "Arman sculpted my beard with a hot towel finish—top tier.", date: "2026-10-29" },
@@ -1459,13 +1445,13 @@
       }
 
       save() {
-        SafeStorage.set("cl_brands_v10", this.brands);
-        SafeStorage.set("cl_branches_v10", this.branches);
-        SafeStorage.set("cl_barbers_v10", this.barbers);
-        SafeStorage.set("cl_appt_map_v10", this.branchMap);
-        SafeStorage.set("cl_verified_users_v10", this.verifiedUsers);
-        SafeStorage.set("cl_pending_v10", this.pendingPartners);
-        SafeStorage.set("cl_reviews_v10", this.reviews);
+        SafeStorage.set("cl_brands_v11", this.brands);
+        SafeStorage.set("cl_branches_v11", this.branches);
+        SafeStorage.set("cl_barbers_v11", this.barbers);
+        SafeStorage.set("cl_appt_map_v11", this.branchMap);
+        SafeStorage.set("cl_verified_users_v11", this.verifiedUsers);
+        SafeStorage.set("cl_pending_v11", this.pendingPartners);
+        SafeStorage.set("cl_reviews_v11", this.reviews);
       }
 
       getBrandsInCity(city) {
@@ -1482,7 +1468,6 @@
         return Object.values(this.barbers).filter(b => Number(b.branch_id) === Number(branchId));
       }
 
-      // Exact review count from actual reviews array (No fake +12 offset)
       getRating(barberId) {
         const list = this.reviews.filter(r => Number(r.barber_id) === Number(barberId));
         if (list.length === 0) return { avg: "5.0", count: 0 };
@@ -1492,7 +1477,7 @@
     }
 
     /**
-     * CLASS 5: AnalyticsService (Matches Alibek's Part C Endterm Report)
+     * CLASS 5: AnalyticsService
      */
     class AnalyticsService {
       constructor(app) {
@@ -1664,7 +1649,7 @@
     }
 
     /**
-     * CLASS 6: LiveChairService (Read-Only for Customers; Staff-Controlled in Management)
+     * CLASS 6: LiveChairService
      */
     class LiveChairService {
       constructor(app) {
@@ -1787,15 +1772,6 @@
         const users = {};
         (uRes.data || []).forEach(u => {
           users[u.user_id] = u.full_name.split(" ")[0];
-          if (u.email) {
-            store.verifiedUsers[u.email.toLowerCase()] = {
-              user_id: u.user_id,
-              full_name: u.full_name,
-              email: u.email.toLowerCase(),
-              phone: u.phone || "+7 701 234 56 78",
-              role: u.role || "customer"
-            };
-          }
         });
         const services = {};
         (asRes.data || []).forEach(r => { services[r.appointment_id] = r.service_id; });
@@ -1823,12 +1799,25 @@
         });
       }
 
+      async findUserByEmail(email) {
+        if (!this.client) return null;
+        try {
+          const { data } = await this.client.from("users").select("*").ilike("email", email).limit(1);
+          return data && data.length > 0 ? data[0] : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
       async ensureUser(fullName, email, passwordHash) {
         if (!this.client) return Date.now();
         try {
           if (email) {
             const { data: byEmail } = await this.client.from("users").select("user_id").ilike("email", email).limit(1);
-            if (byEmail && byEmail.length > 0) return byEmail[0].user_id;
+            if (byEmail && byEmail.length > 0) {
+              await this.client.from("users").update({ password_hash: passwordHash }).eq("user_id", byEmail[0].user_id);
+              return byEmail[0].user_id;
+            }
           }
           const uniqueEmail = email || `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
           const { data: created } = await this.client
@@ -1896,7 +1885,7 @@
         this.selectedStars = 5;
         this.lastBooking = null;
 
-        this.user = SafeStorage.get("cl_session_v10", null);
+        this.user = SafeStorage.get("cl_session_v11", null);
       }
 
       init() {
@@ -1913,15 +1902,14 @@
         this.updateSummary();
         this.iot.start();
 
-        // Automatically handle Supabase Magic Link return if user clicked email link
         if (this.db.client && this.db.client.auth) {
           this.db.client.auth.onAuthStateChange((event, session) => {
             if (event === "SIGNED_IN" && session && session.user && !this.user) {
               const email = session.user.email.toLowerCase();
               const name = (session.user.user_metadata && session.user.user_metadata.full_name) || email.split("@")[0];
-              this.store.verifiedUsers[email] = { full_name: name, email, phone: "+7 701 234 56 78", role: "customer" };
-              this.store.save();
-              this.completeSession(this.store.verifiedUsers[email]);
+              if (this.store.verifiedUsers[email]) {
+                this.completeSession(this.store.verifiedUsers[email]);
+              }
             }
           });
         }
@@ -1986,11 +1974,24 @@
         }
         const res = SecurityService.validateEmail(val);
         if (res.ok) {
-          badge.textContent = `✓ Valid (${res.domain})`;
+          badge.textContent = `✓ Verified provider (${res.domain})`;
           badge.className = "text-[11px] font-bold text-[#165B40]";
         } else {
-          badge.textContent = res.msg;
+          badge.textContent = "Use real email (@gmail, @astanait.edu.kz...)";
           badge.className = "text-[11px] font-semibold text-rose-600";
+        }
+      }
+
+      validatePasswordLive(val) {
+        const badge = document.getElementById("passwordLiveBadge");
+        if (!badge) return;
+        const res = SecurityService.validatePassword(val);
+        if (res.ok) {
+          badge.textContent = "✓ Strong password";
+          badge.className = "text-[10px] font-bold text-[#165B40]";
+        } else {
+          badge.textContent = "Min 8 chars (letters + numbers)";
+          badge.className = "text-[10px] font-semibold text-rose-600";
         }
       }
 
@@ -2110,6 +2111,9 @@
         const emailCheck = SecurityService.validateEmail(email);
         if (!emailCheck.ok) return this.toast("Invalid Email", emailCheck.msg, true);
 
+        const passCheck = SecurityService.validatePassword(password);
+        if (!passCheck.ok) return this.toast("Invalid Password", passCheck.msg, true);
+
         if (this.authTab === "register") {
           const fullName = document.getElementById("authFullName").value.trim();
           const phone = document.getElementById("authPhone").value.trim();
@@ -2132,8 +2136,11 @@
           return;
         }
 
-        // STRICT SIGN-IN CHECK: Block unverified/unregistered emails from logging in without confirming first
-        if (email === this.store.headAdminAccount.email && password === this.store.headAdminAccount.password) {
+        // STRICT SIGN-IN VERIFICATION (Checks both Email Existence AND Password Hash Match)
+        if (email === this.store.headAdminAccount.email) {
+          if (password !== this.store.headAdminAccount.password) {
+            return this.toast("Incorrect Password", "The password entered for Head Admin is incorrect.", true);
+          }
           const hash = await SecurityService.hashPassword(password);
           const userId = await this.db.ensureUser("Arlan", email, hash);
           return this.completeSession({
@@ -2147,26 +2154,26 @@
           });
         }
 
-        const existingVerified = this.store.verifiedUsers[email];
-        if (!existingVerified) {
+        const enteredHash = await SecurityService.hashPassword(password);
+        const localAccount = this.store.verifiedUsers[email];
+
+        if (!localAccount) {
           return this.toast(
-            "Email Not Verified",
-            "This email has not been registered and verified yet. Please click 'Create Account' first.",
+            "Account Not Found",
+            "No verified account exists for this email. Switch to 'Create Account' to register and verify via OTP first.",
             true
           );
         }
 
-        const hash = await SecurityService.hashPassword(password);
-        const userId = await this.db.ensureUser(existingVerified.full_name, email, hash);
-        this.completeSession({
-          user_id: userId,
-          full_name: existingVerified.full_name,
-          email,
-          phone: existingVerified.phone || "+7 701 234 56 78",
-          role: existingVerified.role || "customer",
-          branch_id: null,
-          barber_id: null
-        });
+        if (localAccount.password_hash !== enteredHash) {
+          return this.toast(
+            "Incorrect Password",
+            "The password you entered does not match this account.",
+            true
+          );
+        }
+
+        this.completeSession(localAccount);
       }
 
       async resendOtpCode() {
@@ -2205,6 +2212,7 @@
           full_name: this.pendingReg.fullName,
           email: this.pendingReg.email,
           phone: this.pendingReg.phone,
+          password_hash: hash,
           role: "customer",
           branch_id: null,
           barber_id: null
@@ -2219,14 +2227,14 @@
 
       completeSession(userObj) {
         this.user = userObj;
-        SafeStorage.set("cl_session_v10", this.user);
+        SafeStorage.set("cl_session_v11", this.user);
         document.getElementById("authGateOverlay").classList.add("hidden");
         this.syncUserUI();
         this.toast("Signed In", `Welcome, ${this.user.full_name}.`);
       }
 
       signOut() {
-        SafeStorage.remove("cl_session_v10");
+        SafeStorage.remove("cl_session_v11");
         this.user = null;
         document.getElementById("authProfileModal").classList.add("hidden");
         document.getElementById("authGateOverlay").classList.remove("hidden");
@@ -2243,7 +2251,7 @@
 
         this.user.full_name = newName;
         this.user.phone = newPhone;
-        SafeStorage.set("cl_session_v10", this.user);
+        SafeStorage.set("cl_session_v11", this.user);
         if (this.store.verifiedUsers[this.user.email]) {
           this.store.verifiedUsers[this.user.email].full_name = newName;
           this.store.verifiedUsers[this.user.email].phone = newPhone;
@@ -2254,7 +2262,6 @@
         this.toast("Profile Updated", "Your account settings have been saved.");
       }
 
-      // Clickable Lookbook Style Modal
       openStyleDetailModal(serviceId) {
         const s = this.store.services[serviceId] || this.store.services[1];
         const imgs = {
@@ -2310,7 +2317,7 @@
       }
 
       saveRoleAndNavigate(msg) {
-        SafeStorage.set("cl_session_v10", this.user);
+        SafeStorage.set("cl_session_v11", this.user);
         document.getElementById("staffInviteKeyInput").value = "";
         document.getElementById("authProfileModal").classList.add("hidden");
         this.syncUserUI();
