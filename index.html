@@ -755,7 +755,9 @@
         <div id="iotSensorsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
       </section>
 
-      <!-- VIEW 5: MANAGEMENT CONSOLE & ALIBEK PART C STATISTICS PANEL -->
+      <!-- ================================================================= -->
+      <!-- VIEW 5: MANAGEMENT CONSOLE & ALIBEK PART C STATISTICS PANEL       -->
+      <!-- ================================================================= -->
       <section id="viewPortal" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -765,7 +767,7 @@
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button type="button" onclick="window.app.analytics.autoClosePastConfirmed()" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition">
-              ⚡ Reconcile Past Confirmed Visits
+              ⚡ Auto-Close Past Confirmed Visits
             </button>
             <button type="button" onclick="window.app.openPartnerModal()" class="px-4 py-2 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold">
               + Register Branch
@@ -792,77 +794,88 @@
           <div id="branchStaffTokensGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
         </div>
 
-        <!-- ADMINISTRATOR STATISTICS PANEL (Matches Alibek's Part C1–C5) -->
+        <!-- =============================================================== -->
+        <!-- ADMINISTRATOR STATISTICS PANEL (Matches Alibek PartC_DataAnalysis)-->
+        <!-- =============================================================== -->
         <div class="app-card p-6 space-y-5">
           <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#D5DDD8]/50 pb-3">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">ADMINISTRATOR STATISTICS PANEL (`admin_stats_by_hour`)</span>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">PART C5 · ADMINISTRATOR STATISTICS PANEL (`admin_stats_by_hour`)</span>
               <h2 class="text-lg font-extrabold">Database Analysis (1 Sep – 31 Oct 2026 · n = <span id="analyticsTotalRowsBadge">100</span>)</h2>
             </div>
             <span class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">
-              ● Synced with `appointments` (UTC+5 Asia/Almaty)
+              ● View: `admin_stats_by_hour` (UTC+5 Asia/Almaty)
             </span>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <!-- Q1 -->
+            
+            <!-- Q1: Appointments by start hour (Vertical Bar Chart + Table matching Alibek's PDF) -->
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-[10px] font-bold uppercase text-[#165B40]">Q1 · BAR CHART (`admin_stats_by_hour`)</span>
-                  <span class="text-[10px] font-semibold text-muted-theme">n = 100</span>
+                  <span class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
-                <h3 class="text-sm font-bold mb-3">Appointments by Start Hour (UTC+5)</h3>
-                <div id="chartQ1Hours" class="space-y-2"></div>
+                <h3 class="text-sm font-bold mb-2">Q1: Appointments by start hour</h3>
+                <!-- Vertical Column Bar Chart (10:00 to 18:00) -->
+                <div id="chartQ1Hours" class="w-full h-36 flex items-end justify-between gap-1.5 pt-4 pb-1 px-1 border-b border-[#D5DDD8]/60"></div>
+                <div class="text-[10px] text-center text-muted-theme mt-1 mb-2.5">Appointment start hour (local time, UTC+5)</div>
+                <!-- Exact Q1 Table from Alibek's PDF -->
+                <div id="tableQ1Hours" class="grid grid-cols-5 gap-1 text-[10px] text-center"></div>
               </div>
-              <div class="text-[10px] text-muted-theme pt-3 mt-3 border-t border-[#D5DDD8]/40">
-                Peaks at 11:00 & 14:00 (15 each); 13:00 break (0); quietest at 12:00 & 18:00 (10 each).
+              <div class="text-[10px] text-muted-theme pt-2.5 mt-2.5 border-t border-[#D5DDD8]/40">
+                Source: `appointments` table (Supabase), n = 100, test data; 1 Sep – 31 Oct 2026.
               </div>
             </div>
 
-            <!-- Q2 -->
+            <!-- Q2: Appointments per barber (Bar Chart + Status Table matching Alibek's PDF) -->
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-[10px] font-bold uppercase text-[#165B40]">Q2 · BARBER WORKLOAD & STATUS</span>
-                  <span class="text-[10px] font-semibold text-muted-theme">n = 100</span>
+                  <span class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
-                <h3 class="text-sm font-bold mb-2.5">Appointments per Barber & Status</h3>
-                <div id="chartQ2Barbers" class="space-y-2 mb-3"></div>
+                <h3 class="text-sm font-bold mb-2.5">Q2: Appointments per barber</h3>
+                <div id="chartQ2Barbers" class="space-y-2.5 mb-3"></div>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left text-[11px]">
                     <thead>
-                      <tr class="border-b border-[#D5DDD8]/50 text-muted-theme">
+                      <tr class="border-b border-[#D5DDD8]/60 text-muted-theme">
                         <th class="py-1">Barber</th>
                         <th class="py-1 text-right">Total</th>
-                        <th class="py-1 text-right">Done</th>
-                        <th class="py-1 text-right">Conf.</th>
-                        <th class="py-1 text-right">Canc.</th>
+                        <th class="py-1 text-right">Completed</th>
+                        <th class="py-1 text-right">Confirmed</th>
+                        <th class="py-1 text-right">Cancelled</th>
                       </tr>
                     </thead>
                     <tbody id="tableQ2Barbers" class="divide-y divide-[#D5DDD8]/30 font-semibold"></tbody>
                   </table>
                 </div>
               </div>
-              <div class="text-[10px] text-muted-theme pt-3 mt-2 border-t border-[#D5DDD8]/40">
-                All statuses included (69 completed, 27 confirmed, 4 cancelled).
+              <div class="text-[10px] text-muted-theme pt-2.5 mt-2 border-t border-[#D5DDD8]/40">
+                Source: `appointments` table (Supabase), n = 100, test data; all statuses included.
               </div>
             </div>
 
-            <!-- Q3 -->
+            <!-- Q3: Appointments per week (Line Chart matching Alibek's PDF) -->
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-[10px] font-bold uppercase text-[#165B40]">Q3 · WEEKLY TREND LINE CHART</span>
-                  <span class="text-[10px] font-semibold text-muted-theme">31 Aug – 26 Oct</span>
+                  <span class="text-[10px] font-bold uppercase text-[#165B40]">Q3 · LINE CHART (WEEKLY TREND)</span>
+                  <span class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
-                <h3 class="text-sm font-bold mb-2">Appointments per Week (Monday Start)</h3>
-                <div id="chartQ3WeeklyLine" class="w-full h-48 flex items-center justify-center"></div>
+                <h3 class="text-sm font-bold mb-2">Q3: Appointments per week</h3>
+                <div id="chartQ3WeeklyLine" class="w-full h-44 flex items-center justify-center"></div>
+                <div class="text-[10px] text-muted-theme mt-1 leading-relaxed">
+                  <strong>Weekly values (Monday start):</strong> 31 Aug: 9; 07 Sep: 10; 14 Sep: 11; 21 Sep: 9; 28 Sep: 6; 05 Oct: 11; 12 Oct: 12; <strong>19 Oct: 22</strong>; 26 Oct: 10.
+                </div>
               </div>
-              <div class="text-[10px] text-muted-theme pt-3 mt-2 border-t border-[#D5DDD8]/40">
-                Weekly volume stays 6–12, peaking on week of 19 Oct (22 bookings).
+              <div class="text-[10px] text-muted-theme pt-2.5 mt-2 border-t border-[#D5DDD8]/40">
+                Source: `appointments` table (Supabase), n = 100, test data; weeks by start date.
               </div>
             </div>
+
           </div>
         </div>
 
@@ -1150,82 +1163,7 @@
         ["Light", "Dark", "System"].forEach(m => {
           const key = m.toLowerCase();
           const topBtn = document.getElementById(`topTheme${m}`);
-          const authBtn = document.getElementById(`authTheme${m}`);
-          if (topBtn) topBtn.className = this.mode === key ? activeCls : idleCls;
-          if (authBtn) authBtn.className = this.mode === key ? activeCls : idleCls;
-        });
-      }
-    }
-
-    /**
-     * CLASS 2: SecurityService
-     * Responsibility: Strict Email Provider Check, Password Complexity, KZ Telecom Check, & PBKDF2-SHA256 Hashing.
-     */
-    class SecurityService {
-      static buckets = {};
-      static carrierMap = {
-        "700": "Altel / Tele2 KZ",
-        "701": "Kcell / Activ KZ",
-        "702": "Kcell / Activ KZ",
-        "705": "Beeline KZ",
-        "706": "Izi Telecom KZ",
-        "707": "Tele2 KZ",
-        "708": "Altel 4G KZ",
-        "747": "Tele2 KZ",
-        "771": "Beeline KZ",
-        "775": "Kcell / Activ KZ",
-        "776": "Beeline KZ",
-        "777": "Beeline KZ",
-        "778": "Kcell / Activ KZ"
-      };
-      static allowedEmailDomains = [
-        "gmail.com", "astanait.edu.kz", "nu.edu.kz", "kaznu.kz", "enu.kz",
-        "icloud.com", "outlook.com", "hotmail.com", "live.com", "yahoo.com",
-        "mail.ru", "inbox.ru", "bk.ru", "list.ru", "yandex.kz", "yandex.ru",
-        "proton.me", "protonmail.com", "clipline.kz"
-      ];
-
-      static allowAction(key, max = 6, windowMs = 25000) {
-        const now = Date.now();
-        if (!this.buckets[key]) this.buckets[key] = [];
-        this.buckets[key] = this.buckets[key].filter(t => now - t < windowMs);
-        if (this.buckets[key].length >= max) return false;
-        this.buckets[key].push(now);
-        return true;
-      }
-
-      static formatPhone(input) {
-        let d = input.value.replace(/\D/g, "");
-        if (d.startsWith("8")) d = "7" + d.slice(1);
-        if (d.length > 0 && !d.startsWith("7")) d = "7" + d;
-        d = d.slice(0, 11);
-        let out = "";
-        if (d.length > 0) out = "+" + d.slice(0, 1);
-        if (d.length > 1) out += " " + d.slice(1, 4);
-        if (d.length > 4) out += " " + d.slice(4, 7);
-        if (d.length > 7) out += " " + d.slice(7, 9);
-        if (d.length > 9) out += " " + d.slice(9, 11);
-        input.value = out;
-      }
-
-      static formatAccessToken(input) {
-        let raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
-        let parts = [];
-        if (raw.length > 0) parts.push(raw.slice(0, 4));
-        if (raw.length > 4) parts.push(raw.slice(4, 8));
-        if (raw.length > 8) parts.push(raw.slice(8, 12));
-        input.value = parts.join("-");
-      }
-
-      static validatePhone(phone) {
-        const d = phone.replace(/\D/g, "");
-        if (d.length !== 11 || !d.startsWith("7")) {
-          return { ok: false, msg: "Enter an 11-digit Kazakhstan mobile number (+7 7XX...)." };
-        }
-        const prefix = d.slice(1, 4);
-        const carrier = this.carrierMap[prefix];
-        if (!carrier) {
-          return { ok: false, msg: `Prefix ${prefix} is not a valid Kazakhstan mobile operator.` };
+          const authBtn = document.getElementById(`authTheme${m}`); if (topBtn) topBtn.className = this.mode === key ? activeCls : idleCls; if (authBtn) authBtn.className = this.mode === key ? activeCls : idleCls; }); } }  /** * CLASS 2: SecurityService */ class SecurityService { static buckets = {}; static carrierMap = { "700": "Altel / Tele2 KZ", "701": "Kcell / Activ KZ", "702": "Kcell / Activ KZ", "705": "Beeline KZ", "706": "Izi Telecom KZ", "707": "Tele2 KZ", "708": "Altel 4G KZ", "747": "Tele2 KZ", "771": "Beeline KZ", "775": "Kcell / Activ KZ", "776": "Beeline KZ", "777": "Beeline KZ", "778": "Kcell / Activ KZ" }; static allowedEmailDomains = [ "gmail.com", "astanait.edu.kz", "nu.edu.kz", "kaznu.kz", "enu.kz", "icloud.com", "outlook.com", "hotmail.com", "live.com", "yahoo.com", "mail.ru", "inbox.ru", "bk.ru", "list.ru", "yandex.kz", "yandex.ru", "proton.me", "protonmail.com", "clipline.kz" ];  static allowAction(key, max = 6, windowMs = 25000) { const now = Date.now(); if (!this.buckets[key]) this.buckets[key] = []; this.buckets[key] = this.buckets[key].filter(t => now - t < windowMs); if (this.buckets[key].length >= max) return false; this.buckets[key].push(now); return true; }  static formatPhone(input) { let d = input.value.replace(/\D/g, ""); if (d.startsWith("8")) d = "7" + d.slice(1); if (d.length > 0 && !d.startsWith("7")) d = "7" + d; d = d.slice(0, 11); let out = ""; if (d.length > 0) out = "+" + d.slice(0, 1); if (d.length > 1) out += " " + d.slice(1, 4); if (d.length > 4) out += " " + d.slice(4, 7); if (d.length > 7) out += " " + d.slice(7, 9); if (d.length > 9) out += " " + d.slice(9, 11); input.value = out; }  static formatAccessToken(input) { let raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12); let parts = []; if (raw.length > 0) parts.push(raw.slice(0, 4)); if (raw.length > 4) parts.push(raw.slice(4, 8)); if (raw.length > 8) parts.push(raw.slice(8, 12)); input.value = parts.join("-"); }  static validatePhone(phone) { const d = phone.replace(/\D/g, ""); if (d.length !== 11 \vert{}\vert{} !d.startsWith("7")) { return { ok: false, msg: "Enter an 11-digit Kazakhstan mobile number (+7 7XX...)." }; } const prefix = d.slice(1, 4); const carrier = this.carrierMap[prefix]; if (!carrier) { return { ok: false, msg: `Prefix ${prefix} is not a valid Kazakhstan mobile operator.` };
         }
         const sub = d.slice(4);
         if (/^(\d)\1{6}$/.test(sub) || sub === "1234567" || sub === "0000000" || sub === "7654321") {
@@ -1296,37 +1234,12 @@
         h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
         h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
         const hexFallback = (h1 >>> 0).toString(16).padStart(8, "0") + (h2 >>> 0).toString(16).padStart(8, "0");
-        return `pbkdf2_sha256$10000$${hexFallback}a9f4c2e81b7d3056`;
-      }
-    }
-
-    /**
-     * CLASS 3: EmailVerificationService
-     */
-    class EmailVerificationService {
-      static async sendOtpEmail(email, fullName, fallbackCode, supabaseClient) {
-        const redirectUrl = window.location.origin + window.location.pathname;
-
-        if (supabaseClient && supabaseClient.auth) {
-          try {
-            await supabaseClient.auth.signInWithOtp({
-              email,
-              options: {
-                shouldCreateUser: true,
-                emailRedirectTo: redirectUrl,
-                data: { full_name: fullName }
-              }
-            });
-          } catch (e) {}
-        }
-
-        try {
-          fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+        return `pbkdf2_sha256$10000$${hexFallback}a9f4c2e81b7d3056`; } }  /** * CLASS 3: EmailVerificationService */ class EmailVerificationService { static async sendOtpEmail(email, fullName, fallbackCode, supabaseClient) { const redirectUrl = window.location.origin + window.location.pathname;  if (supabaseClient && supabaseClient.auth) { try { await supabaseClient.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: redirectUrl, data: { full_name: fullName } } }); } catch (e) {} }  try { fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
               _subject: `ClipLine Verification Code: ${fallbackCode}`,
-              message: `Hello ${fullName}, your 6-digit ClipLine verification code is: ${fallbackCode}`
+              message: `Hello ${fullName}, your 6-digit ClipLine verification code is:${fallbackCode}`
             })
           }).catch(() => {});
         } catch (e) {}
@@ -1417,13 +1330,13 @@
           16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Specialist · 5 yrs", token: "A9L3-W2Q8-M4K7", avatar: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=200&h=200&q=80&fm=webp" }
         };
 
-        this.brands = SafeStorage.get("cl_brands_v11", this.defaultBrands);
-        this.branches = SafeStorage.get("cl_branches_v11", this.defaultBranches);
-        this.barbers = SafeStorage.get("cl_barbers_v11", this.defaultBarbers);
-        this.branchMap = SafeStorage.get("cl_appt_map_v11", {});
-        this.verifiedUsers = SafeStorage.get("cl_verified_users_v11", {});
+        this.brands = SafeStorage.get("cl_brands_v12", this.defaultBrands);
+        this.branches = SafeStorage.get("cl_branches_v12", this.defaultBranches);
+        this.barbers = SafeStorage.get("cl_barbers_v12", this.defaultBarbers);
+        this.branchMap = SafeStorage.get("cl_appt_map_v12", {});
+        this.verifiedUsers = SafeStorage.get("cl_verified_users_v12", {});
 
-        this.pendingPartners = SafeStorage.get("cl_pending_v11", [
+        this.pendingPartners = SafeStorage.get("cl_pending_v12", [
           {
             req_id: 501,
             city: "Astana",
@@ -1435,7 +1348,7 @@
           }
         ]);
 
-        this.reviews = SafeStorage.get("cl_reviews_v11", [
+        this.reviews = SafeStorage.get("cl_reviews_v12", [
           { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the cleanest skin fade in Astana.", date: "2026-10-28" },
           { id: 2, appointment_id: 904, branch_id: 101, barber_id: 1, client_name: "Ansar", rating: 5, comment: "Sharp razor work and great conversation. Highly recommend Daniyar.", date: "2026-10-30" },
           { id: 3, appointment_id: 905, branch_id: 101, barber_id: 2, client_name: "Timur", rating: 5, comment: "Arman sculpted my beard with a hot towel finish—top tier.", date: "2026-10-29" },
@@ -1445,13 +1358,13 @@
       }
 
       save() {
-        SafeStorage.set("cl_brands_v11", this.brands);
-        SafeStorage.set("cl_branches_v11", this.branches);
-        SafeStorage.set("cl_barbers_v11", this.barbers);
-        SafeStorage.set("cl_appt_map_v11", this.branchMap);
-        SafeStorage.set("cl_verified_users_v11", this.verifiedUsers);
-        SafeStorage.set("cl_pending_v11", this.pendingPartners);
-        SafeStorage.set("cl_reviews_v11", this.reviews);
+        SafeStorage.set("cl_brands_v12", this.brands);
+        SafeStorage.set("cl_branches_v12", this.branches);
+        SafeStorage.set("cl_barbers_v12", this.barbers);
+        SafeStorage.set("cl_appt_map_v12", this.branchMap);
+        SafeStorage.set("cl_verified_users_v12", this.verifiedUsers);
+        SafeStorage.set("cl_pending_v12", this.pendingPartners);
+        SafeStorage.set("cl_reviews_v12", this.reviews);
       }
 
       getBrandsInCity(city) {
@@ -1477,11 +1390,12 @@
     }
 
     /**
-     * CLASS 5: AnalyticsService
+     * CLASS 5: AnalyticsService (Matches Alibek's PartC_DataAnalysis.pdf Q1, Q2, Q3 & C5)
      */
     class AnalyticsService {
       constructor(app) {
         this.app = app;
+        // Exact 100-row distribution from Alibek's PartC_DataAnalysis.pdf
         this.q1HourDistribution = [
           { hour: 10, bookings: 11 },
           { hour: 11, bookings: 15 },
@@ -1494,9 +1408,9 @@
           { hour: 18, bookings: 10 }
         ];
         this.q2BarberStats = [
-          { barber_id: 1, name: "Barber 1 (Daniyar)", total: 33, completed: 27, confirmed: 4, cancelled: 2 },
-          { barber_id: 2, name: "Barber 2 (Arman)", total: 34, completed: 29, confirmed: 5, cancelled: 0 },
-          { barber_id: 3, name: "Barber 3 (Marcus)", total: 33, completed: 13, confirmed: 18, cancelled: 2 }
+          { barber_id: 1, name: "Barber 1", total: 33, completed: 27, confirmed: 4, cancelled: 2 },
+          { barber_id: 2, name: "Barber 2", total: 34, completed: 29, confirmed: 5, cancelled: 0 },
+          { barber_id: 3, name: "Barber 3", total: 33, completed: 13, confirmed: 18, cancelled: 2 }
         ];
         this.q3WeeklySeries = [
           { label: "31 Aug", bookings: 9 },
@@ -1511,13 +1425,15 @@
         ];
       }
 
+      // Part C5 Step 2: Reads `admin_stats_by_hour` view and calls `renderBars(data)`
       async fetchAndRenderAdminStats() {
+        if (!this.app.isAuthorizedStaff()) return;
         let hourData = this.q1HourDistribution;
-        const client = this.app.db.client;
+        const supabase = this.app.db.client;
 
-        if (client) {
+        if (supabase) {
           try {
-            const { data, error } = await client
+            const { data, error } = await supabase
               .from("admin_stats_by_hour")
               .select("hour, bookings");
             if (!error && data && data.length > 0) {
@@ -1536,31 +1452,44 @@
         this.renderQ3WeeklyLine();
       }
 
+      // Draws one vertical bar per hour (10:00 to 18:00) + exact table matching Alibek's Q1
       renderBars(data) {
         const container = document.getElementById("chartQ1Hours");
+        const tableEl = document.getElementById("tableQ1Hours");
         if (!container) return;
-        const maxVal = Math.max(...data.map(d => d.bookings), 15);
+
+        const maxVal = Math.max(...data.map(d => d.bookings), 16);
         const total = data.reduce((sum, d) => sum + d.bookings, 0);
 
         const badge = document.getElementById("analyticsTotalRowsBadge");
         if (badge) badge.textContent = total;
 
         container.innerHTML = data.map(row => {
-          const pct = Math.round((row.bookings / maxVal) * 100);
+          const heightPx = Math.round((row.bookings / maxVal) * 96);
           const isQuiet = row.hour === 12 || row.hour === 18;
-          const isBreak = row.hour === 13;
           return `
-            <div class="space-y-0.5">
-              <div class="flex justify-between text-[11px] font-semibold">
-                <span>${row.hour}:00 ${isBreak ? "(Break)" : isQuiet ? "(-15% Quiet Slot)" : ""}</span>
-                <span class="font-bold text-[#165B40]">${row.bookings}</span>
-              </div>
-              <div class="w-full h-2.5 bg-stone-200/60 rounded-full overflow-hidden">
-                <div class="h-full ${isQuiet ? "bg-amber-500" : "bg-[#165B40]"} rounded-full" style="width:${pct}%"></div>
-              </div>
+            <div class="flex-1 flex flex-col items-center justify-end h-full">
+              <span class="text-[10px] font-extrabold mb-1">${row.bookings}</span>
+              <div class="w-full max-w-[24px] rounded-t-md transition-all ${ row.bookings === 0 ? "bg-stone-300 h-[2px]" : isQuiet ? "bg-amber-500" : "bg-[#165B40]" }" style="height: ${Math.max(heightPx, 2)}px;"></div>
+              <span class="text-[9px] text-muted-theme font-semibold mt-1">${row.hour}:00</span>
             </div>
           `;
         }).join("");
+
+        if (tableEl) {
+          tableEl.innerHTML = [
+            ...data.map(r => `
+              <div class="p-1 rounded bg-stone-500/5 border border-[#D5DDD8]/50">
+                <div class="text-muted-theme">${r.hour}:00</div>
+                <div class="font-extrabold text-[#165B40]">${r.bookings}</div>
+              </div>
+            `),
+            `<div class="p-1 rounded sage-box border border-[#165B40]/20">
+              <div class="font-bold text-[#165B40]">Total</div>
+              <div class="font-extrabold text-[#165B40]">${total}</div>
+            </div>`
+          ].join("");
+        }
       }
 
       renderQ2BarberWorkload() {
@@ -1569,17 +1498,15 @@
         if (!barEl || !tbody) return;
 
         barEl.innerHTML = this.q2BarberStats.map(b => {
-          const donePct = Math.round((b.completed / b.total) * 100);
-          const confPct = Math.round((b.confirmed / b.total) * 100);
+          const pct = Math.round((b.total / 40) * 100);
           return `
             <div class="space-y-1">
               <div class="flex justify-between text-[11px] font-semibold">
                 <span>${b.name}</span>
-                <span class="font-bold">${b.total} (${b.completed} done, ${b.confirmed} conf)</span>
+                <span class="font-extrabold text-[#165B40]">${b.total}</span>
               </div>
-              <div class="w-full h-2.5 bg-stone-200/60 rounded-full overflow-hidden flex">
-                <div class="h-full bg-[#165B40]" style="width:${donePct}%"></div>
-                <div class="h-full bg-amber-400" style="width:${confPct}%"></div>
+              <div class="w-full h-2.5 bg-stone-200/60 rounded-full overflow-hidden">
+                <div class="h-full bg-[#165B40] rounded-full" style="width:${pct}%"></div>
               </div>
             </div>
           `;
@@ -1598,7 +1525,7 @@
         tbody.innerHTML = [
           ...this.q2BarberStats.map(b => `
             <tr>
-              <td class="py-1">${b.name.split(" (")[0]}</td>
+              <td class="py-1">${b.name}</td>
               <td class="py-1 text-right">${b.total}</td>
               <td class="py-1 text-right text-[#165B40]">${b.completed}</td>
               <td class="py-1 text-right text-amber-600">${b.confirmed}</td>
@@ -1621,26 +1548,27 @@
         const maxW = 24;
         const pts = this.q3WeeklySeries.map((w, i) => ({
           x: 24 + i * 34,
-          y: 130 - Math.round((w.bookings / maxW) * 100),
+          y: 125 - Math.round((w.bookings / maxW) * 95),
           label: w.label,
           val: w.bookings
         }));
 
         lineEl.innerHTML = `
-          <svg viewBox="0 0 325 155" class="w-full h-full overflow-visible">
-            <line x1="20" y1="20" x2="20" y2="132" stroke="#98A8A0" stroke-width="1.2" />
-            <line x1="20" y1="132" x2="310" y2="132" stroke="#98A8A0" stroke-width="1.2" />
+          <svg viewBox="0 0 325 150" class="w-full h-full overflow-visible">
+            <line x1="20" y1="18" x2="20" y2="127" stroke="#98A8A0" stroke-width="1.2" />
+            <line x1="20" y1="127" x2="310" y2="127" stroke="#98A8A0" stroke-width="1.2" />
             <polyline fill="none" stroke="#165B40" stroke-width="2.5" points="${pts.map(p => `${p.x},${p.y}`).join(" ")}" />
             ${pts.map(p => `
               <circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#165B40" />
               <text x="${p.x}" y="${p.y - 7}" text-anchor="middle" font-size="8.5" font-weight="bold" fill="currentColor">${p.val}</text>
-              <text x="${p.x}" y="146" text-anchor="middle" font-size="7.5" fill="#98A8A0">${p.label}</text>
+              <text x="${p.x}" y="142" text-anchor="middle" font-size="7.5" fill="#98A8A0">${p.label}</text>
             `).join("")}
           </svg>
         `;
       }
 
       async autoClosePastConfirmed() {
+        if (!this.app.isAuthorizedStaff()) return;
         this.q2BarberStats[2].completed += 15;
         this.q2BarberStats[2].confirmed -= 15;
         this.renderQ2BarberWorkload();
@@ -1799,16 +1727,6 @@
         });
       }
 
-      async findUserByEmail(email) {
-        if (!this.client) return null;
-        try {
-          const { data } = await this.client.from("users").select("*").ilike("email", email).limit(1);
-          return data && data.length > 0 ? data[0] : null;
-        } catch (e) {
-          return null;
-        }
-      }
-
       async ensureUser(fullName, email, passwordHash) {
         if (!this.client) return Date.now();
         try {
@@ -1819,119 +1737,7 @@
               return byEmail[0].user_id;
             }
           }
-          const uniqueEmail = email || `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
-          const { data: created } = await this.client
-            .from("users")
-            .insert([{ full_name: fullName, email: uniqueEmail, password_hash: passwordHash, role: "customer" }])
-            .select()
-            .single();
-          return created ? created.user_id : Date.now();
-        } catch (e) {
-          return Date.now();
-        }
-      }
-
-      async createAppointment(customerId, dbBarberId, startsAtISO, serviceId, branchId) {
-        const { data: row, error } = await this.client
-          .from("appointments")
-          .insert([{ customer_id: customerId, barber_id: dbBarberId, branch_id: branchId, starts_at: startsAtISO, status: "confirmed" }])
-          .select()
-          .single();
-        if (error) throw error;
-        await this.client.from("appointment_services").insert([{ appointment_id: row.appointment_id, service_id: serviceId }]);
-        return row.appointment_id;
-      }
-
-      async updateStatus(id, status) {
-        if (!this.client) return;
-        await this.client.from("appointments").update({ status }).eq("appointment_id", id);
-      }
-
-      subscribe(callback) {
-        if (!this.client) return;
-        this.client
-          .channel("public:appointments")
-          .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, callback)
-          .subscribe();
-      }
-    }
-
-    /**
-     * CLASS 9: ClipLineApp
-     */
-    class ClipLineApp {
-      constructor() {
-        this.theme = new ThemeService();
-        this.store = new CatalogRepository();
-        this.db = new DatabaseService();
-        this.media = new MediaService();
-        this.iot = new LiveChairService(this);
-        this.analytics = new AnalyticsService(this);
-
-        this.currentView = "book";
-        this.selectedCity = "Astana";
-        this.selectedBrandId = "logovo";
-        this.selectedBranchId = 101;
-        this.selectedBarberId = 1;
-        this.selectedDateISO = this.getTodayISO();
-        this.selectedTime = "16:00";
-        this.scheduleFilter = "all";
-        this.scheduleList = [];
-        this.slots = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-
-        this.authTab = "login";
-        this.pendingReg = null;
-        this.reviewTargetId = null;
-        this.selectedStars = 5;
-        this.lastBooking = null;
-
-        this.user = SafeStorage.get("cl_session_v11", null);
-      }
-
-      init() {
-        this.theme.apply();
-        this.media.initCaptions();
-        this.tickClock();
-        this.renderCities();
-        this.renderBrands();
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderDatePills();
-        this.populateReviewFilter();
-        this.renderReviews();
-        this.updateSummary();
-        this.iot.start();
-
-        if (this.db.client && this.db.client.auth) {
-          this.db.client.auth.onAuthStateChange((event, session) => {
-            if (event === "SIGNED_IN" && session && session.user && !this.user) {
-              const email = session.user.email.toLowerCase();
-              const name = (session.user.user_metadata && session.user.user_metadata.full_name) || email.split("@")[0];
-              if (this.store.verifiedUsers[email]) {
-                this.completeSession(this.store.verifiedUsers[email]);
-              }
-            }
-          });
-        }
-
-        if (this.user) {
-          const gate = document.getElementById("authGateOverlay");
-          if (gate) gate.classList.add("hidden");
-          this.syncUserUI();
-        }
-
-        setInterval(() => {
-          this.tickClock();
-          this.renderTimeSlots();
-        }, 15000);
-
-        this.refreshSchedule(false);
-        this.db.subscribe(() => this.refreshSchedule(false));
-      }
-
-      getTodayISO() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const uniqueEmail = email || `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`; const { data: created } = await this.client .from("users") .insert([{ full_name: fullName, email: uniqueEmail, password_hash: passwordHash, role: "customer" }]) .select() .single(); return created ? created.user_id : Date.now(); } catch (e) { return Date.now(); } }  async createAppointment(customerId, dbBarberId, startsAtISO, serviceId, branchId) { const { data: row, error } = await this.client .from("appointments") .insert([{ customer_id: customerId, barber_id: dbBarberId, branch_id: branchId, starts_at: startsAtISO, status: "confirmed" }]) .select() .single(); if (error) throw error; await this.client.from("appointment_services").insert([{ appointment_id: row.appointment_id, service_id: serviceId }]); return row.appointment_id; }  async updateStatus(id, status) { if (!this.client) return; await this.client.from("appointments").update({ status }).eq("appointment_id", id); }  subscribe(callback) { if (!this.client) return; this.client .channel("public:appointments") .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, callback) .subscribe(); } }  /** * CLASS 9: ClipLineApp */ class ClipLineApp { constructor() { this.theme = new ThemeService(); this.store = new CatalogRepository(); this.db = new DatabaseService(); this.media = new MediaService(); this.iot = new LiveChairService(this); this.analytics = new AnalyticsService(this);  this.currentView = "book"; this.selectedCity = "Astana"; this.selectedBrandId = "logovo"; this.selectedBranchId = 101; this.selectedBarberId = 1; this.selectedDateISO = this.getTodayISO(); this.selectedTime = "16:00"; this.scheduleFilter = "all"; this.scheduleList = []; this.slots = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];  this.authTab = "login"; this.pendingReg = null; this.reviewTargetId = null; this.selectedStars = 5; this.lastBooking = null;  this.user = SafeStorage.get("cl_session_v12", null); }  // Strict RBAC check helper isAuthorizedStaff() { return Boolean(this.user && ["barber", "admin", "head_admin"].includes(this.user.role)); }  // Guarantees any sign-in, registration, or sign-out lands on the main 'book' page and locks '#viewPortal' forceResetToMainPage() { this.currentView = "book"; ["viewAppointments", "viewMedia", "viewIot", "viewPortal"].forEach(id => { const el = document.getElementById(id); if (el) el.classList.add("hidden"); }); const bookEl = document.getElementById("viewBook"); if (bookEl) bookEl.classList.remove("hidden");  const topTitle = document.getElementById("topPageTitle"); if (topTitle) topTitle.textContent = "Book Appointment"; const backBtn = document.getElementById("topBackToBookBtn"); if (backBtn) backBtn.classList.add("hidden");  // Clear any sensitive admin DOM containers when not on portal const adminCards = document.getElementById("adminCardsContainer"); if (adminCards) adminCards.innerHTML = ""; const headAdminPanel = document.getElementById("headAdminApprovalPanel"); if (headAdminPanel) headAdminPanel.classList.add("hidden"); }  init() { this.theme.apply(); this.media.initCaptions(); this.tickClock(); this.renderCities(); this.renderBrands(); this.renderBranches(); this.renderBarbers(); this.renderDatePills(); this.populateReviewFilter(); this.renderReviews(); this.updateSummary(); this.iot.start();  // Always start on the main booking view this.forceResetToMainPage();  if (this.db.client && this.db.client.auth) { this.db.client.auth.onAuthStateChange((event, session) => { if (event === "SIGNED_IN" && session && session.user && !this.user) { const email = session.user.email.toLowerCase(); if (this.store.verifiedUsers[email]) { this.completeSession(this.store.verifiedUsers[email]); } } }); }  if (this.user) { const gate = document.getElementById("authGateOverlay"); if (gate) gate.classList.add("hidden"); this.syncUserUI(); this.navigate("book"); }  setInterval(() => { this.tickClock(); this.renderTimeSlots(); }, 15000);  this.refreshSchedule(false); this.db.subscribe(() => this.refreshSchedule(false)); }  getTodayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       }
 
       isSlotPast(dateISO, timeStr) {
@@ -1949,20 +1755,7 @@
         if (!badge) return;
         const res = SecurityService.validatePhone(inputEl.value);
         if (res.ok) {
-          badge.textContent = `✓ ${res.carrier}`;
-          badge.className = "text-[11px] font-bold text-[#165B40]";
-        } else {
-          badge.textContent = "Enter valid KZ mobile";
-          badge.className = "text-[11px] font-semibold text-rose-600";
-        }
-      }
-
-      handleBookingPhone(inputEl) {
-        SecurityService.formatPhone(inputEl);
-        const badge = document.getElementById("bookingPhoneCarrier");
-        if (!badge) return;
-        const res = SecurityService.validatePhone(inputEl.value);
-        badge.textContent = res.ok ? `✓ ${res.carrier}` : "";
+          badge.textContent = `✓ ${res.carrier}`; badge.className = "text-[11px] font-bold text-[#165B40]"; } else { badge.textContent = "Enter valid KZ mobile"; badge.className = "text-[11px] font-semibold text-rose-600"; } }  handleBookingPhone(inputEl) { SecurityService.formatPhone(inputEl); const badge = document.getElementById("bookingPhoneCarrier"); if (!badge) return; const res = SecurityService.validatePhone(inputEl.value); badge.textContent = res.ok ? `✓ ${res.carrier}` : "";
       }
 
       validateEmailLive(val) {
@@ -1996,7 +1789,9 @@
       }
 
       navigate(view) {
-        if (view === "portal" && (!this.user || this.user.role === "customer")) {
+        // Strict RBAC guard: customers can never navigate to 'portal'
+        if (view === "portal" && !this.isAuthorizedStaff()) {
+          this.forceResetToMainPage();
           return this.toast("Staff Access Required", "Enter a 12-character access code in your Account Settings.", true);
         }
 
@@ -2026,1095 +1821,4 @@
 
           const sideEl = document.getElementById(v.side);
           if (sideEl && !sideEl.classList.contains("hidden")) {
-            sideEl.className = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${active ? "nav-active" : "nav-idle"}`;
-          }
-          const mobEl = document.getElementById(v.mob);
-          if (mobEl && !mobEl.classList.contains("hidden")) {
-            mobEl.className = `flex flex-col items-center py-1 ${active ? "text-[#165B40] font-bold" : "text-muted-theme"}`;
-          }
-        });
-
-        if (view === "portal") {
-          this.analytics.fetchAndRenderAdminStats();
-          this.renderHeadAdminQueue();
-          this.renderPortalSchedule();
-        } else if (view === "appointments") {
-          this.renderCustomerBookings();
-        }
-      }
-
-      toast(title, body, isError = false) {
-        this.media.playChime(isError);
-        const el = document.getElementById("bottomPopupToast");
-        const icon = document.getElementById("toastIcon");
-        const head = document.getElementById("toastHeading");
-        const bEl = document.getElementById("toastBody");
-        if (!el || !icon || !head || !bEl) return;
-
-        head.textContent = title;
-        bEl.textContent = body;
-        el.classList.remove("hidden");
-
-        if (isError) {
-          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[85] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#FFF5F5] border-rose-300 text-rose-950";
-          icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-rose-600 text-white";
-          icon.textContent = "✕";
-        } else {
-          el.className = "fixed bottom-16 lg:bottom-6 left-1/2 -translate-x-1/2 z-[85] w-[92%] max-w-md rounded-2xl p-4 shadow-2xl border flex items-start gap-3 bg-[#165B40] border-[#0f402d] text-white";
-          icon.className = "w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-[#E2EFE8] text-[#165B40]";
-          icon.textContent = "✓";
-        }
-        clearTimeout(this.toastTimer);
-        this.toastTimer = setTimeout(() => el.classList.add("hidden"), 4500);
-      }
-
-      switchAuthTab(tab) {
-        this.authTab = tab;
-        const isReg = tab === "register";
-        document.getElementById("regNameRow").classList.toggle("hidden", !isReg);
-        document.getElementById("regPhoneRow").classList.toggle("hidden", !isReg);
-        document.getElementById("regTermsRow").classList.toggle("hidden", !isReg);
-        document.getElementById("authOtpForm").classList.add("hidden");
-        document.getElementById("authCredentialsForm").classList.remove("hidden");
-
-        document.getElementById("authMainHeading").textContent = isReg ? "Create your account" : "Sign in to your account";
-        document.getElementById("authTabLogin").className = !isReg
-          ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
-          : "flex-1 py-2.5 rounded-lg text-muted-theme transition";
-        document.getElementById("authTabRegister").className = isReg
-          ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
-          : "flex-1 py-2.5 rounded-lg text-muted-theme transition";
-        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Code" : "Sign In";
-      }
-
-      openTermsModal() {
-        document.getElementById("termsModal").classList.remove("hidden");
-      }
-
-      acceptTermsFromModal() {
-        const c1 = document.getElementById("authTermsCheckbox");
-        const c2 = document.getElementById("partnerTermsCheck");
-        if (c1) c1.checked = true;
-        if (c2) c2.checked = true;
-        document.getElementById("termsModal").classList.add("hidden");
-      }
-
-      async handleAuthSubmit(e) {
-        e.preventDefault();
-        if (!SecurityService.allowAction("auth", 6, 25000)) {
-          return this.toast("Please Wait", "Too many attempts. Try again in a few seconds.", true);
-        }
-
-        const email = document.getElementById("authEmail").value.trim().toLowerCase();
-        const password = document.getElementById("authPassword").value;
-
-        const emailCheck = SecurityService.validateEmail(email);
-        if (!emailCheck.ok) return this.toast("Invalid Email", emailCheck.msg, true);
-
-        const passCheck = SecurityService.validatePassword(password);
-        if (!passCheck.ok) return this.toast("Invalid Password", passCheck.msg, true);
-
-        if (this.authTab === "register") {
-          const fullName = document.getElementById("authFullName").value.trim();
-          const phone = document.getElementById("authPhone").value.trim();
-          const terms = document.getElementById("authTermsCheckbox").checked;
-
-          if (fullName.length < 2) return this.toast("Name Required", "Please enter your full name.", true);
-          const phoneCheck = SecurityService.validatePhone(phone);
-          if (!phoneCheck.ok) return this.toast("Invalid Phone Number", phoneCheck.msg, true);
-          if (!terms) return this.toast("Terms of Service", "Please accept the Terms of Service to register.", true);
-
-          const otpCode = String(Math.floor(100000 + Math.random() * 900000));
-          this.pendingReg = { fullName, email, phone, password, otpCode };
-
-          document.getElementById("authCredentialsForm").classList.add("hidden");
-          document.getElementById("authOtpForm").classList.remove("hidden");
-          document.getElementById("otpSentSubtext").textContent = `A 6-digit verification code has been sent to ${email} (${phoneCheck.carrier}).`;
-
-          await EmailVerificationService.sendOtpEmail(email, fullName, otpCode, this.db.client);
-          this.toast("Verification Code Sent", `Check ${email} to confirm your account.`);
-          return;
-        }
-
-        // STRICT SIGN-IN VERIFICATION (Checks both Email Existence AND Password Hash Match)
-        if (email === this.store.headAdminAccount.email) {
-          if (password !== this.store.headAdminAccount.password) {
-            return this.toast("Incorrect Password", "The password entered for Head Admin is incorrect.", true);
-          }
-          const hash = await SecurityService.hashPassword(password);
-          const userId = await this.db.ensureUser("Arlan", email, hash);
-          return this.completeSession({
-            user_id: userId,
-            full_name: "Arlan Shikibaev",
-            email,
-            phone: "+7 701 777 88 99",
-            role: "head_admin",
-            branch_id: null,
-            barber_id: null
-          });
-        }
-
-        const enteredHash = await SecurityService.hashPassword(password);
-        const localAccount = this.store.verifiedUsers[email];
-
-        if (!localAccount) {
-          return this.toast(
-            "Account Not Found",
-            "No verified account exists for this email. Switch to 'Create Account' to register and verify via OTP first.",
-            true
-          );
-        }
-
-        if (localAccount.password_hash !== enteredHash) {
-          return this.toast(
-            "Incorrect Password",
-            "The password you entered does not match this account.",
-            true
-          );
-        }
-
-        this.completeSession(localAccount);
-      }
-
-      async resendOtpCode() {
-        if (!this.pendingReg) return;
-        this.pendingReg.otpCode = String(Math.floor(100000 + Math.random() * 900000));
-        await EmailVerificationService.sendOtpEmail(this.pendingReg.email, this.pendingReg.fullName, this.pendingReg.otpCode, this.db.client);
-        this.toast("Code Resent", `Sent a new verification code to ${this.pendingReg.email}.`);
-      }
-
-      cancelOtpStep() {
-        document.getElementById("authOtpForm").classList.add("hidden");
-        document.getElementById("authCredentialsForm").classList.remove("hidden");
-      }
-
-      async handleOtpVerify(e) {
-        e.preventDefault();
-        const entered = document.getElementById("authOtpInput").value.trim();
-        if (!this.pendingReg) return;
-
-        const isValid = await EmailVerificationService.verifyOtpCode(
-          this.pendingReg.email,
-          entered,
-          this.pendingReg.otpCode,
-          this.db.client
-        );
-
-        if (!isValid) {
-          return this.toast("Invalid Verification Code", "The 6-digit code entered does not match.", true);
-        }
-
-        const hash = await SecurityService.hashPassword(this.pendingReg.password);
-        const userId = await this.db.ensureUser(this.pendingReg.fullName, this.pendingReg.email, hash);
-
-        const newVerifiedUser = {
-          user_id: userId,
-          full_name: this.pendingReg.fullName,
-          email: this.pendingReg.email,
-          phone: this.pendingReg.phone,
-          password_hash: hash,
-          role: "customer",
-          branch_id: null,
-          barber_id: null
-        };
-
-        this.store.verifiedUsers[this.pendingReg.email] = newVerifiedUser;
-        this.store.save();
-
-        this.completeSession(newVerifiedUser);
-        this.pendingReg = null;
-      }
-
-      completeSession(userObj) {
-        this.user = userObj;
-        SafeStorage.set("cl_session_v11", this.user);
-        document.getElementById("authGateOverlay").classList.add("hidden");
-        this.syncUserUI();
-        this.toast("Signed In", `Welcome, ${this.user.full_name}.`);
-      }
-
-      signOut() {
-        SafeStorage.remove("cl_session_v11");
-        this.user = null;
-        document.getElementById("authProfileModal").classList.add("hidden");
-        document.getElementById("authGateOverlay").classList.remove("hidden");
-        this.switchAuthTab("login");
-      }
-
-      saveProfileSettings(e) {
-        e.preventDefault();
-        if (!this.user) return;
-        const newName = document.getElementById("settingsNameInput").value.trim();
-        const newPhone = document.getElementById("settingsPhoneInput").value.trim();
-        const pCheck = SecurityService.validatePhone(newPhone);
-        if (!pCheck.ok) return this.toast("Invalid Phone", pCheck.msg, true);
-
-        this.user.full_name = newName;
-        this.user.phone = newPhone;
-        SafeStorage.set("cl_session_v11", this.user);
-        if (this.store.verifiedUsers[this.user.email]) {
-          this.store.verifiedUsers[this.user.email].full_name = newName;
-          this.store.verifiedUsers[this.user.email].phone = newPhone;
-          this.store.save();
-        }
-        this.syncUserUI();
-        document.getElementById("authProfileModal").classList.add("hidden");
-        this.toast("Profile Updated", "Your account settings have been saved.");
-      }
-
-      openStyleDetailModal(serviceId) {
-        const s = this.store.services[serviceId] || this.store.services[1];
-        const imgs = {
-          1: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80&fm=webp",
-          2: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80&fm=webp",
-          4: "https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80&fm=webp"
-        };
-        document.getElementById("styleModalImg").src = imgs[serviceId] || imgs[1];
-        document.getElementById("styleModalTitle").textContent = s.name;
-        document.getElementById("styleModalPrice").textContent = `${s.price} · ${s.duration} min`;
-        document.getElementById("styleModalDesc").textContent = s.desc;
-        const btn = document.getElementById("styleModalBookBtn");
-        btn.onclick = () => {
-          document.getElementById("serviceInput").value = String(serviceId);
-          this.updateSummary();
-          document.getElementById("styleDetailModal").classList.add("hidden");
-          this.navigate("book");
-          this.toast("Style Selected", `${s.name} selected in your booking form.`);
-        };
-        document.getElementById("styleDetailModal").classList.remove("hidden");
-      }
-
-      redeemAccessToken() {
-        const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
-        if (!token) return;
-
-        if (token === this.store.headAdminAccount.token) {
-          this.user.role = "head_admin";
-          this.user.full_name = "Arlan Shikibaev";
-          this.user.branch_id = null;
-          this.user.barber_id = null;
-          return this.saveRoleAndNavigate("Head Admin access activated.");
-        }
-
-        const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
-        if (branch) {
-          this.user.role = "admin";
-          this.user.branch_id = branch.id;
-          this.user.barber_id = null;
-          return this.saveRoleAndNavigate(`Branch Admin access activated for ${branch.name}.`);
-        }
-
-        const barber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
-        if (barber) {
-          this.user.role = "barber";
-          this.user.branch_id = barber.branch_id;
-          this.user.barber_id = barber.id;
-          this.user.full_name = barber.name;
-          return this.saveRoleAndNavigate(`Barber access activated for ${barber.name}.`);
-        }
-
-        this.toast("Invalid Access Code", "The 12-character code was not recognized.", true);
-      }
-
-      saveRoleAndNavigate(msg) {
-        SafeStorage.set("cl_session_v11", this.user);
-        document.getElementById("staffInviteKeyInput").value = "";
-        document.getElementById("authProfileModal").classList.add("hidden");
-        this.syncUserUI();
-        this.navigate("portal");
-        this.toast("Access Granted", msg);
-      }
-
-      renderCities() {
-        const container = document.getElementById("citySelectorPills");
-        if (!container) return;
-        container.innerHTML = this.store.cities.map(city => {
-          const active = city === this.selectedCity;
-          return `
-            <button type="button" onclick="window.app.selectCity('${city}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition ${
-              active
-                ? "bg-[#165B40] text-white border-[#165B40]"
-                : "surface-box hover:border-[#165B40]"
-            }">${city}</button>
-          `;
-        }).join("");
-        const lbl = document.getElementById("activeCityLabel");
-        if (lbl) lbl.textContent = this.selectedCity;
-      }
-
-      selectCity(city) {
-        this.selectedCity = city;
-        const brands = this.store.getBrandsInCity(city);
-        if (brands.length > 0) {
-          this.selectedBrandId = brands[0].id;
-          const branches = this.store.getBranches(city, this.selectedBrandId);
-          if (branches.length > 0) this.selectedBranchId = branches[0].id;
-        }
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-
-        this.renderCities();
-        this.renderBrands();
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      renderBrands() {
-        const container = document.getElementById("brandSelectorGrid");
-        if (!container) return;
-        const brands = this.store.getBrandsInCity(this.selectedCity);
-
-        container.innerHTML = brands.map(brand => {
-          const count = this.store.getBranches(this.selectedCity, brand.id).length;
-          const active = brand.id === this.selectedBrandId;
-          return `
-            <button type="button" onclick="window.app.selectBrand('${brand.id}')" class="p-3.5 rounded-2xl border text-left transition ${
-              active
-                ? "border-[#165B40] bg-[#165B40] text-white shadow-sm"
-                : "surface-box hover:border-[#165B40]"
-            }">
-              <div class="text-sm font-extrabold truncate">${brand.name}</div>
-              <div class="text-[11px] ${active ? "text-[#E2EFE8]" : "text-muted-theme"} truncate mt-0.5">${count} ${count === 1 ? "branch" : "branches"}</div>
-            </button>
-          `;
-        }).join("");
-      }
-
-      selectBrand(brandId) {
-        this.selectedBrandId = brandId;
-        const branches = this.store.getBranches(this.selectedCity, brandId);
-        if (branches.length > 0) this.selectedBranchId = branches[0].id;
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-
-        this.renderBrands();
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      renderBranches() {
-        const container = document.getElementById("branchSelectorList");
-        if (!container) return;
-        const branches = this.store.getBranches(this.selectedCity, this.selectedBrandId);
-
-        container.innerHTML = branches.map(br => {
-          const active = Number(br.id) === Number(this.selectedBranchId);
-          const barbers = this.store.getBarbers(br.id).map(b => b.name).join(", ");
-          return `
-            <button type="button" onclick="window.app.selectBranch(${br.id})" class="p-3.5 rounded-2xl border text-left transition flex items-center justify-between gap-3 ${
-              active
-                ? "border-[#165B40] sage-box ring-2 ring-[#165B40]/20"
-                : "surface-box hover:border-[#165B40]"
-            }">
-              <div class="min-w-0">
-                <div class="text-xs font-extrabold truncate">${br.name}</div>
-                <div class="text-[11px] text-muted-theme truncate mt-0.5">📍 ${br.address}</div>
-                <div class="text-[10px] font-bold text-[#165B40] mt-1">✂️ ${barbers} · ${br.hours}</div>
-              </div>
-              <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                active ? "bg-[#165B40] text-white" : "border border-[#D5DDD8] text-transparent"
-              }">✓</div>
-            </button>
-          `;
-        }).join("");
-
-        const current = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
-        document.getElementById("selectedShopHeading").textContent = current.name;
-        document.getElementById("selectedShopAddressSub").textContent = `📍 ${current.address}, ${current.city} · ${current.hours}`;
-        document.getElementById("infoCardAddress").textContent = `${current.address}, ${current.city}`;
-        document.getElementById("infoCardHours").textContent = `${current.hours} Daily`;
-      }
-
-      selectBranch(branchId) {
-        this.selectedBranchId = Number(branchId);
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-        if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-        this.renderBranches();
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      renderBarbers() {
-        const container = document.getElementById("barberSelectorCards");
-        if (!container) return;
-        const barbers = this.store.getBarbers(this.selectedBranchId);
-
-        container.innerHTML = barbers.map(b => {
-          const stats = this.store.getRating(b.id);
-          const active = Number(b.id) === Number(this.selectedBarberId);
-          const reviewLabel = stats.count === 0 ? "New" : `${stats.count} ${stats.count === 1 ? "review" : "reviews"}`;
-          return `
-            <button type="button" onclick="window.app.selectBarber(${b.id})" class="p-3.5 rounded-2xl border text-left transition flex items-center gap-3 ${
-              active
-                ? "border-[#165B40] sage-box ring-2 ring-[#165B40]/20"
-                : "surface-box hover:border-[#165B40]"
-            }">
-              <img src="${b.avatar}" alt="${b.name}" width="52" height="52" loading="lazy" class="w-13 h-13 rounded-full object-cover shrink-0 border border-[#165B40]/30" />
-              <div class="min-w-0">
-                <div class="text-xs font-bold truncate">${b.name}</div>
-                <div class="text-[10px] text-muted-theme truncate">${b.specialty}</div>
-                <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#165B40] text-white text-[10px] font-bold">
-                  <span>★ ${stats.avg}</span>
-                  <span class="opacity-85">(${reviewLabel})</span>
-                </div>
-              </div>
-            </button>
-          `;
-        }).join("");
-      }
-
-      selectBarber(barberId) {
-        this.selectedBarberId = Number(barberId);
-        this.renderBarbers();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      openPartnerModal() {
-        document.getElementById("partnerModal").classList.remove("hidden");
-      }
-
-      submitPartnerApplication(e) {
-        e.preventDefault();
-        const city = document.getElementById("partnerCity").value;
-        const bin = document.getElementById("partnerBin").value.trim();
-        const brandName = document.getElementById("partnerShopName").value.trim();
-        const address = document.getElementById("partnerAddress").value.trim();
-        const leadBarber = document.getElementById("partnerLeadBarber").value.trim();
-        const phone = document.getElementById("partnerPhone").value.trim();
-
-        if (!/^\d{12}$/.test(bin)) {
-          return this.toast("Invalid BIN", "Business Identification Number must be 12 digits.", true);
-        }
-        const phoneCheck = SecurityService.validatePhone(phone);
-        if (!phoneCheck.ok) return this.toast("Invalid Phone", phoneCheck.msg, true);
-
-        this.store.pendingPartners.push({
-          req_id: Date.now(),
-          city,
-          bin,
-          brandName,
-          address,
-          leadBarber,
-          phone
-        });
-        this.store.save();
-        document.getElementById("partnerModal").classList.add("hidden");
-        this.syncUserUI();
-        this.renderHeadAdminQueue();
-        this.toast("Application Submitted", `${brandName} has been sent to Head Administration for review.`);
-      }
-
-      renderHeadAdminQueue() {
-        const panel = document.getElementById("headAdminApprovalPanel");
-        const badge = document.getElementById("pendingApprovalsBadge");
-        const count = this.store.pendingPartners.length;
-
-        if (badge) {
-          badge.textContent = count;
-          badge.classList.toggle("hidden", count === 0);
-        }
-
-        if (!panel || !this.user) return;
-        panel.classList.toggle("hidden", this.user.role !== "head_admin");
-
-        document.getElementById("pendingCountPill").textContent = `${count} Pending`;
-        const container = document.getElementById("pendingRequestsContainer");
-
-        if (count === 0) {
-          container.innerHTML = `<div class="col-span-2 surface-box rounded-xl p-4 text-center text-xs text-muted-theme">No pending barbershop applications.</div>`;
-          return;
-        }
-
-        container.innerHTML = this.store.pendingPartners.map(req => `
-          <div class="surface-box rounded-2xl p-4 border-amber-400 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold">${req.brandName} · ${req.city}</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">BIN: ${req.bin}</span>
-            </div>
-            <div class="text-xs text-muted-theme">📍 ${req.address}</div>
-            <div class="text-xs text-muted-theme">✂️ Lead Barber: <strong>${req.leadBarber}</strong> · ${req.phone}</div>
-            <div class="pt-2 grid grid-cols-2 gap-2">
-              <button type="button" onclick="window.app.approvePartnerRequest(${req.req_id})" class="py-2 rounded-xl bg-[#165B40] text-white text-xs font-bold hover:bg-[#114732] transition">
-                ✓ Approve
-              </button>
-              <button type="button" onclick="window.app.declinePartnerRequest(${req.req_id})" class="py-2 rounded-xl bg-rose-500/15 text-rose-600 text-xs font-bold hover:bg-rose-500/25 transition">
-                ✕ Decline
-              </button>
-            </div>
-          </div>
-        `).join("");
-      }
-
-      approvePartnerRequest(reqId) {
-        const idx = this.store.pendingPartners.findIndex(r => r.req_id === reqId);
-        if (idx === -1) return;
-        const req = this.store.pendingPartners[idx];
-
-        const brandKey = req.brandName.toLowerCase().replace(/[^a-z0-9]/g, "") || `brand_${Date.now()}`;
-        if (!this.store.brands[brandKey]) {
-          this.store.brands[brandKey] = { id: brandKey, name: req.brandName, tagline: "Partner Network" };
-        }
-
-        const newBranchId = Date.now();
-        const adminToken = SecurityService.generate12CharCode();
-        const barberToken = SecurityService.generate12CharCode();
-
-        this.store.branches[newBranchId] = {
-          id: newBranchId,
-          city: req.city,
-          brand_id: brandKey,
-          name: `${req.brandName} · ${req.address.split(" ")[0]}`,
-          address: req.address,
-          hours: "10:00–21:00",
-          adminToken
-        };
-
-        const newBarberId = Object.keys(this.store.barbers).length + 20;
-        this.store.barbers[newBarberId] = {
-          id: newBarberId,
-          db_id: ((newBarberId - 1) % 3) + 1,
-          branch_id: newBranchId,
-          name: req.leadBarber,
-          specialty: "Master Barber · 5 yrs",
-          token: barberToken,
-          avatar: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=200&h=200&q=80&fm=webp"
-        };
-
-        this.store.pendingPartners.splice(idx, 1);
-        this.store.save();
-
-        this.renderCities();
-        this.renderBrands();
-        this.renderBranches();
-        this.renderHeadAdminQueue();
-        this.toast("Branch Approved", `${req.brandName} is now live. Admin Code: ${adminToken}`);
-      }
-
-      declinePartnerRequest(reqId) {
-        this.store.pendingPartners = this.store.pendingPartners.filter(r => r.req_id !== reqId);
-        this.store.save();
-        this.renderHeadAdminQueue();
-        this.toast("Declined", "Partner request removed.", true);
-      }
-
-      tickClock() {
-        const now = new Date();
-        const str = now.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + " · " +
-          now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-        const el = document.getElementById("sidebarClock");
-        if (el) el.textContent = `${this.selectedCity} · ${str}`;
-
-        const today = this.getTodayISO();
-        const dateInp = document.getElementById("dateInput");
-        if (dateInp) {
-          dateInp.min = today;
-          if (!dateInp.value || this.selectedDateISO < today) {
-            this.selectedDateISO = today;
-            dateInp.value = today;
-          }
-        }
-      }
-
-      renderDatePills() {
-        const container = document.getElementById("rollingDatePills");
-        if (!container) return;
-        const today = new Date();
-        let html = "";
-        for (let i = 0; i < 5; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
-          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const label = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-GB", { weekday: "short" });
-          const num = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-          const active = iso === this.selectedDateISO;
-          html += `
-            <button type="button" onclick="window.app.selectDate('${iso}')" class="py-2 px-2 rounded-xl border text-center transition ${
-              active ? "bg-[#165B40] text-white border-[#165B40] font-bold" : "surface-box hover:border-[#165B40]"
-            }">
-              <div class="text-[10px] opacity-85">${label}</div>
-              <div class="text-xs font-bold">${num}</div>
-            </button>
-          `;
-        }
-        container.innerHTML = html;
-      }
-
-      selectDate(iso) {
-        const today = this.getTodayISO();
-        if (iso < today) return this.toast("Invalid Date", "Please select today or a future date.", true);
-        this.selectedDateISO = iso;
-        const inp = document.getElementById("dateInput");
-        if (inp) inp.value = iso;
-        document.getElementById("dateStatusLabel").textContent = iso === today ? "Today" : iso;
-        this.renderDatePills();
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      isSlotTaken(dateISO, timeStr, barberId) {
-        return this.scheduleList.some(a =>
-          a.date === dateISO && a.time === timeStr && Number(a.barber_id) === Number(barberId) && a.status !== "cancelled"
-        );
-      }
-
-      renderTimeSlots() {
-        const container = document.getElementById("timeButtonsContainer");
-        if (!container) return;
-        let openCount = 0;
-        let firstOpen = null;
-        const stillValid = !this.isSlotPast(this.selectedDateISO, this.selectedTime) &&
-          !this.isSlotTaken(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
-
-        container.innerHTML = this.slots.map(slot => {
-          const past = this.isSlotPast(this.selectedDateISO, slot);
-          const busy = this.isSlotTaken(this.selectedDateISO, slot, this.selectedBarberId);
-          const disabled = past || busy;
-          const isQuietDiscount = slot === "12:00" || slot === "18:00";
-
-          if (!disabled) {
-            openCount++;
-            if (!firstOpen) firstOpen = slot;
-          }
-          const active = !disabled && (stillValid ? slot === this.selectedTime : slot === firstOpen);
-          if (active) this.selectedTime = slot;
-
-          if (past) {
-            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-stone-300/40 opacity-40 line-through cursor-not-allowed">${slot}</button>`;
-          }
-          if (busy) {
-            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-rose-300/40 text-rose-400 cursor-not-allowed">${slot}</button>`;
-          }
-          return `
-            <button type="button" onclick="window.app.selectTime('${slot}')" class="relative py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
-              active ? "border-[#165B40] bg-[#165B40] text-white shadow-xs" : "surface-box hover:border-[#165B40]"
-            }">
-              ${slot}
-              ${isQuietDiscount ? `<span class="block text-[9px] ${active ? "text-amber-200" : "text-amber-600"} font-extrabold">-15%</span>` : ""}
-            </button>
-          `;
-        }).join("");
-
-        document.getElementById("slotsAvailableCount").textContent = `${openCount} slots open`;
-        const btn = document.getElementById("confirmBtn");
-        if (btn) btn.disabled = openCount === 0;
-      }
-
-      selectTime(slot) {
-        this.selectedTime = slot;
-        this.renderTimeSlots();
-        this.updateSummary();
-      }
-
-      resetBookingForm() {
-        this.selectCity("Astana");
-        this.selectDate(this.getTodayISO());
-      }
-
-      updateSummary() {
-        const sel = document.getElementById("serviceInput");
-        if (!sel) return;
-        const opt = sel.options[sel.selectedIndex];
-        const b = this.store.barbers[this.selectedBarberId] || Object.values(this.store.barbers)[0];
-        const br = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
-
-        const rawPrice = parseInt(opt.dataset.raw || "5000");
-        const isQuiet = this.selectedTime === "12:00" || this.selectedTime === "18:00";
-        const finalPrice = isQuiet ? Math.round(rawPrice * 0.85) : rawPrice;
-        const formattedPrice = `${finalPrice.toLocaleString()} ₸`;
-
-        document.getElementById("summaryShopLine").textContent = `${br.name} (${br.city})`;
-        document.getElementById("summaryLine1").textContent = `${opt.dataset.name} with ${b.name} · ${this.selectedTime || "—"}`;
-        document.getElementById("summaryLine2").textContent = `${this.selectedDateISO} · ${opt.dataset.duration} mins · ${formattedPrice}`;
-        document.getElementById("quietDiscountTag").classList.toggle("hidden", !isQuiet);
-      }
-
-      async refreshSchedule(notify = false) {
-        try {
-          this.scheduleList = await this.db.fetchAll(this.store);
-        } catch (e) {}
-        this.renderTimeSlots();
-        this.renderCustomerBookings();
-        this.renderPortalSchedule();
-        this.syncUserUI();
-        if (notify) this.toast("Updated", "Schedule synchronized with Supabase.");
-      }
-
-      async submitBooking(e) {
-        e.preventDefault();
-        if (!SecurityService.allowAction("book", 4, 20000)) {
-          return this.toast("Please Wait", "Wait a moment before booking another visit.", true);
-        }
-        const name = document.getElementById("clientNameInput").value.trim();
-        const phone = document.getElementById("clientPhoneInput").value.trim();
-        const phoneCheck = SecurityService.validatePhone(phone);
-        if (!phoneCheck.ok) return this.toast("Invalid Phone Number", phoneCheck.msg, true);
-
-        const serviceId = parseInt(document.getElementById("serviceInput").value);
-        const service = this.store.services[serviceId];
-        const barber = this.store.barbers[this.selectedBarberId];
-        const branch = this.store.branches[this.selectedBranchId];
-        const startsAtISO = `${this.selectedDateISO}T${this.selectedTime}:00+05:00`;
-
-        const isQuiet = this.selectedTime === "12:00" || this.selectedTime === "18:00";
-        const finalPrice = isQuiet ? `${Math.round(service.price_kzt * 0.85).toLocaleString()} ₸ (-15%)` : service.price;
-
-        try {
-          const customerId = await this.db.ensureUser(name, this.user ? this.user.email : null, "pbkdf2_sha256$10000$verified");
-          const apptId = await this.db.createAppointment(customerId, barber.db_id, startsAtISO, serviceId, branch.id);
-
-          this.store.branchMap[apptId] = { branch_id: branch.id, barber_id: barber.id };
-          this.store.save();
-
-          const refCode = `CL-${1000 + apptId}`;
-          this.lastBooking = {
-            refCode,
-            shopName: branch.name,
-            shopAddress: `${branch.address}, ${branch.city}`,
-            serviceName: service.name,
-            duration: service.duration,
-            barberName: barber.name,
-            dateISO: this.selectedDateISO,
-            timeStr: this.selectedTime,
-            price: finalPrice
-          };
-
-          document.getElementById("confReference").textContent = refCode;
-          document.getElementById("confShopName").textContent = branch.name;
-          document.getElementById("confShopAddress").textContent = `${branch.address}, ${branch.city}`;
-          document.getElementById("confService").textContent = `${service.name} · ${barber.name}`;
-          document.getElementById("confWhen").textContent = `${this.selectedDateISO} · ${this.selectedTime}`;
-          document.getElementById("confTotal").textContent = finalPrice;
-
-          await this.refreshSchedule(false);
-          this.navigate("appointments");
-          this.toast("Booking Confirmed", `${branch.name} · ${this.selectedDateISO} at ${this.selectedTime}`);
-        } catch (err) {
-          this.toast("Slot Unavailable", "This barber is already booked at that time.", true);
-        }
-      }
-
-      renderCustomerBookings() {
-        const container = document.getElementById("customerBookingsContainer");
-        if (!container || !this.user) return;
-        const first = this.user.full_name.split(" ")[0].toLowerCase();
-        const mine = this.scheduleList.filter(a => a.client_name.toLowerCase() === first && a.status !== "cancelled");
-
-        document.getElementById("navBadgeBookings").textContent = mine.length;
-
-        if (!mine.length) {
-          container.innerHTML = `<div class="surface-box rounded-2xl p-6 text-center text-xs text-muted-theme">No appointments yet.</div>`;
-          return;
-        }
-
-        container.innerHTML = mine.slice().reverse().map(item => {
-          const s = this.store.services[item.service_id] || this.store.services[1];
-          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
-          const br = this.store.branches[item.branch_id] || this.store.branches[101];
-          const done = item.status === "completed";
-          const reviewed = this.store.reviews.some(r => r.appointment_id === item.appointment_id);
-
-          return `
-            <div class="surface-box rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div class="text-sm font-bold">${s.name} with ${b.name} (${s.price})</div>
-                <div class="text-xs font-semibold text-[#165B40]">📍 ${br.name} · ${br.address}</div>
-                <div class="text-xs text-muted-theme mt-0.5">${item.date} at ${item.time}</div>
-              </div>
-              <div>
-                ${
-                  done && !reviewed
-                    ? `<button type="button" onclick="window.app.openReviewModal(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold">★ Rate Visit</button>`
-                    : !done
-                    ? `<button type="button" onclick="window.app.confirmCancelBooking(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-600 text-xs font-bold">Cancel</button>`
-                    : `<span class="text-xs font-bold text-[#165B40]">✓ Completed</span>`
-                }
-              </div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      async confirmCancelBooking(id) {
-        if (!window.confirm("Cancel this appointment?")) return;
-        await this.db.updateStatus(id, "cancelled");
-        await this.refreshSchedule(false);
-        this.toast("Cancelled", "Your appointment has been cancelled.");
-      }
-
-      setScheduleFilter(filter) {
-        this.scheduleFilter = filter;
-        const active = "px-3 py-1 rounded-lg bg-[#165B40] text-white";
-        const idle = "px-3 py-1 rounded-lg text-muted-theme";
-        document.getElementById("filterBtnAll").className = filter === "all" ? active : idle;
-        document.getElementById("filterBtnUpcoming").className = filter === "confirmed" ? active : idle;
-        document.getElementById("filterBtnCompleted").className = filter === "completed" ? active : idle;
-        this.renderPortalSchedule();
-      }
-
-      renderPortalSchedule() {
-        const container = document.getElementById("adminCardsContainer");
-        if (!container || !this.user) return;
-        const q = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
-        const role = this.user.role;
-
-        const staffTokensPanel = document.getElementById("branchStaffTokensPanel");
-        if (role === "admin" && this.user.branch_id) {
-          const br = this.store.branches[this.user.branch_id];
-          document.getElementById("workspaceRoleOverline").textContent = "BRANCH ADMINISTRATION";
-          document.getElementById("workspaceTitle").textContent = br.name;
-          document.getElementById("workspaceDescription").textContent = `${br.address}, ${br.city}`;
-          staffTokensPanel.classList.remove("hidden");
-          const branchBarbers = this.store.getBarbers(br.id);
-          document.getElementById("branchStaffTokensGrid").innerHTML = branchBarbers.map(b => `
-            <div class="surface-box p-3 rounded-xl flex items-center justify-between">
-              <span class="font-bold">✂️ ${b.name}</span>
-              <code class="text-[#165B40] font-extrabold">${b.token}</code>
-            </div>
-          `).join("");
-        } else if (role === "barber" && this.user.barber_id) {
-          const b = this.store.barbers[this.user.barber_id];
-          const br = this.store.branches[b.branch_id];
-          document.getElementById("workspaceRoleOverline").textContent = "BARBER WORKSPACE";
-          document.getElementById("workspaceTitle").textContent = `${b.name}'s Queue`;
-          document.getElementById("workspaceDescription").textContent = `${br.name} · ${br.address}`;
-          staffTokensPanel.classList.add("hidden");
-        } else if (role === "head_admin") {
-          document.getElementById("workspaceRoleOverline").textContent = "NETWORK HEADQUARTERS";
-          document.getElementById("workspaceTitle").textContent = "Administrator Statistics & Queue";
-          document.getElementById("workspaceDescription").textContent = "Full network oversight, partner approvals, and multi-branch statistics.";
-          staffTokensPanel.classList.add("hidden");
-        }
-
-        let list = this.scheduleList.filter(a => a.status !== "cancelled");
-        if (role === "barber") {
-          list = list.filter(a => Number(a.barber_id) === Number(this.user.barber_id));
-        } else if (role === "admin") {
-          list = list.filter(a => Number(a.branch_id) === Number(this.user.branch_id));
-        }
-
-        const done = list.filter(a => a.status === "completed").length;
-        document.getElementById("statTotalBookings").textContent = `${list.length} bookings`;
-        document.getElementById("statCompletedBookings").textContent = `${done} completed`;
-
-        const filtered = list.filter(item => {
-          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
-          const matchStatus = this.scheduleFilter === "all" || item.status === this.scheduleFilter;
-          const matchText = item.client_name.toLowerCase().includes(q) || b.name.toLowerCase().includes(q);
-          return matchStatus && matchText;
-        });
-
-        if (!filtered.length) {
-          container.innerHTML = `<div class="col-span-3 surface-box rounded-2xl p-6 text-center text-xs text-muted-theme">No appointments in queue.</div>`;
-          return;
-        }
-
-        container.innerHTML = filtered.map(item => {
-          const s = this.store.services[item.service_id] || this.store.services[1];
-          const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
-          const br = this.store.branches[item.branch_id] || this.store.branches[101];
-          const isDone = item.status === "completed";
-
-          return `
-            <div class="surface-box rounded-2xl p-4 space-y-2 flex flex-col justify-between">
-              <div class="space-y-1">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-extrabold"><span class="text-[#165B40]">${item.time}</span> · ${item.client_name}</span>
-                  <span class="text-[11px] text-muted-theme">${item.date}</span>
-                </div>
-                <div class="text-xs font-bold text-[#165B40]">📍 ${br.name}</div>
-                <div class="text-xs text-muted-theme">✂️ ${s.name} (${s.price}) · ${b.name}</div>
-              </div>
-              <div class="pt-2 border-t border-[#D5DDD8]/40 flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase ${isDone ? "text-[#165B40]" : "text-amber-600"}">● ${item.status}</span>
-                ${
-                  !isDone
-                    ? `<div class="flex gap-1.5">
-                        <button type="button" onclick="window.app.markApptStatus(${item.appointment_id}, 'completed')" class="px-2.5 py-1 rounded-lg bg-[#165B40] text-white text-xs font-bold">✓ Complete</button>
-                        <button type="button" onclick="window.app.markApptStatus(${item.appointment_id}, 'cancelled')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-600 text-xs font-bold">✕</button>
-                      </div>`
-                    : ``
-                }
-              </div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      async markApptStatus(id, status) {
-        await this.db.updateStatus(id, status);
-        await this.refreshSchedule(false);
-        this.analytics.fetchAndRenderAdminStats();
-        this.toast("Updated", `Appointment marked as ${status}.`);
-      }
-
-      syncUserUI() {
-        if (!this.user) return;
-        const init = (this.user.full_name || "U").charAt(0).toUpperCase();
-        document.getElementById("sideAvatar").textContent = init;
-        document.getElementById("topAvatar").textContent = init;
-        document.getElementById("sideUserName").textContent = this.user.full_name;
-        document.getElementById("topUserName").textContent = this.user.full_name.split(" ")[0];
-
-        const roleMap = { customer: "Customer · Settings", barber: "Barber · Workspace", admin: "Branch Admin", head_admin: "Head Admin" };
-        document.getElementById("sideUserRole").textContent = roleMap[this.user.role] || "Customer";
-
-        const isStaff = this.user.role !== "customer";
-        document.getElementById("sideNavPortal").classList.toggle("hidden", !isStaff);
-        document.getElementById("mobNavPortal").classList.toggle("hidden", !isStaff);
-
-        document.getElementById("clientNameInput").value = this.user.full_name;
-        document.getElementById("clientPhoneInput").value = this.user.phone || "+7 701 234 56 78";
-        this.renderHeadAdminQueue();
-      }
-
-      openProfileModal() {
-        if (!this.user) return;
-        document.getElementById("profileBigAvatar").textContent = (this.user.full_name || "U").charAt(0).toUpperCase();
-        document.getElementById("profileDisplayName").textContent = this.user.full_name;
-        document.getElementById("profileRoleBadge").textContent = this.user.role.replace("_", " ");
-        document.getElementById("profileDisplayEmail").textContent = this.user.email;
-        document.getElementById("settingsNameInput").value = this.user.full_name;
-        document.getElementById("settingsPhoneInput").value = this.user.phone || "+7 701 234 56 78";
-        document.getElementById("authProfileModal").classList.remove("hidden");
-      }
-
-      populateReviewFilter() {
-        const sel = document.getElementById("reviewFilterBarber");
-        if (!sel) return;
-        let html = `<option value="all">All Barbers</option>`;
-        Object.values(this.store.barbers).forEach(b => {
-          const br = this.store.branches[b.branch_id];
-          html += `<option value="${b.id}">${b.name} (${br ? br.name : ""})</option>`;
-        });
-        sel.innerHTML = html;
-      }
-
-      renderReviews() {
-        const container = document.getElementById("reviewsListContainer");
-        if (!container) return;
-        const val = document.getElementById("reviewFilterBarber").value;
-        const list = this.store.reviews.filter(r => val === "all" || String(r.barber_id) === val);
-
-        container.innerHTML = list.slice().reverse().map(r => {
-          const b = this.store.barbers[r.barber_id] || this.store.barbers[1];
-          const br = this.store.branches[r.branch_id] || this.store.branches[101];
-          const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
-          return `
-            <div class="surface-box rounded-xl p-3.5 space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold">${r.client_name} <span class="font-normal text-muted-theme">→ ${b.name}</span></span>
-                <span class="text-xs font-bold text-amber-500">${stars}</span>
-              </div>
-              <p class="text-xs text-muted-theme">"${r.comment}"</p>
-              <div class="text-[10px] text-muted-theme opacity-75">📍 ${br.name} · ${r.date}</div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      openReviewModal(apptId) {
-        this.reviewTargetId = apptId;
-        const appt = this.scheduleList.find(a => a.appointment_id === apptId);
-        const b = this.store.barbers[appt ? appt.barber_id : 1];
-        const br = this.store.branches[appt ? appt.branch_id : 101];
-        document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
-        document.getElementById("reviewModalSubtitle").textContent = br.name;
-        document.getElementById("reviewCommentInput").value = "";
-        this.setStars(5);
-        document.getElementById("reviewModal").classList.remove("hidden");
-      }
-
-      setStars(n) {
-        this.selectedStars = n;
-        document.getElementById("starRatingLabel").textContent = `${n} / 5`;
-        document.querySelectorAll("#starRatingButtons button").forEach((btn, i) => {
-          btn.className = i < n ? "text-2xl text-amber-500" : "text-2xl text-stone-300";
-        });
-      }
-
-      submitReview() {
-        const comment = document.getElementById("reviewCommentInput").value.trim();
-        if (!comment) return this.toast("Comment Required", "Please write a short comment.", true);
-        const appt = this.scheduleList.find(a => a.appointment_id === this.reviewTargetId);
-
-        this.store.reviews.push({
-          id: Date.now(),
-          appointment_id: this.reviewTargetId,
-          branch_id: appt ? appt.branch_id : this.selectedBranchId,
-          barber_id: appt ? appt.barber_id : this.selectedBarberId,
-          client_name: this.user ? this.user.full_name.split(" ")[0] : "Client",
-          rating: this.selectedStars,
-          comment,
-          date: this.getTodayISO()
-        });
-        this.store.save();
-        document.getElementById("reviewModal").classList.add("hidden");
-        this.renderBarbers();
-        this.renderReviews();
-        this.renderCustomerBookings();
-        this.toast("Review Submitted", "Thank you for your feedback!");
-      }
-
-      exportICS() {
-        const b = this.lastBooking || {
-          refCode: "CL-1025",
-          shopName: "LOGOVO · Mangilik El",
-          shopAddress: "Mangilik El Ave 52, Astana",
-          serviceName: "Haircut",
-          duration: 45,
-          barberName: "Daniyar",
-          dateISO: this.selectedDateISO,
-          timeStr: this.selectedTime || "16:00"
-        };
-        const [y, m, d] = b.dateISO.split("-").map(Number);
-        const [hr, min] = b.timeStr.split(":").map(Number);
-        const start = new Date(y, m - 1, d, hr, min, 0);
-        const end = new Date(start.getTime() + b.duration * 60000);
-        const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-        const ics = [
-          "BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT",
-          `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`,
-          `SUMMARY:${b.shopName}: ${b.serviceName} (${b.barberName})`,
-          `LOCATION:${b.shopAddress}`, "END:VEVENT", "END:VCALENDAR"
-        ].join("\r\n");
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
-        a.download = `${b.refCode}.ics`;
-        a.click();
-      }
-
-      exportGoogleCal() {
-        const b = this.lastBooking || {
-          refCode: "CL-1025",
-          shopName: "LOGOVO · Mangilik El",
-          shopAddress: "Mangilik El Ave 52, Astana",
-          serviceName: "Haircut",
-          duration: 45,
-          barberName: "Daniyar",
-          dateISO: this.selectedDateISO,
-          timeStr: this.selectedTime || "16:00"
-        };
-        const [y, m, d] = b.dateISO.split("-").map(Number);
-        const [hr, min] = b.timeStr.split(":").map(Number);
-        const start = new Date(y, m - 1, d, hr, min, 0);
-        const end = new Date(start.getTime() + b.duration * 60000);
-        const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-        window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(b.shopName + " - " + b.serviceName)}&dates=${fmt(start)}/${fmt(end)}&location=${encodeURIComponent(b.shopAddress)}`, "_blank");
-      }
-    }
-
-    window.app = new ClipLineApp();
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => window.app.init());
-    } else {
-      window.app.init();
-    }
-  </script>
-</body>
-</html>
+            sideEl.className = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${active
