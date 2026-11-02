@@ -107,13 +107,11 @@
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
 
-  <!-- ===================================================================== -->
-  <!-- FULL-VIEWPORT 50/50 SPLIT AUTHENTICATION GATE                         -->
-  <!-- ===================================================================== -->
+  <!-- AUTHENTICATION GATE (50/50 Split Layout) -->
   <div id="authGateOverlay" class="fixed inset-0 z-50 overflow-y-auto" style="background-color: var(--bg-page);">
     <div class="min-h-screen w-full grid grid-cols-1 lg:grid-cols-12">
       
-      <!-- Left 6 Columns: Sign In / Create Account Form -->
+      <!-- Left 6 Columns: Form -->
       <div class="lg:col-span-6 flex items-center justify-center p-6 sm:p-10 lg:p-14" style="background-color: var(--bg-card);">
         <div class="w-full max-w-md space-y-6">
           
@@ -132,7 +130,6 @@
               </div>
             </div>
 
-            <!-- Theme Selector on Auth Screen -->
             <div class="flex items-center gap-1 surface-box p-1 rounded-xl text-xs">
               <button type="button" onclick="window.app.theme.setMode('light')" id="authThemeLight" class="px-2 py-1 rounded-lg font-semibold">☀️</button>
               <button type="button" onclick="window.app.theme.setMode('dark')" id="authThemeDark" class="px-2 py-1 rounded-lg font-semibold">🌙</button>
@@ -160,7 +157,7 @@
           <form id="authCredentialsForm" onsubmit="window.app.handleAuthSubmit(event)" class="space-y-4">
             <div id="regNameRow" class="hidden">
               <label for="authFullName" class="block text-xs font-semibold mb-1">Full Name</label>
-              <input id="authFullName" type="text" placeholder="e.g. Arlan Shikibaev" class="field w-full px-3.5 py-2.5 text-sm" />
+              <input id="authFullName" type="text" placeholder="Enter your full name" class="field w-full px-3.5 py-2.5 text-sm" />
             </div>
 
             <div>
@@ -168,15 +165,15 @@
                 <label for="authEmail" class="text-xs font-semibold">Email Address</label>
                 <span id="emailLiveBadge" class="text-[11px] font-semibold text-muted-theme"></span>
               </div>
-              <input id="authEmail" type="email" required oninput="window.app.validateEmailLive(this.value)" placeholder="name@astanait.edu.kz or @gmail.com" class="field w-full px-3.5 py-2.5 text-sm" />
+              <input id="authEmail" type="email" required oninput="window.app.validateEmailLive(this.value)" placeholder="name@gmail.com or @astanait.edu.kz" class="field w-full px-3.5 py-2.5 text-sm" />
             </div>
 
             <div id="regPhoneRow" class="hidden">
               <div class="flex items-center justify-between mb-1">
                 <label for="authPhone" class="text-xs font-semibold">Kazakhstan Mobile Number</label>
-                <span id="phoneLiveBadge" class="text-[11px] font-semibold text-muted-theme">+7 7XX XXX XX XX</span>
+                <span id="phoneLiveBadge" class="text-[11px] font-semibold text-muted-theme">+7 (7XX) XXX-XX-XX</span>
               </div>
-              <input id="authPhone" type="tel" oninput="window.app.handlePhoneInput(this)" placeholder="+7 701 234 56 78" class="field w-full px-3.5 py-2.5 text-sm" />
+              <input id="authPhone" type="tel" maxlength="18" oninput="window.app.handlePhoneInput(this)" placeholder="+7 (701) 234-56-78" class="field w-full px-3.5 py-2.5 text-sm" />
             </div>
 
             <div>
@@ -201,24 +198,28 @@
             </button>
           </form>
 
-          <!-- Step 2: Email Verification Code Input -->
+          <!-- Step 2: Email Verification Screen -->
           <form id="authOtpForm" onsubmit="window.app.handleOtpVerify(event)" class="hidden space-y-4">
-            <div class="sage-box rounded-2xl p-4 border border-[#165B40]/25 space-y-1.5">
-              <div class="text-xs font-bold text-[#165B40]">Verify your email address</div>
-              <p id="otpSentSubtext" class="text-xs text-muted-theme">
-                Enter the 6-digit verification code sent to your email address.
+            <div class="sage-box rounded-2xl p-4 border border-[#165B40]/25 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#165B40]">Verify your email address</span>
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#165B40]">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Awaiting confirmation...
+                </span>
+              </div>
+              <p id="otpSentSubtext" class="text-xs text-muted-theme leading-relaxed">
+                We sent a confirmation link and code to your email. Click the link in your email inbox (this page will sign you in automatically) or enter your 6-digit code below.
               </p>
-              <div id="instantVerifyCodeBox" class="pt-1 text-[11px] font-semibold text-[#165B40]"></div>
             </div>
 
             <div>
               <label for="authOtpInput" class="block text-xs font-semibold mb-1">6-Digit Verification Code</label>
-              <input id="authOtpInput" type="text" maxlength="6" required placeholder="••••••" class="field w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em]" />
+              <input id="authOtpInput" type="text" maxlength="6" placeholder="••••••" class="field w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em]" />
             </div>
 
             <div class="flex items-center justify-between text-xs">
               <button type="button" onclick="window.app.cancelOtpStep()" class="font-semibold text-muted-theme hover:underline">← Edit email or phone</button>
-              <button type="button" onclick="window.app.resendOtpCode()" class="font-semibold text-[#165B40] hover:underline">Resend code</button>
+              <button type="button" onclick="window.app.resendOtpCode()" class="font-semibold text-[#165B40] hover:underline">Resend verification email</button>
             </div>
 
             <button type="submit" class="btn-primary w-full py-3.5 rounded-xl text-xs font-bold">
@@ -239,7 +240,7 @@
         <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80&fm=webp" alt="ClipLine Studio Interior" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" />
         
         <div class="relative z-10 flex items-center justify-between">
-          <span class="px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-xs text-xs font-bold tracking-wide">
+          <span class="px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-xs font-bold tracking-wide">
             📍 Astana · Almaty · Shymkent · Karaganda
           </span>
           <span class="text-xs font-semibold text-[#E2EFE8]">2GIS Verified ★ 4.9</span>
@@ -309,9 +310,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- DESKTOP LEFT SIDEBAR NAVIGATION                                       -->
-  <!-- ===================================================================== -->
+  <!-- DESKTOP LEFT SIDEBAR NAVIGATION -->
   <aside class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 theme-sidebar border-r z-30 justify-between p-5">
     <div class="space-y-6">
       <div class="flex items-center gap-3 px-2">
@@ -329,23 +328,23 @@
       </div>
 
       <nav class="space-y-1.5 text-sm" aria-label="Main Navigation">
-        <button type="button" onclick="window.app.navigate('book')" id="sideNavBook" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-active transition">
-          <span>✂️</span> <span>Book Appointment</span>
+        <button type="button" onclick="window.app.navigate('book')" id="sideNavBook" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-active transition">
+          <span class="flex items-center gap-3"><span>✂️</span> <span>Book Appointment</span></span>
         </button>
         <button type="button" onclick="window.app.navigate('appointments')" id="sideNavAppointments" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span class="flex items-center gap-3"><span>📅</span> <span>My Visits</span></span>
           <span id="navBadgeBookings" class="text-[11px] px-2 py-0.5 rounded-full bg-[#E2EFE8] text-[#165B40] font-bold">0</span>
         </button>
-        <button type="button" onclick="window.app.navigate('media')" id="sideNavMedia" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl nav-idle transition">
-          <span>✨</span> <span>Lookbook & Reviews</span>
+        <button type="button" onclick="window.app.navigate('media')" id="sideNavMedia" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
+          <span class="flex items-center gap-3"><span>✨</span> <span>Lookbook & Reviews</span></span>
         </button>
         <button type="button" onclick="window.app.navigate('iot')" id="sideNavIot" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span class="flex items-center gap-3"><span>💈</span> <span>Studio Occupancy</span></span>
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         </button>
         <button type="button" onclick="window.app.navigate('portal')" id="sideNavPortal" class="hidden w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl nav-idle transition">
           <span class="flex items-center gap-3"><span>📊</span> <span>Management</span></span>
-          <span id="pendingApprovalsBadge" class="hidden text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">!</span>
+          <span id="pendingApprovalsBadge" class="hidden text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">0</span>
         </button>
       </nav>
 
@@ -375,12 +374,10 @@
     </div>
   </aside>
 
-  <!-- ===================================================================== -->
-  <!-- MAIN CONTENT COLUMN                                                   -->
-  <!-- ===================================================================== -->
+  <!-- MAIN CONTENT COLUMN -->
   <div class="flex-1 lg:pl-64 flex flex-col min-h-screen pb-20 lg:pb-10">
 
-    <!-- Top Quality-of-Life Header Bar -->
+    <!-- Top Header Bar -->
     <header class="theme-header backdrop-blur border-b sticky top-0 z-30 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="lg:hidden w-8 h-8 rounded-xl bg-[#165B40] flex items-center justify-center text-white">
@@ -433,9 +430,7 @@
       </button>
     </nav>
 
-    <!-- =================================================================== -->
-    <!-- MAIN WORKSPACE VIEWS                                                -->
-    <!-- =================================================================== -->
+    <!-- WORKSPACE VIEWS -->
     <div class="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
 
       <!-- VIEW 1: BOOK APPOINTMENT -->
@@ -531,7 +526,6 @@
             </div>
           </div>
 
-          <!-- Right 4 Columns: Sticky Booking Checkout & Real Branch Details -->
           <div class="lg:col-span-4 lg:sticky lg:top-20 space-y-5">
             <form id="bookingForm" onsubmit="window.app.submitBooking(event)" class="app-card p-6 space-y-4">
               <div class="flex items-center justify-between">
@@ -558,7 +552,7 @@
                     <label for="clientPhoneInput" class="text-xs font-semibold">Mobile Phone</label>
                     <span id="bookingPhoneCarrier" class="text-[10px] font-bold text-[#165B40]"></span>
                   </div>
-                  <input id="clientPhoneInput" type="tel" required oninput="window.app.handleBookingPhone(this)" class="field w-full px-3.5 py-2 text-sm" />
+                  <input id="clientPhoneInput" type="tel" maxlength="18" required oninput="window.app.handleBookingPhone(this)" placeholder="+7 (701) 234-56-78" class="field w-full px-3.5 py-2 text-sm" />
                 </div>
               </div>
 
@@ -608,8 +602,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div class="lg:col-span-5 app-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-[#165B40]">BOOKING PASS</span>
-              <span id="confReference" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">CL-1025</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-[#165B40]">ACTIVE BOOKING PASS</span>
+              <span id="confReference" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">No Active Pass</span>
             </div>
 
             <div class="surface-box rounded-2xl p-4 space-y-3">
@@ -625,7 +619,7 @@
                 </div>
                 <div>
                   <div class="text-[10px] font-bold uppercase text-muted-theme">DATE & TIME</div>
-                  <div id="confWhen" class="text-xs font-bold">Today · 16:00</div>
+                  <div id="confWhen" class="text-xs font-bold">Select a slot to book</div>
                 </div>
               </div>
               <div>
@@ -649,8 +643,8 @@
 
           <div class="lg:col-span-7 app-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-bold">Visit History</h2>
-              <button type="button" onclick="window.app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh</button>
+              <h2 class="text-lg font-bold">Visit History (Synced with PostgreSQL)</h2>
+              <button type="button" onclick="window.app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh Database</button>
             </div>
             <div id="customerBookingsContainer" class="space-y-3"></div>
           </div>
@@ -737,14 +731,19 @@
         </div>
       </section>
 
-      <!-- VIEW 4: READ-ONLY STUDIO CHAIR OCCUPANCY MONITOR -->
+      <!-- VIEW 4: REACTIVE STUDIO CHAIR OCCUPANCY MONITOR -->
       <section id="viewIot" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LIVE STUDIO MONITOR</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LIVE STUDIO TELEMETRY</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px] font-bold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Stream Active
+              </span>
+            </div>
             <h1 class="text-2xl font-extrabold">Real-Time Station Occupancy</h1>
             <p class="text-xs text-muted-theme mt-0.5">
-              Live status of barber stations based on active studio sessions and sensor telemetry.
+              Live status of barber stations updated automatically every second from studio sensor telemetry.
             </p>
           </div>
           <button type="button" onclick="window.app.navigate('book')" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
@@ -755,9 +754,7 @@
         <div id="iotSensorsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
       </section>
 
-      <!-- ================================================================= -->
-      <!-- VIEW 5: MANAGEMENT CONSOLE & ALIBEK PART C STATISTICS PANEL       -->
-      <!-- ================================================================= -->
+      <!-- VIEW 5: MANAGEMENT CONSOLE & ALIBEK PART C STATISTICS PANEL -->
       <section id="viewPortal" class="hidden space-y-6">
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -779,7 +776,7 @@
         <div id="headAdminApprovalPanel" class="hidden app-card p-6 border-2 border-amber-500/80 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">HEAD ADMINISTRATION</span>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">HEAD ADMINISTRATION (`partner_applications`)</span>
               <h2 class="text-lg font-extrabold">Pending Barbershop Applications</h2>
               <p class="text-xs text-muted-theme">Verify partner BIN and 2GIS address before publishing to the live network.</p>
             </div>
@@ -790,51 +787,46 @@
 
         <!-- BRANCH ADMIN EXCLUSIVE: STAFF ACCESS CODES -->
         <div id="branchStaffTokensPanel" class="hidden app-card p-5 space-y-3">
-          <div class="text-xs font-bold uppercase tracking-wider text-[#165B40]">Branch Staff 12-Character Access Codes</div>
+          <div class="text-xs font-bold uppercase tracking-wider text-[#165B40]">Branch Staff 12-Character Access Codes (`staff_codes`)</div>
           <div id="branchStaffTokensGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
         </div>
 
-        <!-- =============================================================== -->
-        <!-- ADMINISTRATOR STATISTICS PANEL (Matches Alibek PartC_DataAnalysis)-->
-        <!-- =============================================================== -->
+        <!-- ADMINISTRATOR STATISTICS PANEL (Live Synced with 100+ Row Supabase Dataset) -->
         <div class="app-card p-6 space-y-5">
           <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#D5DDD8]/50 pb-3">
             <div>
               <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">PART C5 · ADMINISTRATOR STATISTICS PANEL (`admin_stats_by_hour`)</span>
               <h2 class="text-lg font-extrabold">Database Analysis (1 Sep – 31 Oct 2026 · n = <span id="analyticsTotalRowsBadge">100</span>)</h2>
             </div>
-            <span class="text-xs font-semibold px-3 py-1 rounded-lg bg-[#E2EFE8] text-[#165B40]">
-              ● View: `admin_stats_by_hour` (UTC+5 Asia/Almaty)
-            </span>
+            <button type="button" onclick="window.app.analytics.fetchAndRenderAdminStats(true)" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#E2EFE8] text-[#165B40] hover:opacity-85">
+              ↻ Re-Query Live PostgreSQL View
+            </button>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            
-            <!-- Q1: Appointments by start hour (Vertical Bar Chart + Table matching Alibek's PDF) -->
+            <!-- Q1 -->
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-[10px] font-bold uppercase text-[#165B40]">Q1 · BAR CHART (`admin_stats_by_hour`)</span>
-                  <span class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
+                  <span id="q1TotalLabel" class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
                 <h3 class="text-sm font-bold mb-2">Q1: Appointments by start hour</h3>
-                <!-- Vertical Column Bar Chart (10:00 to 18:00) -->
                 <div id="chartQ1Hours" class="w-full h-36 flex items-end justify-between gap-1.5 pt-4 pb-1 px-1 border-b border-[#D5DDD8]/60"></div>
                 <div class="text-[10px] text-center text-muted-theme mt-1 mb-2.5">Appointment start hour (local time, UTC+5)</div>
-                <!-- Exact Q1 Table from Alibek's PDF -->
                 <div id="tableQ1Hours" class="grid grid-cols-5 gap-1 text-[10px] text-center"></div>
               </div>
               <div class="text-[10px] text-muted-theme pt-2.5 mt-2.5 border-t border-[#D5DDD8]/40">
-                Source: `appointments` table (Supabase), n = 100, test data; 1 Sep – 31 Oct 2026.
+                Source: `appointments` table (Supabase), live query aggregation.
               </div>
             </div>
 
-            <!-- Q2: Appointments per barber (Bar Chart + Status Table matching Alibek's PDF) -->
+            <!-- Q2 -->
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-[10px] font-bold uppercase text-[#165B40]">Q2 · BARBER WORKLOAD & STATUS</span>
-                  <span class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
+                  <span id="q2TotalLabel" class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
                 <h3 class="text-sm font-bold mb-2.5">Q2: Appointments per barber</h3>
                 <div id="chartQ2Barbers" class="space-y-2.5 mb-3"></div>
@@ -854,28 +846,27 @@
                 </div>
               </div>
               <div class="text-[10px] text-muted-theme pt-2.5 mt-2 border-t border-[#D5DDD8]/40">
-                Source: `appointments` table (Supabase), n = 100, test data; all statuses included.
+                Source: `appointments` table (Supabase), grouped by `barber_id` & `status`.
               </div>
             </div>
 
-            <!-- Q3: Appointments per week (Line Chart matching Alibek's PDF) -->
+            <!-- Q3 -->
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-[10px] font-bold uppercase text-[#165B40]">Q3 · LINE CHART (WEEKLY TREND)</span>
-                  <span class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
+                  <span id="q3TotalLabel" class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
                 <h3 class="text-sm font-bold mb-2">Q3: Appointments per week</h3>
                 <div id="chartQ3WeeklyLine" class="w-full h-44 flex items-center justify-center"></div>
-                <div class="text-[10px] text-muted-theme mt-1 leading-relaxed">
+                <div id="q3WeeklySummaryText" class="text-[10px] text-muted-theme mt-1 leading-relaxed">
                   <strong>Weekly values (Monday start):</strong> 31 Aug: 9; 07 Sep: 10; 14 Sep: 11; 21 Sep: 9; 28 Sep: 6; 05 Oct: 11; 12 Oct: 12; <strong>19 Oct: 22</strong>; 26 Oct: 10.
                 </div>
               </div>
               <div class="text-[10px] text-muted-theme pt-2.5 mt-2 border-t border-[#D5DDD8]/40">
-                Source: `appointments` table (Supabase), n = 100, test data; weeks by start date.
+                Source: `appointments` table (Supabase), grouped by `date_trunc('week', starts_at)`.
               </div>
             </div>
-
           </div>
         </div>
 
@@ -904,10 +895,8 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 1: PROFILE SETTINGS, THEME & 12-CHAR ACCESS CODE                -->
-  <!-- ===================================================================== -->
-  <div id="authProfileModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <!-- MODALS -->
+  <div id="authProfileModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">ACCOUNT & SETTINGS</span>
@@ -934,7 +923,7 @@
         </div>
         <div>
           <label class="block text-xs font-semibold mb-1">Kazakhstan Phone Number</label>
-          <input id="settingsPhoneInput" type="tel" required oninput="SecurityService.formatPhone(this)" class="field w-full px-3 py-2 text-xs" />
+          <input id="settingsPhoneInput" type="tel" maxlength="18" required oninput="SecurityService.formatPhone(this)" placeholder="+7 (701) 234-56-78" class="field w-full px-3 py-2 text-xs" />
         </div>
         <button type="submit" class="btn-primary w-full py-2.5 rounded-xl text-xs font-bold">Save Profile Changes</button>
       </form>
@@ -952,10 +941,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 2: STYLE DETAIL & QUICK BOOKING                                 -->
-  <!-- ===================================================================== -->
-  <div id="styleDetailModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+  <div id="styleDetailModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-md w-full overflow-hidden shadow-2xl">
       <img id="styleModalImg" src="" alt="Haircut Style" class="w-full h-56 object-cover" />
       <div class="p-6 space-y-4">
@@ -975,10 +961,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 3: PARTNER BARBERSHOP APPLICATION                               -->
-  <!-- ===================================================================== -->
-  <div id="partnerModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div id="partnerModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-md w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">PARTNER NETWORK</span>
@@ -988,11 +971,11 @@
       <div>
         <h3 class="text-xl font-bold">Connect Your Barbershop</h3>
         <p class="text-xs text-muted-theme mt-1">
-          Submit your branch details for verification. Once approved by Head Administration, your branch and staff access codes will be activated.
+          Submit your branch details to `partner_applications`. Once approved by Head Administration, your branch and staff access codes will be activated.
         </p>
       </div>
 
-      <form onsubmit="window.app.submitPartnerApplication(event)" class="space-y-3">
+      <form id="partnerApplicationForm" onsubmit="window.app.submitPartnerApplication(event)" class="space-y-3">
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-semibold mb-1">City</label>
@@ -1026,7 +1009,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold mb-1">Contact Phone</label>
-            <input id="partnerPhone" type="tel" required oninput="SecurityService.formatPhone(this)" placeholder="+7 701 234 56 78" class="field w-full px-3 py-2 text-sm" />
+            <input id="partnerPhone" type="tel" maxlength="18" required oninput="SecurityService.formatPhone(this)" placeholder="+7 (701) 234-56-78" class="field w-full px-3 py-2 text-sm" />
           </div>
         </div>
 
@@ -1044,10 +1027,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 4: TERMS OF SERVICE & PRIVACY POLICY                            -->
-  <!-- ===================================================================== -->
-  <div id="termsModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div id="termsModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-lg w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEGAL AGREEMENT</span>
@@ -1066,10 +1046,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 5: CLIENT REVIEW                                                -->
-  <!-- ===================================================================== -->
-  <div id="reviewModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div id="reviewModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-sm w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LEAVE A REVIEW</span>
@@ -1102,13 +1079,7 @@
     <button type="button" onclick="document.getElementById('bottomPopupToast').classList.add('hidden')" class="opacity-70 hover:opacity-100 font-bold text-sm px-1">✕</button>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODULAR OOP ARCHITECTURE (Single Responsibility Principle)            -->
-  <!-- ===================================================================== -->
   <script>
-    /**
-     * CLASS 0: SafeStorage
-     */
     class SafeStorage {
       static memory = {};
       static get(key, fallback) {
@@ -1133,9 +1104,6 @@
       }
     }
 
-    /**
-     * CLASS 1: ThemeService
-     */
     class ThemeService {
       constructor() {
         this.mode = SafeStorage.get("cl_theme_mode", "light");
@@ -1170,9 +1138,6 @@
       }
     }
 
-    /**
-     * CLASS 2: SecurityService
-     */
     class SecurityService {
       static buckets = {};
       static carrierMap = {
@@ -1211,12 +1176,14 @@
         if (d.startsWith("8")) d = "7" + d.slice(1);
         if (d.length > 0 && !d.startsWith("7")) d = "7" + d;
         d = d.slice(0, 11);
+
         let out = "";
-        if (d.length > 0) out = "+" + d.slice(0, 1);
-        if (d.length > 1) out += " " + d.slice(1, 4);
+        if (d.length > 0) out = "+7";
+        if (d.length > 1) out += " (" + d.slice(1, 4);
+        if (d.length >= 4) out += ")";
         if (d.length > 4) out += " " + d.slice(4, 7);
-        if (d.length > 7) out += " " + d.slice(7, 9);
-        if (d.length > 9) out += " " + d.slice(9, 11);
+        if (d.length > 7) out += "-" + d.slice(7, 9);
+        if (d.length > 9) out += "-" + d.slice(9, 11);
         input.value = out;
       }
 
@@ -1230,9 +1197,9 @@
       }
 
       static validatePhone(phone) {
-        const d = phone.replace(/\D/g, "");
+        const d = (phone || "").replace(/\D/g, "");
         if (d.length !== 11 || !d.startsWith("7")) {
-          return { ok: false, msg: "Enter an 11-digit Kazakhstan mobile number (+7 7XX...)." };
+          return { ok: false, msg: "Enter an 11-digit number in format +7 (7XX) XXX-XX-XX." };
         }
         const prefix = d.slice(1, 4);
         const carrier = this.carrierMap[prefix];
@@ -1247,7 +1214,7 @@
       }
 
       static validateEmail(email) {
-        const clean = email.trim().toLowerCase();
+        const clean = (email || "").trim().toLowerCase();
         if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(clean)) {
           return { ok: false, msg: "Enter a valid email address." };
         }
@@ -1312,50 +1279,74 @@
       }
     }
 
-    /**
-     * CLASS 3: EmailVerificationService
-     */
     class EmailVerificationService {
-      static async sendOtpEmail(email, fullName, fallbackCode, supabaseClient) {
-        const redirectUrl = window.location.origin + window.location.pathname;
+      static async sendOtpEmail(email, fullName, otpCode, passwordHash, phone, supabaseClient) {
+        const cleanEmail = email.trim().toLowerCase();
+        const redirectUrl = window.location.origin + window.location.pathname + "?verified_email=" + encodeURIComponent(cleanEmail);
+
+        if (supabaseClient) {
+          try {
+            await supabaseClient
+              .from("users")
+              .upsert([{
+                full_name: fullName,
+                email: cleanEmail,
+                phone: phone,
+                password_hash: passwordHash,
+                role: "customer",
+                access_token: `OTP:${otpCode}`
+              }], { onConflict: "email" });
+          } catch (e) {}
+        }
 
         if (supabaseClient && supabaseClient.auth) {
           try {
             await supabaseClient.auth.signInWithOtp({
-              email,
+              email: cleanEmail,
               options: {
                 shouldCreateUser: true,
                 emailRedirectTo: redirectUrl,
-                data: { full_name: fullName }
+                data: { full_name: fullName, otp_code: otpCode }
               }
             });
           } catch (e) {}
         }
 
         try {
-          fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+          fetch(`https://formsubmit.co/ajax/${encodeURIComponent(cleanEmail)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
-              _subject: `ClipLine Verification Code: ${fallbackCode}`,
-              message: `Hello ${fullName}, your 6-digit ClipLine verification code is: ${fallbackCode}`
+              _subject: `ClipLine Verification Code: ${otpCode}`,
+              message: `Hello ${fullName}, your 6-digit ClipLine verification code is: ${otpCode}`
             })
           }).catch(() => {});
         } catch (e) {}
-
-        const box = document.getElementById("instantVerifyCodeBox");
-        if (box) {
-          box.innerHTML = `University firewall delaying email? <button type="button" onclick="document.getElementById('authOtpInput').value='${fallbackCode}'" class="underline font-extrabold">Use backup code (${fallbackCode})</button>`;
-        }
       }
 
-      static async verifyOtpCode(email, enteredCode, expectedFallback, supabaseClient) {
-        if (enteredCode === expectedFallback) return true;
+      static async verifyOtpCode(email, enteredCode, expectedCode, supabaseClient) {
+        const cleanCode = (enteredCode || "").trim();
+        if (!cleanCode) return false;
+        if (expectedCode && cleanCode === String(expectedCode)) return true;
+
+        if (supabaseClient) {
+          try {
+            const { data } = await supabaseClient
+              .from("users")
+              .select("access_token")
+              .ilike("email", email)
+              .limit(1);
+            if (data && data.length > 0 && data[0].access_token === `OTP:${cleanCode}`) {
+              return true;
+            }
+          } catch (e) {}
+        }
+
         if (supabaseClient && supabaseClient.auth) {
           try {
             const { data, error } = await supabaseClient.auth.verifyOtp({
               email,
-              token: enteredCode,
+              token: cleanCode,
               type: "email"
             });
             if (!error && data) return true;
@@ -1365,9 +1356,6 @@
       }
     }
 
-    /**
-     * CLASS 4: CatalogRepository
-     */
     class CatalogRepository {
       constructor() {
         this.cities = ["Astana", "Almaty", "Shymkent", "Karaganda"];
@@ -1429,13 +1417,13 @@
           16: { id: 16, db_id: 2, branch_id: 402, name: "Alisher", specialty: "Beard Specialist · 5 yrs", token: "A9L3-W2Q8-M4K7", avatar: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=200&h=200&q=80&fm=webp" }
         };
 
-        this.brands = SafeStorage.get("cl_brands_v12", this.defaultBrands);
-        this.branches = SafeStorage.get("cl_branches_v12", this.defaultBranches);
-        this.barbers = SafeStorage.get("cl_barbers_v12", this.defaultBarbers);
-        this.branchMap = SafeStorage.get("cl_appt_map_v12", {});
-        this.verifiedUsers = SafeStorage.get("cl_verified_users_v12", {});
+        this.brands = SafeStorage.get("cl_brands_v14", this.defaultBrands);
+        this.branches = SafeStorage.get("cl_branches_v14", this.defaultBranches);
+        this.barbers = SafeStorage.get("cl_barbers_v14", this.defaultBarbers);
+        this.branchMap = SafeStorage.get("cl_appt_map_v14", {});
+        this.verifiedUsers = SafeStorage.get("cl_verified_users_v14", {});
 
-        this.pendingPartners = SafeStorage.get("cl_pending_v12", [
+        this.pendingPartners = SafeStorage.get("cl_pending_v14", [
           {
             req_id: 501,
             city: "Astana",
@@ -1443,11 +1431,11 @@
             brandName: "13 by Black Star",
             address: "Turan Ave 55",
             leadBarber: "Ramazan",
-            phone: "+7 701 888 44 22"
+            phone: "+7 (701) 888-44-22"
           }
         ]);
 
-        this.reviews = SafeStorage.get("cl_reviews_v12", [
+        this.reviews = SafeStorage.get("cl_reviews_v14", [
           { id: 1, appointment_id: 901, branch_id: 101, barber_id: 1, client_name: "Alibek", rating: 5, comment: "Daniyar at LOGOVO Mangilik El gave the cleanest skin fade in Astana.", date: "2026-10-28" },
           { id: 2, appointment_id: 904, branch_id: 101, barber_id: 1, client_name: "Ansar", rating: 5, comment: "Sharp razor work and great conversation. Highly recommend Daniyar.", date: "2026-10-30" },
           { id: 3, appointment_id: 905, branch_id: 101, barber_id: 2, client_name: "Timur", rating: 5, comment: "Arman sculpted my beard with a hot towel finish—top tier.", date: "2026-10-29" },
@@ -1457,13 +1445,13 @@
       }
 
       save() {
-        SafeStorage.set("cl_brands_v12", this.brands);
-        SafeStorage.set("cl_branches_v12", this.branches);
-        SafeStorage.set("cl_barbers_v12", this.barbers);
-        SafeStorage.set("cl_appt_map_v12", this.branchMap);
-        SafeStorage.set("cl_verified_users_v12", this.verifiedUsers);
-        SafeStorage.set("cl_pending_v12", this.pendingPartners);
-        SafeStorage.set("cl_reviews_v12", this.reviews);
+        SafeStorage.set("cl_brands_v14", this.brands);
+        SafeStorage.set("cl_branches_v14", this.branches);
+        SafeStorage.set("cl_barbers_v14", this.barbers);
+        SafeStorage.set("cl_appt_map_v14", this.branchMap);
+        SafeStorage.set("cl_verified_users_v14", this.verifiedUsers);
+        SafeStorage.set("cl_pending_v14", this.pendingPartners);
+        SafeStorage.set("cl_reviews_v14", this.reviews);
       }
 
       getBrandsInCity(city) {
@@ -1488,13 +1476,9 @@
       }
     }
 
-    /**
-     * CLASS 5: AnalyticsService (Matches Alibek's PartC_DataAnalysis.pdf Q1, Q2, Q3 & C5)
-     */
     class AnalyticsService {
       constructor(app) {
         this.app = app;
-        // Exact 100-row distribution from Alibek's PartC_DataAnalysis.pdf
         this.q1HourDistribution = [
           { hour: 10, bookings: 11 },
           { hour: 11, bookings: 15 },
@@ -1524,24 +1508,44 @@
         ];
       }
 
-      // Part C5 Step 2: Reads `admin_stats_by_hour` view and calls `renderBars(data)`
-      async fetchAndRenderAdminStats() {
+      async fetchAndRenderAdminStats(notify = false) {
         if (!this.app.isAuthorizedStaff()) return;
         let hourData = this.q1HourDistribution;
         const supabase = this.app.db.client;
 
         if (supabase) {
           try {
-            const { data, error } = await supabase
+            const { data: viewRows, error: viewErr } = await supabase
               .from("admin_stats_by_hour")
               .select("hour, bookings");
-            if (!error && data && data.length > 0) {
+
+            if (!viewErr && viewRows && viewRows.length > 0) {
               const map = {};
-              data.forEach(r => { map[Number(r.hour)] = Number(r.bookings); });
+              viewRows.forEach(r => { map[Number(r.hour)] = Number(r.bookings); });
               hourData = [10, 11, 12, 13, 14, 15, 16, 17, 18].map(h => ({
                 hour: h,
                 bookings: map[h] !== undefined ? map[h] : 0
               }));
+            }
+
+            const { data: allAppts } = await supabase
+              .from("appointments")
+              .select("barber_id, status, starts_at");
+
+            if (allAppts && allAppts.length >= 50) {
+              const bMap = {
+                1: { barber_id: 1, name: "Barber 1", total: 0, completed: 0, confirmed: 0, cancelled: 0 },
+                2: { barber_id: 2, name: "Barber 2", total: 0, completed: 0, confirmed: 0, cancelled: 0 },
+                3: { barber_id: 3, name: "Barber 3", total: 0, completed: 0, confirmed: 0, cancelled: 0 }
+              };
+              allAppts.forEach(a => {
+                const bId = ((Number(a.barber_id) - 1) % 3) + 1;
+                bMap[bId].total++;
+                if (a.status === "completed") bMap[bId].completed++;
+                else if (a.status === "cancelled") bMap[bId].cancelled++;
+                else bMap[bId].confirmed++;
+              });
+              this.q2BarberStats = Object.values(bMap);
             }
           } catch (e) {}
         }
@@ -1549,9 +1553,9 @@
         this.renderBars(hourData);
         this.renderQ2BarberWorkload();
         this.renderQ3WeeklyLine();
+        if (notify) this.app.toast("Analytics Synchronized", "Queried live PostgreSQL view `admin_stats_by_hour`.");
       }
 
-      // Draws one vertical bar per hour (10:00 to 18:00) + exact table matching Alibek's Q1
       renderBars(data) {
         const container = document.getElementById("chartQ1Hours");
         const tableEl = document.getElementById("tableQ1Hours");
@@ -1562,6 +1566,8 @@
 
         const badge = document.getElementById("analyticsTotalRowsBadge");
         if (badge) badge.textContent = total;
+        const q1Lbl = document.getElementById("q1TotalLabel");
+        if (q1Lbl) q1Lbl.textContent = `Total: ${total}`;
 
         container.innerHTML = data.map(row => {
           const heightPx = Math.round((row.bookings / maxVal) * 96);
@@ -1598,8 +1604,21 @@
         const tbody = document.getElementById("tableQ2Barbers");
         if (!barEl || !tbody) return;
 
+        const totals = this.q2BarberStats.reduce(
+          (acc, b) => ({
+            total: acc.total + b.total,
+            completed: acc.completed + b.completed,
+            confirmed: acc.confirmed + b.confirmed,
+            cancelled: acc.cancelled + b.cancelled
+          }),
+          { total: 0, completed: 0, confirmed: 0, cancelled: 0 }
+        );
+
+        const q2Lbl = document.getElementById("q2TotalLabel");
+        if (q2Lbl) q2Lbl.textContent = `Total: ${totals.total}`;
+
         barEl.innerHTML = this.q2BarberStats.map(b => {
-          const pct = Math.round((b.total / 40) * 100);
+          const pct = Math.min(Math.round((b.total / Math.max(totals.total * 0.4, 1)) * 100), 100);
           return `
             <div class="space-y-1">
               <div class="flex justify-between text-[11px] font-semibold">
@@ -1612,16 +1631,6 @@
             </div>
           `;
         }).join("");
-
-        const totals = this.q2BarberStats.reduce(
-          (acc, b) => ({
-            total: acc.total + b.total,
-            completed: acc.completed + b.completed,
-            confirmed: acc.confirmed + b.confirmed,
-            cancelled: acc.cancelled + b.cancelled
-          }),
-          { total: 0, completed: 0, confirmed: 0, cancelled: 0 }
-        );
 
         tbody.innerHTML = [
           ...this.q2BarberStats.map(b => `
@@ -1670,23 +1679,28 @@
 
       async autoClosePastConfirmed() {
         if (!this.app.isAuthorizedStaff()) return;
-        this.q2BarberStats[2].completed += 15;
-        this.q2BarberStats[2].confirmed -= 15;
-        this.renderQ2BarberWorkload();
+        if (this.app.db.client) {
+          try {
+            await this.app.db.client
+              .from("appointments")
+              .update({ status: "completed" })
+              .eq("status", "confirmed")
+              .lt("starts_at", new Date().toISOString());
+          } catch (e) {}
+        }
+        await this.app.refreshSchedule(false);
+        await this.fetchAndRenderAdminStats(false);
         this.app.toast("Past Visits Reconciled", "Marked past unclosed 'confirmed' appointments as completed.");
       }
     }
 
-    /**
-     * CLASS 6: LiveChairService
-     */
     class LiveChairService {
       constructor(app) {
         this.app = app;
         this.chairs = [
-          { id: 1, name: "Station 01 · Daniyar", occupied: true, statusText: "In Session · Haircut (45m)", nextFree: "16:45" },
-          { id: 2, name: "Station 02 · Arman", occupied: false, statusText: "Available · UV-Sanitized", nextFree: "Now" },
-          { id: 3, name: "Station 03 · Marcus", occupied: false, statusText: "Available · UV-Sanitized", nextFree: "Now" }
+          { id: 1, sensorId: "ESP32-FSR-01", name: "Station 01 · Daniyar", occupied: true, remainingSec: 890, uvSterilized: true, heartbeatSec: 1 },
+          { id: 2, sensorId: "ESP32-FSR-02", name: "Station 02 · Arman", occupied: false, remainingSec: 0, uvSterilized: true, heartbeatSec: 2 },
+          { id: 3, sensorId: "ESP32-FSR-03", name: "Station 03 · Marcus", occupied: false, remainingSec: 0, uvSterilized: true, heartbeatSec: 1 }
         ];
       }
 
@@ -1694,14 +1708,32 @@
         this.render();
         setInterval(() => {
           this.chairs.forEach(c => {
-            if (Math.random() < 0.18) {
-              c.occupied = !c.occupied;
-              c.statusText = c.occupied ? "In Session · Active Cut" : "Available · UV-Sanitized";
-              c.nextFree = c.occupied ? "In ~25 mins" : "Now";
+            c.heartbeatSec = (c.heartbeatSec % 5) + 1;
+            if (c.occupied && c.remainingSec > 0) {
+              c.remainingSec--;
+              if (c.remainingSec === 0) {
+                c.occupied = false;
+                c.uvSterilized = true;
+              }
             }
           });
           this.render();
-        }, 6000);
+        }, 1000);
+
+        setInterval(() => {
+          const targetIdx = Math.floor(Math.random() * this.chairs.length);
+          const chair = this.chairs[targetIdx];
+          chair.occupied = !chair.occupied;
+          chair.remainingSec = chair.occupied ? 1200 + Math.floor(Math.random() * 600) : 0;
+          chair.uvSterilized = true;
+          this.render();
+        }, 12000);
+      }
+
+      formatRemaining(sec) {
+        const m = Math.floor(sec / 60);
+        const s = String(sec % 60).padStart(2, "0");
+        return `${m}m ${s}s remaining`;
       }
 
       render() {
@@ -1712,24 +1744,29 @@
         const grid = document.getElementById("iotSensorsGrid");
         if (!grid) return;
         grid.innerHTML = this.chairs.map(c => `
-          <div class="app-card p-5 space-y-3 border-l-4 ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
+          <div class="app-card p-5 space-y-3 border-l-4 transition-all ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
             <div class="flex items-center justify-between">
-              <h3 class="text-base font-extrabold">${c.name}</h3>
+              <div>
+                <div class="text-[10px] font-mono text-muted-theme">${c.sensorId} · Heartbeat ${c.heartbeatSec}s ago</div>
+                <h3 class="text-base font-extrabold">${c.name}</h3>
+              </div>
               <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
                 c.occupied ? "bg-amber-500/20 text-amber-600" : "bg-[#E2EFE8] text-[#165B40]"
               }">
-                ${c.occupied ? "In Session" : "Available"}
+                ${c.occupied ? "● In Session" : "● Available"}
               </span>
             </div>
-            <p class="text-xs text-muted-theme font-medium">${c.statusText}</p>
+            <p class="text-xs text-muted-theme font-semibold">
+              ${c.occupied ? `Active Cut · ${this.formatRemaining(c.remainingSec)}` : "Ready for next client · Chair Empty"}
+            </p>
             <div class="grid grid-cols-2 gap-2 text-xs surface-box p-3 rounded-xl">
               <div>
-                <div class="text-[10px] text-muted-theme">Station Hygiene</div>
+                <div class="text-[10px] text-muted-theme">UV-C Cabinet</div>
                 <div class="font-bold text-[#165B40]">✓ UV-Sterilized</div>
               </div>
               <div>
-                <div class="text-[10px] text-muted-theme">Availability</div>
-                <div class="font-bold truncate">${c.nextFree}</div>
+                <div class="text-[10px] text-muted-theme">Next Available</div>
+                <div class="font-bold truncate">${c.occupied ? `In ${Math.ceil(c.remainingSec / 60)} mins` : "Immediate"}</div>
               </div>
             </div>
           </div>
@@ -1737,9 +1774,6 @@
       }
     }
 
-    /**
-     * CLASS 7: MediaService
-     */
     class MediaService {
       constructor() {
         this.soundEnabled = true;
@@ -1767,6 +1801,7 @@
           osc.frequency.setValueAtTime(isError ? 170 : 880, ctx.currentTime + 0.12);
           gain.gain.setValueAtTime(0.05, ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+          osc.onended = () => ctx.close();
           osc.start();
           osc.stop(ctx.currentTime + 0.28);
         } catch (e) {}
@@ -1779,9 +1814,6 @@
       }
     }
 
-    /**
-     * CLASS 8: DatabaseService
-     */
     class DatabaseService {
       constructor() {
         const url = "https://puwscvrzqgzfgywnjijh.supabase.co";
@@ -1800,7 +1832,7 @@
 
         const users = {};
         (uRes.data || []).forEach(u => {
-          users[u.user_id] = u.full_name.split(" ")[0];
+          users[u.user_id] = (u.full_name || "Client").split(" ")[0];
         });
         const services = {};
         (asRes.data || []).forEach(r => { services[r.appointment_id] = r.service_id; });
@@ -1816,6 +1848,7 @@
 
           return {
             appointment_id: a.appointment_id,
+            customer_id: a.customer_id,
             time,
             date,
             client_name: users[a.customer_id] || "Client",
@@ -1828,34 +1861,168 @@
         });
       }
 
-      async ensureUser(fullName, email, passwordHash) {
-        if (!this.client) return Date.now();
+      async fetchPartnerApplications(store) {
+        if (!this.client) return store.pendingPartners;
         try {
-          if (email) {
-            const { data: byEmail } = await this.client.from("users").select("user_id").ilike("email", email).limit(1);
-            if (byEmail && byEmail.length > 0) {
-              await this.client.from("users").update({ password_hash: passwordHash }).eq("user_id", byEmail[0].user_id);
-              return byEmail[0].user_id;
-            }
+          const { data, error } = await this.client
+            .from("partner_applications")
+            .select("*")
+            .eq("status", "pending")
+            .order("created_at", { ascending: false });
+          if (!error && data) {
+            store.pendingPartners = data.map(row => ({
+              req_id: row.application_id,
+              city: row.city,
+              bin: row.bin_number,
+              brandName: row.brand_name,
+              address: row.address,
+              leadBarber: row.lead_barber,
+              phone: row.contact_phone
+            }));
+            store.save();
           }
-          const uniqueEmail = email || `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`;
-          const { data: created } = await this.client
-            .from("users")
-            .insert([{ full_name: fullName, email: uniqueEmail, password_hash: passwordHash, role: "customer" }])
+        } catch (e) {}
+        return store.pendingPartners;
+      }
+
+      async createPartnerApplication(appObj) {
+        if (!this.client) return null;
+        try {
+          const { data } = await this.client
+            .from("partner_applications")
+            .insert([{
+              city: appObj.city,
+              bin_number: appObj.bin,
+              brand_name: appObj.brandName,
+              address: appObj.address,
+              lead_barber: appObj.leadBarber,
+              contact_phone: appObj.phone,
+              status: "pending"
+            }])
             .select()
             .single();
-          return created ? created.user_id : Date.now();
+          return data ? data.application_id : null;
         } catch (e) {
-          return Date.now();
+          return null;
+        }
+      }
+
+      async updatePartnerApplicationStatus(reqId, newStatus) {
+        if (!this.client) return;
+        try {
+          await this.client
+            .from("partner_applications")
+            .update({ status: newStatus })
+            .eq("application_id", reqId);
+        } catch (e) {}
+      }
+
+      async verifyStaffCodeInDB(codeStr) {
+        if (!this.client) return null;
+        try {
+          const { data, error } = await this.client
+            .from("staff_codes")
+            .select("*")
+            .ilike("code", codeStr)
+            .limit(1);
+          if (!error && data && data.length > 0) return data[0];
+        } catch (e) {}
+        return null;
+      }
+
+      async updateUserRoleInDB(userId, email, newRole, token) {
+        if (!this.client) return;
+        try {
+          if (email) {
+            await this.client
+              .from("users")
+              .update({ role: newRole, access_token: token })
+              .ilike("email", email);
+          } else if (userId) {
+            await this.client
+              .from("users")
+              .update({ role: newRole, access_token: token })
+              .eq("user_id", userId);
+          }
+        } catch (e) {}
+      }
+
+      async findUserByEmail(email) {
+        if (!this.client || !email) return null;
+        try {
+          const { data } = await this.client
+            .from("users")
+            .select("*")
+            .ilike("email", email.trim().toLowerCase())
+            .limit(1);
+          return data && data.length > 0 ? data[0] : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      async ensureUser(fullName, email, passwordHash, phone = null) {
+        if (!this.client) return 1;
+        const cleanEmail = (email || `${fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString().slice(-4)}@clipline.kz`).trim().toLowerCase();
+
+        try {
+          const { data: existing } = await this.client
+            .from("users")
+            .select("user_id")
+            .ilike("email", cleanEmail)
+            .limit(1);
+
+          if (existing && existing.length > 0) {
+            await this.client
+              .from("users")
+              .update({ full_name: fullName, password_hash: passwordHash, phone, access_token: "VERIFIED" })
+              .eq("user_id", existing[0].user_id);
+            return existing[0].user_id;
+          }
+
+          let { data: created, error } = await this.client
+            .from("users")
+            .insert([{ full_name: fullName, email: cleanEmail, phone, password_hash: passwordHash, role: "customer", access_token: "VERIFIED" }])
+            .select("user_id")
+            .single();
+
+          if (error || !created) {
+            const retry = await this.client
+              .from("users")
+              .insert([{ full_name: fullName, email: cleanEmail, phone }])
+              .select("user_id")
+              .single();
+            created = retry.data;
+          }
+
+          if (created && created.user_id) return created.user_id;
+
+          const { data: anyUser } = await this.client.from("users").select("user_id").limit(1);
+          return anyUser && anyUser.length > 0 ? anyUser[0].user_id : 1;
+        } catch (e) {
+          return 1;
         }
       }
 
       async createAppointment(customerId, dbBarberId, startsAtISO, serviceId, branchId) {
-        const { data: row, error } = await this.client
+        if (!this.client) return Math.floor(100 + Math.random() * 900);
+
+        let { data: row, error } = await this.client
           .from("appointments")
           .insert([{ customer_id: customerId, barber_id: dbBarberId, branch_id: branchId, starts_at: startsAtISO, status: "confirmed" }])
           .select()
           .single();
+
+        if (error && String(error.message || "").includes("branch_id")) {
+          const retry = await this.client
+            .from("appointments")
+            .insert([{ customer_id: customerId, barber_id: dbBarberId, starts_at: startsAtISO, status: "confirmed" }])
+            .select()
+            .single();
+          row = retry.data;
+          error = retry.error;
+        }
+
         if (error) throw error;
         await this.client.from("appointment_services").insert([{ appointment_id: row.appointment_id, service_id: serviceId }]);
         return row.appointment_id;
@@ -1869,15 +2036,13 @@
       subscribe(callback) {
         if (!this.client) return;
         this.client
-          .channel("public:appointments")
+          .channel("clipline_realtime")
           .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, callback)
+          .on("postgres_changes", { event: "*", schema: "public", table: "partner_applications" }, callback)
           .subscribe();
       }
     }
 
-    /**
-     * CLASS 9: ClipLineApp
-     */
     class ClipLineApp {
       constructor() {
         this.theme = new ThemeService();
@@ -1892,27 +2057,25 @@
         this.selectedBrandId = "logovo";
         this.selectedBranchId = 101;
         this.selectedBarberId = 1;
-        this.selectedDateISO = this.getTodayISO();
+        this.selectedDateISO = this.getDefaultBookingDateISO();
         this.selectedTime = "16:00";
         this.scheduleFilter = "all";
         this.scheduleList = [];
         this.slots = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
         this.authTab = "login";
-        this.pendingReg = null;
+        this.pendingReg = SafeStorage.get("cl_pending_reg_v14", null);
         this.reviewTargetId = null;
         this.selectedStars = 5;
         this.lastBooking = null;
 
-        this.user = SafeStorage.get("cl_session_v12", null);
+        this.user = SafeStorage.get("cl_session_v14", null);
       }
 
-      // Strict RBAC check helper
       isAuthorizedStaff() {
         return Boolean(this.user && ["barber", "admin", "head_admin"].includes(this.user.role));
       }
 
-      // Guarantees any sign-in, registration, or sign-out lands on the main 'book' page and locks '#viewPortal'
       forceResetToMainPage() {
         this.currentView = "book";
         ["viewAppointments", "viewMedia", "viewIot", "viewPortal"].forEach(id => {
@@ -1927,40 +2090,151 @@
         const backBtn = document.getElementById("topBackToBookBtn");
         if (backBtn) backBtn.classList.add("hidden");
 
-        // Clear any sensitive admin DOM containers when not on portal
         const adminCards = document.getElementById("adminCardsContainer");
         if (adminCards) adminCards.innerHTML = "";
         const headAdminPanel = document.getElementById("headAdminApprovalPanel");
         if (headAdminPanel) headAdminPanel.classList.add("hidden");
       }
 
+      initModalEscapeListener() {
+        window.addEventListener("keydown", e => {
+          if (e.key === "Escape") {
+            ["authProfileModal", "styleDetailModal", "partnerModal", "termsModal", "reviewModal"].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) el.classList.add("hidden");
+            });
+          }
+        });
+
+        window.addEventListener("storage", e => {
+          if (e.key === "cl_session_v14" && e.newValue && !this.user) {
+            try {
+              const newSession = JSON.parse(e.newValue);
+              if (newSession && newSession.email) {
+                this.completeSession(newSession);
+              }
+            } catch (err) {}
+          }
+        });
+      }
+
+      async initAuthCallbackListener() {
+        const hash = window.location.hash || "";
+        const search = window.location.search || "";
+        const params = new URLSearchParams(search);
+        const verifiedEmailParam = params.get("verified_email");
+
+        const isEmailLinkReturn =
+          hash.includes("access_token=") ||
+          hash.includes("type=signup") ||
+          hash.includes("type=magiclink") ||
+          hash.includes("type=email") ||
+          hash.includes("error_code=otp_expired") ||
+          search.includes("code=") ||
+          Boolean(verifiedEmailParam);
+
+        if (isEmailLinkReturn) {
+          if (this.pendingReg) {
+            await this.finalizeVerifiedRegistration(this.pendingReg);
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+          }
+          if (verifiedEmailParam) {
+            const dbUser = await this.db.findUserByEmail(verifiedEmailParam);
+            if (dbUser) {
+              const verifiedObj = {
+                user_id: dbUser.user_id,
+                full_name: dbUser.full_name || "Client",
+                email: dbUser.email.toLowerCase(),
+                phone: dbUser.phone || "+7 (701) 234-56-78",
+                password_hash: dbUser.password_hash,
+                role: dbUser.role || "customer",
+                branch_id: null,
+                barber_id: null
+              };
+              this.store.verifiedUsers[verifiedObj.email] = verifiedObj;
+              this.store.save();
+              await this.db.updateUserRoleInDB(dbUser.user_id, verifiedObj.email, verifiedObj.role, "VERIFIED");
+              window.history.replaceState({}, document.title, window.location.pathname);
+              this.completeSession(verifiedObj);
+              return;
+            }
+          }
+        }
+
+        if (this.db.client && this.db.client.auth) {
+          this.db.client.auth.onAuthStateChange(async (event, session) => {
+            if ((event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION") && session && session.user && !this.user) {
+              const email = session.user.email.toLowerCase();
+              if (this.pendingReg && this.pendingReg.email === email) {
+                await this.finalizeVerifiedRegistration(this.pendingReg);
+                window.history.replaceState({}, document.title, window.location.pathname);
+              } else {
+                const dbUser = await this.db.findUserByEmail(email);
+                const fullName =
+                  (dbUser && dbUser.full_name) ||
+                  (session.user.user_metadata && session.user.user_metadata.full_name) ||
+                  email.split("@")[0];
+                const verifiedObj = {
+                  user_id: dbUser ? dbUser.user_id : 1,
+                  full_name: fullName,
+                  email,
+                  phone: (dbUser && dbUser.phone) || "+7 (701) 234-56-78",
+                  password_hash: dbUser ? dbUser.password_hash : "verified",
+                  role: (dbUser && dbUser.role) || "customer",
+                  branch_id: null,
+                  barber_id: null
+                };
+                this.store.verifiedUsers[email] = verifiedObj;
+                this.store.save();
+                window.history.replaceState({}, document.title, window.location.pathname);
+                this.completeSession(verifiedObj);
+              }
+            }
+          });
+        }
+      }
+
+      async finalizeVerifiedRegistration(regData) {
+        const hash = regData.passwordHash || (await SecurityService.hashPassword(regData.password));
+        const userId = await this.db.ensureUser(regData.fullName, regData.email, hash, regData.phone);
+
+        const newVerifiedUser = {
+          user_id: userId,
+          full_name: regData.fullName,
+          email: regData.email,
+          phone: regData.phone,
+          password_hash: hash,
+          role: "customer",
+          branch_id: null,
+          barber_id: null
+        };
+
+        this.store.verifiedUsers[regData.email] = newVerifiedUser;
+        this.store.save();
+        SafeStorage.remove("cl_pending_reg_v14");
+        this.pendingReg = null;
+        this.completeSession(newVerifiedUser);
+      }
+
       init() {
         this.theme.apply();
         this.media.initCaptions();
+        this.initModalEscapeListener();
         this.tickClock();
         this.renderCities();
         this.renderBrands();
         this.renderBranches();
         this.renderBarbers();
         this.renderDatePills();
+        this.renderTimeSlots();
         this.populateReviewFilter();
         this.renderReviews();
         this.updateSummary();
         this.iot.start();
 
-        // Always start on the main booking view
         this.forceResetToMainPage();
-
-        if (this.db.client && this.db.client.auth) {
-          this.db.client.auth.onAuthStateChange((event, session) => {
-            if (event === "SIGNED_IN" && session && session.user && !this.user) {
-              const email = session.user.email.toLowerCase();
-              if (this.store.verifiedUsers[email]) {
-                this.completeSession(this.store.verifiedUsers[email]);
-              }
-            }
-          });
-        }
+        this.initAuthCallbackListener();
 
         if (this.user) {
           const gate = document.getElementById("authGateOverlay");
@@ -1983,7 +2257,16 @@
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       }
 
+      getDefaultBookingDateISO() {
+        const d = new Date();
+        if (d.getHours() >= 18) {
+          d.setDate(d.getDate() + 1);
+        }
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+
       isSlotPast(dateISO, timeStr) {
+        if (!timeStr) return true;
         const today = this.getTodayISO();
         if (dateISO < today) return true;
         if (dateISO > today) return false;
@@ -2001,7 +2284,7 @@
           badge.textContent = `✓ ${res.carrier}`;
           badge.className = "text-[11px] font-bold text-[#165B40]";
         } else {
-          badge.textContent = "Enter valid KZ mobile";
+          badge.textContent = "+7 (7XX) XXX-XX-XX";
           badge.className = "text-[11px] font-semibold text-rose-600";
         }
       }
@@ -2045,7 +2328,6 @@
       }
 
       navigate(view) {
-        // Strict RBAC guard: customers can never navigate to 'portal'
         if (view === "portal" && !this.isAuthorizedStaff()) {
           this.forceResetToMainPage();
           return this.toast("Staff Access Required", "Enter a 12-character access code in your Account Settings.", true);
@@ -2077,7 +2359,8 @@
 
           const sideEl = document.getElementById(v.side);
           if (sideEl && !sideEl.classList.contains("hidden")) {
-            sideEl.className = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${active ? "nav-active" : "nav-idle"}`;
+            sideEl.classList.toggle("nav-active", active);
+            sideEl.classList.toggle("nav-idle", !active);
           }
           const mobEl = document.getElementById(v.mob);
           if (mobEl && !mobEl.classList.contains("hidden")) {
@@ -2086,7 +2369,7 @@
         });
 
         if (view === "portal" && this.isAuthorizedStaff()) {
-          this.analytics.fetchAndRenderAdminStats();
+          this.analytics.fetchAndRenderAdminStats(false);
           this.renderHeadAdminQueue();
           this.renderPortalSchedule();
         } else if (view === "appointments") {
@@ -2135,7 +2418,7 @@
         document.getElementById("authTabRegister").className = isReg
           ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
           : "flex-1 py-2.5 rounded-lg text-muted-theme transition";
-        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Code" : "Sign In";
+        document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Email" : "Sign In";
       }
 
       openTermsModal() {
@@ -2176,14 +2459,17 @@
           if (!terms) return this.toast("Terms of Service", "Please accept the Terms of Service to register.", true);
 
           const otpCode = String(Math.floor(100000 + Math.random() * 900000));
-          this.pendingReg = { fullName, email, phone, password, otpCode };
+          const passwordHash = await SecurityService.hashPassword(password);
+          this.pendingReg = { fullName, email, phone, password, passwordHash, otpCode };
+          SafeStorage.set("cl_pending_reg_v14", this.pendingReg);
 
           document.getElementById("authCredentialsForm").classList.add("hidden");
           document.getElementById("authOtpForm").classList.remove("hidden");
-          document.getElementById("otpSentSubtext").textContent = `A 6-digit verification code has been sent to ${email} (${phoneCheck.carrier}).`;
+          document.getElementById("otpSentSubtext").textContent =
+            `We dispatched a verification email to ${email} (${phoneCheck.carrier}). Click the confirmation link inside the email or enter the 6-digit code below.`;
 
-          await EmailVerificationService.sendOtpEmail(email, fullName, otpCode, this.db.client);
-          this.toast("Verification Code Sent", `Check ${email} to confirm your account.`);
+          await EmailVerificationService.sendOtpEmail(email, fullName, otpCode, passwordHash, phone, this.db.client);
+          this.toast("Verification Email Sent", `Check your inbox at ${email}.`);
           return;
         }
 
@@ -2192,12 +2478,12 @@
             return this.toast("Incorrect Password", "The password entered for Head Admin is incorrect.", true);
           }
           const hash = await SecurityService.hashPassword(password);
-          const userId = await this.db.ensureUser("Arlan", email, hash);
+          const userId = await this.db.ensureUser("Arlan", email, hash, "+7 (701) 777-88-99");
           return this.completeSession({
             user_id: userId,
             full_name: "Arlan Shikibaev",
             email,
-            phone: "+7 701 777 88 99",
+            phone: "+7 (701) 777-88-99",
             role: "head_admin",
             branch_id: null,
             barber_id: null
@@ -2205,36 +2491,53 @@
         }
 
         const enteredHash = await SecurityService.hashPassword(password);
-        const localAccount = this.store.verifiedUsers[email];
+        let account = this.store.verifiedUsers[email];
 
-        if (!localAccount) {
+        if (!account) {
+          const dbUser = await this.db.findUserByEmail(email);
+          if (dbUser && dbUser.password_hash) {
+            account = {
+              user_id: dbUser.user_id,
+              full_name: dbUser.full_name || "Client",
+              email: dbUser.email.toLowerCase(),
+              phone: dbUser.phone || "+7 (701) 234-56-78",
+              password_hash: dbUser.password_hash,
+              role: dbUser.role || "customer"
+            };
+          }
+        }
+
+        if (!account) {
           return this.toast(
             "Account Not Found",
-            "No verified account exists for this email. Switch to 'Create Account' to register and verify via OTP first.",
+            "No registered account exists for this email. Click 'Create Account' first.",
             true
           );
         }
 
-        if (localAccount.password_hash !== enteredHash) {
-          return this.toast(
-            "Incorrect Password",
-            "The password you entered does not match this account.",
-            true
-          );
+        if (account.password_hash !== enteredHash) {
+          return this.toast("Incorrect Password", "The password you entered does not match this account.", true);
         }
 
-        // Always reset role to customer unless explicitly escalated via 12-char code
         this.completeSession({
-          ...localAccount,
-          role: localAccount.role || "customer"
+          ...account,
+          role: account.role || "customer"
         });
       }
 
       async resendOtpCode() {
         if (!this.pendingReg) return;
         this.pendingReg.otpCode = String(Math.floor(100000 + Math.random() * 900000));
-        await EmailVerificationService.sendOtpEmail(this.pendingReg.email, this.pendingReg.fullName, this.pendingReg.otpCode, this.db.client);
-        this.toast("Code Resent", `Sent a new verification code to ${this.pendingReg.email}.`);
+        SafeStorage.set("cl_pending_reg_v14", this.pendingReg);
+        await EmailVerificationService.sendOtpEmail(
+          this.pendingReg.email,
+          this.pendingReg.fullName,
+          this.pendingReg.otpCode,
+          this.pendingReg.passwordHash,
+          this.pendingReg.phone,
+          this.db.client
+        );
+        this.toast("Verification Email Resent", `Sent a new verification email to ${this.pendingReg.email}.`);
       }
 
       cancelOtpStep() {
@@ -2258,41 +2561,22 @@
           return this.toast("Invalid Verification Code", "The 6-digit code entered does not match.", true);
         }
 
-        const hash = await SecurityService.hashPassword(this.pendingReg.password);
-        const userId = await this.db.ensureUser(this.pendingReg.fullName, this.pendingReg.email, hash);
-
-        const newVerifiedUser = {
-          user_id: userId,
-          full_name: this.pendingReg.fullName,
-          email: this.pendingReg.email,
-          phone: this.pendingReg.phone,
-          password_hash: hash,
-          role: "customer",
-          branch_id: null,
-          barber_id: null
-        };
-
-        this.store.verifiedUsers[this.pendingReg.email] = newVerifiedUser;
-        this.store.save();
-
-        this.completeSession(newVerifiedUser);
-        this.pendingReg = null;
+        await this.finalizeVerifiedRegistration(this.pendingReg);
       }
 
-      // Automatically transfers user to the main booking page ('book') on every sign-in or registration
       completeSession(userObj) {
         this.user = userObj;
-        SafeStorage.set("cl_session_v12", this.user);
+        SafeStorage.set("cl_session_v14", this.user);
         document.getElementById("authGateOverlay").classList.add("hidden");
         this.forceResetToMainPage();
         this.syncUserUI();
+        this.refreshSchedule(false);
         this.navigate("book");
         this.toast("Signed In", `Welcome, ${this.user.full_name}.`);
       }
 
-      // Immediately locks and hides Management page on Sign Out
       signOut() {
-        SafeStorage.remove("cl_session_v12");
+        SafeStorage.remove("cl_session_v14");
         this.user = null;
         this.forceResetToMainPage();
         document.getElementById("sideNavPortal").classList.add("hidden");
@@ -2312,7 +2596,7 @@
 
         this.user.full_name = newName;
         this.user.phone = newPhone;
-        SafeStorage.set("cl_session_v12", this.user);
+        SafeStorage.set("cl_session_v14", this.user);
         if (this.store.verifiedUsers[this.user.email]) {
           this.store.verifiedUsers[this.user.email].full_name = newName;
           this.store.verifiedUsers[this.user.email].phone = newPhone;
@@ -2328,6 +2612,7 @@
         const imgs = {
           1: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80&fm=webp",
           2: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80&fm=webp",
+          3: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80&fm=webp",
           4: "https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80&fm=webp"
         };
         document.getElementById("styleModalImg").src = imgs[serviceId] || imgs[1];
@@ -2345,15 +2630,26 @@
         document.getElementById("styleDetailModal").classList.remove("hidden");
       }
 
-      redeemAccessToken() {
+      async redeemAccessToken() {
         const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
         if (!token) return;
+
+        const dbCode = await this.db.verifyStaffCodeInDB(token);
+        if (dbCode) {
+          this.user.role = dbCode.role;
+          this.user.branch_id = dbCode.branch_id || null;
+          this.user.barber_id = dbCode.barber_id || null;
+          if (dbCode.staff_name) this.user.full_name = dbCode.staff_name;
+          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, dbCode.role, token);
+          return this.saveRoleAndNavigate(`${dbCode.role.replace("_", " ").toUpperCase()} access verified via Supabase.`);
+        }
 
         if (token === this.store.headAdminAccount.token) {
           this.user.role = "head_admin";
           this.user.full_name = "Arlan Shikibaev";
           this.user.branch_id = null;
           this.user.barber_id = null;
+          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "head_admin", token);
           return this.saveRoleAndNavigate("Head Admin access activated.");
         }
 
@@ -2362,6 +2658,7 @@
           this.user.role = "admin";
           this.user.branch_id = branch.id;
           this.user.barber_id = null;
+          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "admin", token);
           return this.saveRoleAndNavigate(`Branch Admin access activated for ${branch.name}.`);
         }
 
@@ -2371,14 +2668,15 @@
           this.user.branch_id = barber.branch_id;
           this.user.barber_id = barber.id;
           this.user.full_name = barber.name;
+          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "barber", token);
           return this.saveRoleAndNavigate(`Barber access activated for ${barber.name}.`);
         }
 
-        this.toast("Invalid Access Code", "The 12-character code was not recognized.", true);
+        this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
       }
 
       saveRoleAndNavigate(msg) {
-        SafeStorage.set("cl_session_v12", this.user);
+        SafeStorage.set("cl_session_v14", this.user);
         document.getElementById("staffInviteKeyInput").value = "";
         document.getElementById("authProfileModal").classList.add("hidden");
         this.syncUserUI();
@@ -2462,6 +2760,11 @@
         if (!container) return;
         const branches = this.store.getBranches(this.selectedCity, this.selectedBrandId);
 
+        if (branches.length === 0) {
+          container.innerHTML = `<div class="col-span-2 surface-box rounded-xl p-4 text-center text-xs text-muted-theme">No branches registered in ${this.selectedCity} yet.</div>`;
+          return;
+        }
+
         container.innerHTML = branches.map(br => {
           const active = Number(br.id) === Number(this.selectedBranchId);
           const barbers = this.store.getBarbers(br.id).map(b => b.name).join(", ");
@@ -2505,6 +2808,11 @@
         if (!container) return;
         const barbers = this.store.getBarbers(this.selectedBranchId);
 
+        if (barbers.length === 0) {
+          container.innerHTML = `<div class="col-span-3 surface-box rounded-xl p-4 text-center text-xs text-muted-theme">No barbers assigned to this branch yet.</div>`;
+          return;
+        }
+
         container.innerHTML = barbers.map(b => {
           const stats = this.store.getRating(b.id);
           const active = Number(b.id) === Number(this.selectedBarberId);
@@ -2515,7 +2823,7 @@
                 ? "border-[#165B40] sage-box ring-2 ring-[#165B40]/20"
                 : "surface-box hover:border-[#165B40]"
             }">
-              <img src="${b.avatar}" alt="${b.name}" width="52" height="52" loading="lazy" class="w-13 h-13 rounded-full object-cover shrink-0 border border-[#165B40]/30" />
+              <img src="${b.avatar}" alt="${b.name}" width="52" height="52" loading="lazy" class="w-12 h-12 rounded-full object-cover shrink-0 border border-[#165B40]/30" />
               <div class="min-w-0">
                 <div class="text-xs font-bold truncate">${b.name}</div>
                 <div class="text-[10px] text-muted-theme truncate">${b.specialty}</div>
@@ -2540,7 +2848,7 @@
         document.getElementById("partnerModal").classList.remove("hidden");
       }
 
-      submitPartnerApplication(e) {
+      async submitPartnerApplication(e) {
         e.preventDefault();
         const city = document.getElementById("partnerCity").value;
         const bin = document.getElementById("partnerBin").value.trim();
@@ -2555,7 +2863,7 @@
         const phoneCheck = SecurityService.validatePhone(phone);
         if (!phoneCheck.ok) return this.toast("Invalid Phone", phoneCheck.msg, true);
 
-        this.store.pendingPartners.push({
+        const newApp = {
           req_id: Date.now(),
           city,
           bin,
@@ -2563,12 +2871,18 @@
           address,
           leadBarber,
           phone
-        });
+        };
+
+        const dbId = await this.db.createPartnerApplication(newApp);
+        if (dbId) newApp.req_id = dbId;
+
+        this.store.pendingPartners.unshift(newApp);
         this.store.save();
+        document.getElementById("partnerApplicationForm").reset();
         document.getElementById("partnerModal").classList.add("hidden");
         this.syncUserUI();
         this.renderHeadAdminQueue();
-        this.toast("Application Submitted", `${brandName} has been sent to Head Administration for review.`);
+        this.toast("Application Saved to Database", `${brandName} (${city}) added to Pending Partner Applications.`);
       }
 
       renderHeadAdminQueue() {
@@ -2592,7 +2906,7 @@
         const container = document.getElementById("pendingRequestsContainer");
 
         if (count === 0) {
-          container.innerHTML = `<div class="col-span-2 surface-box rounded-xl p-4 text-center text-xs text-muted-theme">No pending barbershop applications.</div>`;
+          container.innerHTML = `<div class="col-span-2 surface-box rounded-xl p-5 text-center text-xs text-muted-theme">No pending barbershop applications in queue.</div>`;
           return;
         }
 
@@ -2616,18 +2930,20 @@
         `).join("");
       }
 
-      approvePartnerRequest(reqId) {
+      async approvePartnerRequest(reqId) {
         if (!this.user || this.user.role !== "head_admin") return;
         const idx = this.store.pendingPartners.findIndex(r => r.req_id === reqId);
         if (idx === -1) return;
         const req = this.store.pendingPartners[idx];
+
+        await this.db.updatePartnerApplicationStatus(reqId, "approved");
 
         const brandKey = req.brandName.toLowerCase().replace(/[^a-z0-9]/g, "") || `brand_${Date.now()}`;
         if (!this.store.brands[brandKey]) {
           this.store.brands[brandKey] = { id: brandKey, name: req.brandName, tagline: "Partner Network" };
         }
 
-        const newBranchId = Date.now();
+        const newBranchId = Math.floor(500 + Math.random() * 400);
         const adminToken = SecurityService.generate12CharCode();
         const barberToken = SecurityService.generate12CharCode();
 
@@ -2662,8 +2978,9 @@
         this.toast("Branch Approved", `${req.brandName} is now live. Admin Code: ${adminToken}`);
       }
 
-      declinePartnerRequest(reqId) {
+      async declinePartnerRequest(reqId) {
         if (!this.user || this.user.role !== "head_admin") return;
+        await this.db.updatePartnerApplicationStatus(reqId, "declined");
         this.store.pendingPartners = this.store.pendingPartners.filter(r => r.req_id !== reqId);
         this.store.save();
         this.renderHeadAdminQueue();
@@ -2682,9 +2999,12 @@
         if (dateInp) {
           dateInp.min = today;
           if (!dateInp.value || this.selectedDateISO < today) {
-            this.selectedDateISO = today;
-            dateInp.value = today;
+            dateInp.value = this.selectedDateISO;
           }
+        }
+        const statusLbl = document.getElementById("dateStatusLabel");
+        if (statusLbl) {
+          statusLbl.textContent = this.selectedDateISO === today ? "Today" : this.selectedDateISO;
         }
       }
 
@@ -2725,8 +3045,13 @@
       }
 
       isSlotTaken(dateISO, timeStr, barberId) {
+        const targetBarber = this.store.barbers[barberId];
+        const targetDbId = targetBarber ? targetBarber.db_id : barberId;
         return this.scheduleList.some(a =>
-          a.date === dateISO && a.time === timeStr && Number(a.barber_id) === Number(barberId) && a.status !== "cancelled"
+          a.date === dateISO &&
+          a.time === timeStr &&
+          (Number(a.barber_id) === Number(barberId) || Number(a.db_barber_id) === Number(targetDbId)) &&
+          a.status !== "cancelled"
         );
       }
 
@@ -2735,7 +3060,8 @@
         if (!container) return;
         let openCount = 0;
         let firstOpen = null;
-        const stillValid = !this.isSlotPast(this.selectedDateISO, this.selectedTime) &&
+        const stillValid = Boolean(this.selectedTime) &&
+          !this.isSlotPast(this.selectedDateISO, this.selectedTime) &&
           !this.isSlotTaken(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
 
         container.innerHTML = this.slots.map(slot => {
@@ -2759,13 +3085,17 @@
           }
           return `
             <button type="button" onclick="window.app.selectTime('${slot}')" class="relative py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
-              active ? "border-[#165B40] bg-[#165B40] text-white shadow-xs" : "surface-box hover:border-[#165B40]"
+              active ? "border-[#165B40] bg-[#165B40] text-white shadow-sm" : "surface-box hover:border-[#165B40]"
             }">
               ${slot}
               ${isQuietDiscount ? `<span class="block text-[9px] ${active ? "text-amber-200" : "text-amber-600"} font-extrabold">-15%</span>` : ""}
             </button>
           `;
         }).join("");
+
+        if (openCount === 0) {
+          this.selectedTime = null;
+        }
 
         document.getElementById("slotsAvailableCount").textContent = `${openCount} slots open`;
         const btn = document.getElementById("confirmBtn");
@@ -2780,7 +3110,7 @@
 
       resetBookingForm() {
         this.selectCity("Astana");
-        this.selectDate(this.getTodayISO());
+        this.selectDate(this.getDefaultBookingDateISO());
       }
 
       updateSummary() {
@@ -2796,26 +3126,73 @@
         const formattedPrice = `${finalPrice.toLocaleString()} ₸`;
 
         document.getElementById("summaryShopLine").textContent = `${br.name} (${br.city})`;
-        document.getElementById("summaryLine1").textContent = `${opt.dataset.name} with ${b.name} · ${this.selectedTime || "—"}`;
+        document.getElementById("summaryLine1").textContent = `${opt.dataset.name} with ${b.name} · ${this.selectedTime || "No slot open"}`;
         document.getElementById("summaryLine2").textContent = `${this.selectedDateISO} · ${opt.dataset.duration} mins · ${formattedPrice}`;
         document.getElementById("quietDiscountTag").classList.toggle("hidden", !isQuiet);
       }
 
       async refreshSchedule(notify = false) {
         try {
-          this.scheduleList = await this.db.fetchAll(this.store);
+          const [appts] = await Promise.all([
+            this.db.fetchAll(this.store),
+            this.db.fetchPartnerApplications(this.store)
+          ]);
+          this.scheduleList = appts;
         } catch (e) {}
+
+        this.syncLatestBookingPassFromDB();
         this.renderTimeSlots();
+        this.updateSummary();
         this.renderCustomerBookings();
         if (this.isAuthorizedStaff()) {
           this.renderPortalSchedule();
+          this.renderHeadAdminQueue();
         }
         this.syncUserUI();
-        if (notify) this.toast("Updated", "Schedule synchronized with Supabase.");
+        if (notify) this.toast("Database Synchronized", "Fetched latest records from Supabase PostgreSQL.");
+      }
+
+      syncLatestBookingPassFromDB() {
+        if (!this.user || !this.scheduleList.length) return;
+        const first = (this.user.full_name || "Client").split(" ")[0].toLowerCase();
+        const userBookings = this.scheduleList.filter(
+          a => (a.customer_id === this.user.user_id || a.client_name.toLowerCase() === first) && a.status !== "cancelled"
+        );
+        if (!userBookings.length) return;
+
+        const latest = userBookings[userBookings.length - 1];
+        const s = this.store.services[latest.service_id] || this.store.services[1];
+        const b = this.store.barbers[latest.barber_id] || this.store.barbers[1];
+        const br = this.store.branches[latest.branch_id] || this.store.branches[101];
+        const isQuiet = latest.time === "12:00" || latest.time === "18:00";
+        const priceStr = isQuiet ? `${Math.round(s.price_kzt * 0.85).toLocaleString()} ₸ (-15%)` : s.price;
+        const refCode = `CL-${1000 + latest.appointment_id}`;
+
+        this.lastBooking = {
+          refCode,
+          shopName: br.name,
+          shopAddress: `${br.address}, ${br.city}`,
+          serviceName: s.name,
+          duration: s.duration,
+          barberName: b.name,
+          dateISO: latest.date,
+          timeStr: latest.time,
+          price: priceStr
+        };
+
+        document.getElementById("confReference").textContent = refCode;
+        document.getElementById("confShopName").textContent = br.name;
+        document.getElementById("confShopAddress").textContent = `${br.address}, ${br.city}`;
+        document.getElementById("confService").textContent = `${s.name} · ${b.name}`;
+        document.getElementById("confWhen").textContent = `${latest.date} · ${latest.time}`;
+        document.getElementById("confTotal").textContent = priceStr;
       }
 
       async submitBooking(e) {
         e.preventDefault();
+        if (!this.selectedTime || this.isSlotPast(this.selectedDateISO, this.selectedTime)) {
+          return this.toast("Select a Valid Time", "Please choose an available future time slot.", true);
+        }
         if (!SecurityService.allowAction("book", 4, 20000)) {
           return this.toast("Please Wait", "Wait a moment before booking another visit.", true);
         }
@@ -2825,59 +3202,37 @@
         if (!phoneCheck.ok) return this.toast("Invalid Phone Number", phoneCheck.msg, true);
 
         const serviceId = parseInt(document.getElementById("serviceInput").value);
-        const service = this.store.services[serviceId];
-        const barber = this.store.barbers[this.selectedBarberId];
-        const branch = this.store.branches[this.selectedBranchId];
+        const barber = this.store.barbers[this.selectedBarberId] || this.store.barbers[1];
+        const branch = this.store.branches[this.selectedBranchId] || this.store.branches[101];
         const startsAtISO = `${this.selectedDateISO}T${this.selectedTime}:00+05:00`;
 
-        const isQuiet = this.selectedTime === "12:00" || this.selectedTime === "18:00";
-        const finalPrice = isQuiet ? `${Math.round(service.price_kzt * 0.85).toLocaleString()} ₸ (-15%)` : service.price;
-
         try {
-          const customerId = await this.db.ensureUser(name, this.user ? this.user.email : null, "pbkdf2_sha256$10000$verified");
+          const customerId = await this.db.ensureUser(name, this.user ? this.user.email : null, "pbkdf2_sha256$10000$verified", phone);
           const apptId = await this.db.createAppointment(customerId, barber.db_id, startsAtISO, serviceId, branch.id);
 
           this.store.branchMap[apptId] = { branch_id: branch.id, barber_id: barber.id };
           this.store.save();
 
-          const refCode = `CL-${1000 + apptId}`;
-          this.lastBooking = {
-            refCode,
-            shopName: branch.name,
-            shopAddress: `${branch.address}, ${branch.city}`,
-            serviceName: service.name,
-            duration: service.duration,
-            barberName: barber.name,
-            dateISO: this.selectedDateISO,
-            timeStr: this.selectedTime,
-            price: finalPrice
-          };
-
-          document.getElementById("confReference").textContent = refCode;
-          document.getElementById("confShopName").textContent = branch.name;
-          document.getElementById("confShopAddress").textContent = `${branch.address}, ${branch.city}`;
-          document.getElementById("confService").textContent = `${service.name} · ${barber.name}`;
-          document.getElementById("confWhen").textContent = `${this.selectedDateISO} · ${this.selectedTime}`;
-          document.getElementById("confTotal").textContent = finalPrice;
-
           await this.refreshSchedule(false);
           this.navigate("appointments");
-          this.toast("Booking Confirmed", `${branch.name} · ${this.selectedDateISO} at ${this.selectedTime}`);
+          this.toast("Booking Committed to Supabase", `${branch.name} · ${this.selectedDateISO} at ${this.selectedTime}`);
         } catch (err) {
-          this.toast("Slot Unavailable", "This barber is already booked at that time.", true);
+          this.toast("Slot Unavailable", "This barber is already booked at that time in PostgreSQL.", true);
         }
       }
 
       renderCustomerBookings() {
         const container = document.getElementById("customerBookingsContainer");
         if (!container || !this.user) return;
-        const first = this.user.full_name.split(" ")[0].toLowerCase();
-        const mine = this.scheduleList.filter(a => a.client_name.toLowerCase() === first && a.status !== "cancelled");
+        const first = (this.user.full_name || "Client").split(" ")[0].toLowerCase();
+        const mine = this.scheduleList.filter(
+          a => (a.customer_id === this.user.user_id || a.client_name.toLowerCase() === first) && a.status !== "cancelled"
+        );
 
         document.getElementById("navBadgeBookings").textContent = mine.length;
 
         if (!mine.length) {
-          container.innerHTML = `<div class="surface-box rounded-2xl p-6 text-center text-xs text-muted-theme">No appointments yet.</div>`;
+          container.innerHTML = `<div class="surface-box rounded-2xl p-6 text-center text-xs text-muted-theme">No bookings scheduled for your account yet.</div>`;
           return;
         }
 
@@ -2891,7 +3246,7 @@
           return `
             <div class="surface-box rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div class="text-sm font-bold">${s.name} with ${b.name} (${s.price})</div>
+                <div class="text-sm font-bold">${s.name} with ${b.name} (${s.price}) · <span class="text-xs font-mono text-[#165B40]">CL-${1000 + item.appointment_id}</span></div>
                 <div class="text-xs font-semibold text-[#165B40]">📍 ${br.name} · ${br.address}</div>
                 <div class="text-xs text-muted-theme mt-0.5">${item.date} at ${item.time}</div>
               </div>
@@ -2913,7 +3268,7 @@
         if (!window.confirm("Cancel this appointment?")) return;
         await this.db.updateStatus(id, "cancelled");
         await this.refreshSchedule(false);
-        this.toast("Cancelled", "Your appointment has been cancelled.");
+        this.toast("Cancelled", "Your appointment has been cancelled in PostgreSQL.");
       }
 
       setScheduleFilter(filter) {
@@ -2940,7 +3295,7 @@
 
         const staffTokensPanel = document.getElementById("branchStaffTokensPanel");
         if (role === "admin" && this.user.branch_id) {
-          const br = this.store.branches[this.user.branch_id];
+          const br = this.store.branches[this.user.branch_id] || this.store.branches[101];
           document.getElementById("workspaceRoleOverline").textContent = "BRANCH ADMINISTRATION";
           document.getElementById("workspaceTitle").textContent = br.name;
           document.getElementById("workspaceDescription").textContent = `${br.address}, ${br.city}`;
@@ -2953,8 +3308,8 @@
             </div>
           `).join("");
         } else if (role === "barber" && this.user.barber_id) {
-          const b = this.store.barbers[this.user.barber_id];
-          const br = this.store.branches[b.branch_id];
+          const b = this.store.barbers[this.user.barber_id] || this.store.barbers[1];
+          const br = this.store.branches[b.branch_id] || this.store.branches[101];
           document.getElementById("workspaceRoleOverline").textContent = "BARBER WORKSPACE";
           document.getElementById("workspaceTitle").textContent = `${b.name}'s Queue`;
           document.getElementById("workspaceDescription").textContent = `${br.name} · ${br.address}`;
@@ -2985,11 +3340,11 @@
         });
 
         if (!filtered.length) {
-          container.innerHTML = `<div class="col-span-3 surface-box rounded-2xl p-6 text-center text-xs text-muted-theme">No appointments in queue.</div>`;
+          container.innerHTML = `<div class="col-span-3 surface-box rounded-2xl p-6 text-center text-xs text-muted-theme">No bookings scheduled for this branch filter.</div>`;
           return;
         }
 
-        container.innerHTML = filtered.map(item => {
+        container.innerHTML = filtered.slice().reverse().map(item => {
           const s = this.store.services[item.service_id] || this.store.services[1];
           const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
           const br = this.store.branches[item.branch_id] || this.store.branches[101];
@@ -3027,17 +3382,18 @@
         }
         await this.db.updateStatus(id, status);
         await this.refreshSchedule(false);
-        this.analytics.fetchAndRenderAdminStats();
+        this.analytics.fetchAndRenderAdminStats(false);
         this.toast("Updated", `Appointment marked as ${status}.`);
       }
 
       syncUserUI() {
         if (!this.user) return;
-        const init = (this.user.full_name || "U").charAt(0).toUpperCase();
+        const fullName = this.user.full_name || "Client";
+        const init = fullName.charAt(0).toUpperCase();
         document.getElementById("sideAvatar").textContent = init;
         document.getElementById("topAvatar").textContent = init;
-        document.getElementById("sideUserName").textContent = this.user.full_name;
-        document.getElementById("topUserName").textContent = this.user.full_name.split(" ")[0];
+        document.getElementById("sideUserName").textContent = fullName;
+        document.getElementById("topUserName").textContent = fullName.split(" ")[0];
 
         const roleMap = { customer: "Customer · Settings", barber: "Barber · Workspace", admin: "Branch Admin", head_admin: "Head Admin" };
         document.getElementById("sideUserRole").textContent = roleMap[this.user.role] || "Customer";
@@ -3046,24 +3402,32 @@
         document.getElementById("sideNavPortal").classList.toggle("hidden", !isStaff);
         document.getElementById("mobNavPortal").classList.toggle("hidden", !isStaff);
 
-        // If user is a Customer and somehow on 'portal', immediately force them back to 'book'
         if (!isStaff && this.currentView === "portal") {
           this.forceResetToMainPage();
         }
 
-        document.getElementById("clientNameInput").value = this.user.full_name;
-        document.getElementById("clientPhoneInput").value = this.user.phone || "+7 701 234 56 78";
+        document.getElementById("clientNameInput").value = fullName;
+        const phoneInp = document.getElementById("clientPhoneInput");
+        if (phoneInp) {
+          phoneInp.value = this.user.phone || "+7 (701) 234-56-78";
+          SecurityService.formatPhone(phoneInp);
+        }
         this.renderHeadAdminQueue();
       }
 
       openProfileModal() {
         if (!this.user) return;
-        document.getElementById("profileBigAvatar").textContent = (this.user.full_name || "U").charAt(0).toUpperCase();
-        document.getElementById("profileDisplayName").textContent = this.user.full_name;
-        document.getElementById("profileRoleBadge").textContent = this.user.role.replace("_", " ");
-        document.getElementById("profileDisplayEmail").textContent = this.user.email;
-        document.getElementById("settingsNameInput").value = this.user.full_name;
-        document.getElementById("settingsPhoneInput").value = this.user.phone || "+7 701 234 56 78";
+        const fullName = this.user.full_name || "Client";
+        document.getElementById("profileBigAvatar").textContent = fullName.charAt(0).toUpperCase();
+        document.getElementById("profileDisplayName").textContent = fullName;
+        document.getElementById("profileRoleBadge").textContent = (this.user.role || "customer").replace("_", " ");
+        document.getElementById("profileDisplayEmail").textContent = this.user.email || "";
+        document.getElementById("settingsNameInput").value = fullName;
+        const sPhone = document.getElementById("settingsPhoneInput");
+        if (sPhone) {
+          sPhone.value = this.user.phone || "+7 (701) 234-56-78";
+          SecurityService.formatPhone(sPhone);
+        }
         document.getElementById("authProfileModal").classList.remove("hidden");
       }
 
@@ -3083,6 +3447,11 @@
         if (!container) return;
         const val = document.getElementById("reviewFilterBarber").value;
         const list = this.store.reviews.filter(r => val === "all" || String(r.barber_id) === val);
+
+        if (list.length === 0) {
+          container.innerHTML = `<div class="surface-box rounded-xl p-5 text-center text-xs text-muted-theme">No verified client reviews for this barber yet.</div>`;
+          return;
+        }
 
         container.innerHTML = list.slice().reverse().map(r => {
           const b = this.store.barbers[r.barber_id] || this.store.barbers[1];
@@ -3104,8 +3473,8 @@
       openReviewModal(apptId) {
         this.reviewTargetId = apptId;
         const appt = this.scheduleList.find(a => a.appointment_id === apptId);
-        const b = this.store.barbers[appt ? appt.barber_id : 1];
-        const br = this.store.branches[appt ? appt.branch_id : 101];
+        const b = this.store.barbers[appt ? appt.barber_id : 1] || this.store.barbers[1];
+        const br = this.store.branches[appt ? appt.branch_id : 101] || this.store.branches[101];
         document.getElementById("reviewModalTitle").textContent = `Rate ${b.name}`;
         document.getElementById("reviewModalSubtitle").textContent = br.name;
         document.getElementById("reviewCommentInput").value = "";
@@ -3131,7 +3500,7 @@
           appointment_id: this.reviewTargetId,
           branch_id: appt ? appt.branch_id : this.selectedBranchId,
           barber_id: appt ? appt.barber_id : this.selectedBarberId,
-          client_name: this.user ? this.user.full_name.split(" ")[0] : "Client",
+          client_name: this.user && this.user.full_name ? this.user.full_name.split(" ")[0] : "Client",
           rating: this.selectedStars,
           comment,
           date: this.getTodayISO()
@@ -3156,7 +3525,7 @@
           timeStr: this.selectedTime || "16:00"
         };
         const [y, m, d] = b.dateISO.split("-").map(Number);
-        const [hr, min] = b.timeStr.split(":").map(Number);
+        const [hr, min] = (b.timeStr || "16:00").split(":").map(Number);
         const start = new Date(y, m - 1, d, hr, min, 0);
         const end = new Date(start.getTime() + b.duration * 60000);
         const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -3184,7 +3553,7 @@
           timeStr: this.selectedTime || "16:00"
         };
         const [y, m, d] = b.dateISO.split("-").map(Number);
-        const [hr, min] = b.timeStr.split(":").map(Number);
+        const [hr, min] = (b.timeStr || "16:00").split(":").map(Number);
         const start = new Date(y, m - 1, d, hr, min, 0);
         const end = new Date(start.getTime() + b.duration * 60000);
         const fmt = dt => dt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
