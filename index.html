@@ -181,7 +181,15 @@
                 <label for="authPassword" class="text-xs font-semibold">Password</label>
                 <span id="passwordLiveBadge" class="text-[10px] font-semibold text-muted-theme">Min 8 chars (letters + numbers)</span>
               </div>
-              <input id="authPassword" type="password" required minlength="8" oninput="window.app.validatePasswordLive(this.value)" placeholder="Minimum 8 characters" class="field w-full px-3.5 py-2.5 text-sm" />
+              <div class="relative">
+                <input id="authPassword" type="password" required minlength="8" oninput="window.app.validatePasswordLive(this.value)" placeholder="Minimum 8 characters" class="field w-full pl-3.5 pr-10 py-2.5 text-sm" />
+                <button type="button" onclick="window.app.togglePasswordVisibility('authPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-theme hover:text-[#165B40]" title="Show or Hide Password">👁️</button>
+              </div>
+              <div id="forgotPasswordRow" class="flex justify-end mt-1.5">
+                <button type="button" onclick="window.app.startPasswordReset()" class="text-xs font-semibold text-[#165B40] hover:underline">
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             <div id="regTermsRow" class="hidden pt-1">
@@ -195,6 +203,43 @@
 
             <button type="submit" id="authSubmitBtn" class="btn-primary w-full py-3.5 rounded-xl font-bold text-sm shadow-md">
               Sign In
+            </button>
+          </form>
+
+          <!-- Step 3: Password Reset Screen -->
+          <form id="authResetForm" onsubmit="window.app.handlePasswordResetConfirm(event)" class="hidden space-y-4">
+            <div class="sage-box rounded-2xl p-4 border border-[#165B40]/25 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#165B40]">Reset your password</span>
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#165B40]">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Code Sent
+                </span>
+              </div>
+              <p id="resetSentSubtext" class="text-xs text-muted-theme leading-relaxed">
+                We sent a 6-digit password reset code to your email. Enter the code and your new password below.
+              </p>
+            </div>
+
+            <div>
+              <label for="resetOtpInput" class="block text-xs font-semibold mb-1">6-Digit Reset Code</label>
+              <input id="resetOtpInput" type="text" required maxlength="6" placeholder="••••••" class="field w-full px-4 py-2.5 text-center text-lg font-extrabold tracking-[0.4em]" />
+            </div>
+
+            <div>
+              <label for="resetNewPassword" class="block text-xs font-semibold mb-1">New Password</label>
+              <div class="relative">
+                <input id="resetNewPassword" type="password" required minlength="8" placeholder="Minimum 8 characters (letters + numbers)" class="field w-full pl-3.5 pr-10 py-2.5 text-sm" />
+                <button type="button" onclick="window.app.togglePasswordVisibility('resetNewPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-theme hover:text-[#165B40]" title="Show or Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs">
+              <button type="button" onclick="window.app.switchAuthTab('login')" class="font-semibold text-muted-theme hover:underline">← Back to Sign In</button>
+              <button type="button" onclick="window.app.startPasswordReset()" class="font-semibold text-[#165B40] hover:underline">Resend reset email</button>
+            </div>
+
+            <button type="submit" class="btn-primary w-full py-3.5 rounded-xl text-xs font-bold">
+              Save New Password & Sign In
             </button>
           </form>
 
@@ -2412,13 +2457,18 @@ async fetchAndRenderAdminStats(notify = false) {
         this.toastTimer = setTimeout(() => el.classList.add("hidden"), 4500);
       }
 
-      switchAuthTab(tab) {
+     switchAuthTab(tab) {
         this.authTab = tab;
         const isReg = tab === "register";
         document.getElementById("regNameRow").classList.toggle("hidden", !isReg);
         document.getElementById("regPhoneRow").classList.toggle("hidden", !isReg);
         document.getElementById("regTermsRow").classList.toggle("hidden", !isReg);
+        const forgotRow = document.getElementById("forgotPasswordRow");
+        if (forgotRow) forgotRow.classList.toggle("hidden", isReg);
+
         document.getElementById("authOtpForm").classList.add("hidden");
+        const resetForm = document.getElementById("authResetForm");
+        if (resetForm) resetForm.classList.add("hidden");
         document.getElementById("authCredentialsForm").classList.remove("hidden");
 
         document.getElementById("authMainHeading").textContent = isReg ? "Create your account" : "Sign in to your account";
@@ -2429,6 +2479,94 @@ async fetchAndRenderAdminStats(notify = false) {
           ? "flex-1 py-2.5 rounded-lg bg-[#165B40] text-white transition"
           : "flex-1 py-2.5 rounded-lg text-muted-theme transition";
         document.getElementById("authSubmitBtn").textContent = isReg ? "Send Verification Email" : "Sign In";
+      }
+
+      togglePasswordVisibility(inputId, btnEl) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        if (btnEl) btnEl.textContent = isHidden ? "🙈" : "👁️";
+      }
+
+      async startPasswordReset() {
+        const email = document.getElementById("authEmail").value.trim().toLowerCase();
+        const emailCheck = SecurityService.validateEmail(email);
+        if (!emailCheck.ok) {
+          return this.toast("Enter Your Email First", "Type your registered email address in the Email box above, then click 'Forgot password?'.", true);
+        }
+
+        const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+        this.pendingReset = { email, otpCode };
+        SafeStorage.set("cl_pending_reset_v14", this.pendingReset);
+
+        document.getElementById("authCredentialsForm").classList.add("hidden");
+        document.getElementById("authOtpForm").classList.add("hidden");
+        document.getElementById("authResetForm").classList.remove("hidden");
+        document.getElementById("authMainHeading").textContent = "Reset your password";
+        document.getElementById("resetSentSubtext").textContent =
+          `We dispatched a 6-digit password reset code to ${email}. Enter the code below and choose a new password.`;
+
+        const dbUser = await this.db.findUserByEmail(email);
+        const existingLocal = this.store.verifiedUsers[email];
+        const fullName = (existingLocal && existingLocal.full_name) || (dbUser && dbUser.full_name) || email.split("@")[0];
+        const phone = (existingLocal && existingLocal.phone) || (dbUser && dbUser.phone) || "+7 (701) 234-56-78";
+        const currentHash = (existingLocal && existingLocal.password_hash) || (dbUser && dbUser.password_hash) || "reset_pending";
+
+        await EmailVerificationService.sendOtpEmail(email, fullName, otpCode, currentHash, phone, this.db.client);
+        this.toast("Reset Email Sent", `Check your inbox at ${email} for your 6-digit reset code.`);
+      }
+
+      async handlePasswordResetConfirm(e) {
+        e.preventDefault();
+        const resetData = this.pendingReset || SafeStorage.get("cl_pending_reset_v14", null);
+        if (!resetData) return this.switchAuthTab("login");
+
+        const enteredCode = document.getElementById("resetOtpInput").value.trim();
+        const newPassword = document.getElementById("resetNewPassword").value;
+
+        const passCheck = SecurityService.validatePassword(newPassword);
+        if (!passCheck.ok) return this.toast("Invalid New Password", passCheck.msg, true);
+
+        const isValid = await EmailVerificationService.verifyOtpCode(
+          resetData.email,
+          enteredCode,
+          resetData.otpCode,
+          this.db.client
+        );
+
+        if (!isValid) {
+          return this.toast("Invalid Reset Code", "The 6-digit code entered does not match.", true);
+        }
+
+        const newHash = await SecurityService.hashPassword(newPassword);
+        const dbUser = await this.db.findUserByEmail(resetData.email);
+        const existingLocal = this.store.verifiedUsers[resetData.email] || {};
+
+        const fullName = existingLocal.full_name || (dbUser && dbUser.full_name) || resetData.email.split("@")[0];
+        const phone = existingLocal.phone || (dbUser && dbUser.phone) || "+7 (701) 234-56-78";
+        const role = existingLocal.role || (dbUser && dbUser.role) || "customer";
+
+        const userId = await this.db.ensureUser(fullName, resetData.email, newHash, phone);
+
+        const updatedUser = {
+          user_id: userId,
+          full_name: fullName,
+          email: resetData.email,
+          phone,
+          password_hash: newHash,
+          role,
+          branch_id: existingLocal.branch_id || null,
+          barber_id: existingLocal.barber_id || null
+        };
+
+        this.store.verifiedUsers[resetData.email] = updatedUser;
+        this.store.save();
+        SafeStorage.remove("cl_pending_reset_v14");
+        this.pendingReset = null;
+
+        this.completeSession(updatedUser);
+        this.toast("Password Updated", "Your password has been reset and you are now signed in.");
       }
 
       openTermsModal() {
