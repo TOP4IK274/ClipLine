@@ -987,7 +987,7 @@
 
   <div id="styleDetailModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="app-card max-w-md w-full overflow-hidden shadow-2xl">
-      <img id="styleModalImg" src="" alt="Haircut Style" class="w-full h-56 object-cover" />
+      <img id="styleModalImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Haircut Style" class="w-full h-56 object-cover" />
       <div class="p-6 space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -1585,6 +1585,8 @@ async fetchAndRenderAdminStats(notify = false) {
         .select("barber_id, status, starts_at");
 
       if (allAppts && allAppts.length > 0) {
+        const totalBadge = document.getElementById("analyticsTotalRowsBadge");
+        if (totalBadge) totalBadge.textContent = allAppts.length;
         const bMap = {
           1: { barber_id: 1, name: this.app.store.barbers[1]?.name || "Daniyar", total: 0, completed: 0, confirmed: 0, cancelled: 0 },
           2: { barber_id: 2, name: this.app.store.barbers[2]?.name || "Arman", total: 0, completed: 0, confirmed: 0, cancelled: 0 },
@@ -2547,7 +2549,13 @@ async fetchAndRenderAdminStats(notify = false) {
         const phone = existingLocal.phone || (dbUser && dbUser.phone) || "+7 (701) 234-56-78";
         const role = existingLocal.role || (dbUser && dbUser.role) || "customer";
 
-        const userId = await this.db.ensureUser(fullName, resetData.email, newHash, phone);
+      const userId = await this.db.ensureUser(fullName, resetData.email, newHash, phone);
+        if (this.db.client) {
+          await this.db.client
+            .from("users")
+            .update({ password_hash: newHash })
+            .eq("email", resetData.email);
+        }
 
         const updatedUser = {
           user_id: userId,
