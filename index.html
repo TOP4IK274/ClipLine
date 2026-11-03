@@ -1884,8 +1884,7 @@ async fetchAndRenderAdminStats(notify = false) {
       constructor() {
         const url = "https://puwscvrzqgzfgywnjijh.supabase.co";
         const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1d3NjdnJ6cWd6Zmd5d25qaWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTA4NjgsImV4cCI6MjEwODQyNjg2OH0.yel7zvopvuGZDp-4hcS7hoIf5Z6TvSsPBQjIonnZFf4";
-        this.client = window.supabase ? window.supabase.createClient(url, key) : null;
-      }
+        this.client = window.supabase ? window.supabase.createClient(url, key) : supabase.createClient(url, key);      }
 
       async fetchAll(store) {
         if (!this.client) return [];
