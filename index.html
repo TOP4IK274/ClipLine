@@ -3729,21 +3729,8 @@ async fetchAndRenderAdminStats(notify = false) {
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => window.app.init());
     } else {
-    window.app.init();
+      window.app.init();
     }
-}
-
-// Добавьте этот слушатель прямо здесь перед
-const branchSelector = document.getElementById('branchSelector');
-if (branchSelector) {
-    branchSelector.addEventListener('change', (e) => {
-        const selectedBranchId = e.target.value;
-        if (window.app && typeof window.app.loadBranchData === 'function') {
-            window.app.loadBranchData(selectedBranchId);
-        }
-    });
-}
-
-</script>
+  </script>
 </body>
 </html>
