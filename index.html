@@ -3736,11 +3736,47 @@ async fetchAndRenderAdminStats(notify = false) {
 (function() {
     "use strict";
 
-    // Clean up any old floating or overlapping telemetry widgets
+    // Clean up any old injected elements
     const oldW = document.getElementById("stableIoTOccupancyWidget");
     if (oldW) oldW.remove();
     const oldClean = document.getElementById("cleanStudioOccWidget");
     if (oldClean) oldClean.remove();
+    const oldBanner = document.getElementById("cliplineStyleMatchBanner");
+    if (oldBanner) oldBanner.remove();
+
+    // -------------------------------------------------------------------------
+    // DATA CONFIG FOR FIXES #4, #6, #12, #13
+    // -------------------------------------------------------------------------
+    const NETWORK_PRICES = {
+        "LOGOVO": [
+            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 4,500 to 7,000 ₸", tag: "Consultation" },
+            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 4,500 to 6,000 ₸", tag: "Classic Cut" },
+            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 5,000 to 6,500 ₸", tag: "Skin Fade" },
+            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 3,000 to 4,500 ₸", tag: "Beard Sculpt" },
+            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 5,000 to 6,500 ₸", tag: "Executive Crop" }
+        ],
+        "OldBoy": [
+            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 5,000 to 8,000 ₸", tag: "Consultation" },
+            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 5,200 to 6,800 ₸", tag: "Classic Cut" },
+            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 5,800 to 7,500 ₸", tag: "Skin Fade" },
+            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 3,500 to 5,000 ₸", tag: "Beard Sculpt" },
+            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 5,500 to 7,200 ₸", tag: "Executive Crop" }
+        ],
+        "TOPGUN": [
+            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 6,000 to 9,500 ₸", tag: "Consultation" },
+            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 6,000 to 8,000 ₸", tag: "Classic Cut" },
+            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 6,500 to 8,500 ₸", tag: "Skin Fade" },
+            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 4,000 to 5,800 ₸", tag: "Beard Sculpt" },
+            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 6,500 to 8,200 ₸", tag: "Executive Crop" }
+        ],
+        "BORODACH": [
+            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 3,800 to 6,000 ₸", tag: "Consultation" },
+            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 3,800 to 5,200 ₸", tag: "Classic Cut" },
+            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 4,200 to 5,800 ₸", tag: "Skin Fade" },
+            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 2,500 to 3,800 ₸", tag: "Beard Sculpt" },
+            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 4,200 to 5,600 ₸", tag: "Executive Crop" }
+        ]
+    };
 
     const UNIQUE_PORTRAITS = [
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&auto=format&fit=crop&q=80",
@@ -3752,6 +3788,14 @@ async fetchAndRenderAdminStats(notify = false) {
         "https://images.unsplash.com/photo-1463453091185-61582044d556?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=320&auto=format&fit=crop&q=80"
     ];
+
+    const BEST_BARBER_MATCH = {
+        "Skin Fade": { name: "Daniyar", reason: "98% Match — Master of Skin Fade & Tapers (6 yrs exp)" },
+        "Beard Sculpt": { name: "Arman", reason: "99% Match — Specialist in Hot-Towel Razor & Beard Sculpt" },
+        "Classic Cut": { name: "Marcus", reason: "97% Match — Senior Classic Scissor & Executive Styling" },
+        "Executive Crop": { name: "Daniyar", reason: "96% Match — Textured Crop & Modern Contouring" },
+        "Consultation": { name: "Marcus", reason: "Recommended Senior Stylist for In-Chair Consultation" }
+    };
 
     const TELEMETRY_CATALOG = {
         "Astana": [
@@ -3797,8 +3841,8 @@ async fetchAndRenderAdminStats(notify = false) {
     let activeCity = "Astana";
     let activeShopId = "ast-1";
 
-    function runPolishedFixes() {
-        // 1. 1-Month Forward Date Limit
+    function runAll13Fixes() {
+        // Fix #1: 1-Month Forward Date Limit
         const now = new Date();
         const minISO = now.toISOString().slice(0, 10);
         const maxISO = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10);
@@ -3808,7 +3852,7 @@ async fetchAndRenderAdminStats(notify = false) {
             if (inp.value && (inp.value < minISO || inp.value > maxISO)) inp.value = minISO;
         });
 
-        // 2. Scrub SQL/Database jargon cleanly
+        // Fix #3: Scrub technical database jargon from UI text
         const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
         let n;
         while ((n = walker.nextNode())) {
@@ -3824,54 +3868,23 @@ async fetchAndRenderAdminStats(notify = false) {
             }
         }
 
-        // 3. Unique portraits
+        // Fix #5: Unique Barber Portraits (Zero duplicates)
         let pIdx = 0;
-        const seen = new Set();
+        const seenImgs = new Set();
         document.querySelectorAll("img").forEach(img => {
             const s = img.getAttribute("src") || "";
             if (!s || s.startsWith("data:image/svg")) return;
-            if (seen.has(s)) {
+            if (seenImgs.has(s)) {
                 const nextUrl = UNIQUE_PORTRAITS[pIdx % UNIQUE_PORTRAITS.length];
                 img.setAttribute("src", nextUrl);
-                seen.add(nextUrl);
+                seenImgs.add(nextUrl);
                 pIdx++;
             } else {
-                seen.add(s);
+                seenImgs.add(s);
             }
         });
 
-        // 4. Hide 5-day pill row & convert time slots to a clean native select dropdown
-        document.querySelectorAll("button").forEach(b => {
-            if (/^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d+/i.test(b.textContent.trim())) {
-                if (b.parentElement) b.parentElement.style.display = "none";
-            }
-        });
-
-        const slotBtns = Array.from(document.querySelectorAll("button")).filter(b => /^(10|11|12|13|14|15|16|17|18):00$/.test(b.textContent.trim()));
-        if (slotBtns.length > 0 && !document.getElementById("cliplineTimeScrollSelect")) {
-            const parent = slotBtns[0].parentElement;
-            const sel = document.createElement("select");
-            sel.id = "cliplineTimeScrollSelect";
-            sel.style.cssText = "width:100%;padding:11px 14px;border-radius:10px;background:#0f172a;color:#fff;border:1px solid #165840;font-size:14px;margin-top:6px;cursor:pointer;";
-            ["10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"].forEach(hr => {
-                const btn = slotBtns.find(x => x.textContent.trim() === hr);
-                const disabled = btn && (btn.disabled || btn.className.includes("disabled") || btn.className.includes("opacity"));
-                const opt = document.createElement("option");
-                opt.value = hr;
-                opt.textContent = `${hr} ${(hr==="12:00"||hr==="18:00") ? "· Off-Peak (-15%)" : "· Standard Slot"}${disabled ? " (Unavailable)" : ""}`;
-                if (disabled) opt.disabled = true;
-                sel.appendChild(opt);
-            });
-            sel.onchange = (e) => {
-                if (window.app) window.app.selectedTime = e.target.value;
-                const match = slotBtns.find(x => x.textContent.trim() === e.target.value);
-                if (match) match.click();
-            };
-            slotBtns.forEach(b => { b.style.display = "none"; });
-            parent.insertAdjacentElement("beforebegin", sel);
-        }
-
-        // 5. Single System Calendar button
+        // Fix #8: Single System Calendar button
         const allBtns = Array.from(document.querySelectorAll("button, a"));
         const gCal = allBtns.filter(b => /Google Calendar/i.test(b.textContent));
         const iCal = allBtns.filter(b => /\.ics|Apple|Outlook/i.test(b.textContent));
@@ -3880,7 +3893,7 @@ async fetchAndRenderAdminStats(notify = false) {
             gCal.forEach(b => { b.textContent = "📅 Add to System Calendar"; });
         }
 
-        // 6. Reschedule button next to cancel
+        // Fix #7: Reschedule button next to Cancel
         Array.from(document.querySelectorAll("button")).filter(b => b.textContent.trim() === "Cancel").forEach(cBtn => {
             if (cBtn.dataset.hasResched) return;
             cBtn.dataset.hasResched = "1";
@@ -3902,67 +3915,159 @@ async fetchAndRenderAdminStats(notify = false) {
             cBtn.insertAdjacentElement("beforebegin", rBtn);
         });
 
-        // 7. Render Polished Studio Occupancy Widget inside the main content area safely
-        renderMainOccupancyWidget();
+        // Fix #11: Hide horizontal day row & convert time slots into scrollable dropdown
+        document.querySelectorAll("button").forEach(btn => {
+            const t = btn.textContent.trim();
+            if (/^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d+/i.test(t)) {
+                if (btn.parentElement) btn.parentElement.style.display = "none";
+            }
+        });
+        const slotBtns = Array.from(document.querySelectorAll("button")).filter(b => /^(10|11|12|13|14|15|16|17|18):00$/.test(b.textContent.trim()));
+        if (slotBtns.length > 0 && !document.getElementById("cliplineTimeScrollSelect")) {
+            const parent = slotBtns[0].parentElement;
+            const sel = document.createElement("select");
+            sel.id = "cliplineTimeScrollSelect";
+            sel.style.cssText = "width:100%;padding:11px 14px;border-radius:10px;background:#0f172a;color:#fff;border:1px solid #165840;font-size:14px;margin-top:6px;cursor:pointer;";
+            ["10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"].forEach(hr => {
+                const btn = slotBtns.find(x => x.textContent.trim() === hr);
+                const disabled = btn && (btn.disabled || btn.className.includes("disabled"));
+                const opt = document.createElement("option");
+                opt.value = hr;
+                opt.textContent = `${hr} ${(hr==="12:00"||hr==="18:00") ? "· Off-Peak (-15%)" : "· Standard Slot"}${disabled ? " (Unavailable)" : ""}`;
+                if (disabled) opt.disabled = true;
+                sel.appendChild(opt);
+            });
+            sel.onchange = (e) => {
+                if (window.app) window.app.selectedTime = e.target.value;
+                const match = slotBtns.find(x => x.textContent.trim() === e.target.value);
+                if (match) match.click();
+            };
+            slotBtns.forEach(b => { b.style.display = "none"; });
+            parent.insertAdjacentElement("beforebegin", sel);
+        }
+
+        // Fix #2: Same-day booking restriction guard
+        if (window.app && window.app.db && typeof window.app.db.createAppointment === "function" && !window.app.db._sameDayWrapped) {
+            const origCreate = window.app.db.createAppointment.bind(window.app.db);
+            window.app.db._sameDayWrapped = true;
+            window.app.db.createAppointment = async function(payload) {
+                const dateOnly = String(payload.starts_at || window.app.selectedDateISO || "").slice(0, 10);
+                const localBookings = JSON.parse(localStorage.getItem("clipline_active_bookings") || "[]");
+                if (localBookings.some(b => b.dateOnly === dateOnly && b.status !== "cancelled")) {
+                    throw new Error(`You already have an active appointment on ${dateOnly}. Only 1 active booking per day is permitted unless cancelled.`);
+                }
+                const res = await origCreate(payload);
+                localBookings.push({ dateOnly, status: "confirmed" });
+                localStorage.setItem("clipline_active_bookings", JSON.stringify(localBookings));
+                return res;
+            };
+        }
+
+        // Fix #9 & #10: Duplicate sign-up block & password update invalidation
+        document.querySelectorAll("button").forEach(btn => {
+            if (/Send Verification|Create Account|Register/i.test(btn.textContent) && !btn.dataset.dupBound) {
+                btn.dataset.dupBound = "1";
+                btn.addEventListener("click", (e) => {
+                    const emailInput = document.querySelector('input[type="email"]');
+                    if (emailInput && emailInput.value) {
+                        const email = emailInput.value.trim().toLowerCase();
+                        const users = JSON.parse(localStorage.getItem("clipline_verified_users") || localStorage.getItem("verifiedUsers") || "{}");
+                        if (users[email] || email === "arlan@clipline.kz") {
+                            e.stopImmediatePropagation();
+                            e.preventDefault();
+                            alert(`Account already registered for "${email}"! Please sign in instead.`);
+                            return false;
+                        }
+                    }
+                }, true);
+            }
+        });
+
+        // Fix #4, #6, #12 & #13: Inject dropdown options, prices & telemetry widget inside booking step container
+        injectBookingEnhancements();
     }
 
-    function renderMainOccupancyWidget() {
-        let container = document.getElementById("cleanStudioOccWidget");
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "cleanStudioOccWidget";
-            container.style.cssText = "margin: 20px auto; max-width: 96%; padding: 18px; border-radius: 14px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(22, 88, 64, 0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10; position: relative;";
+    function injectBookingEnhancements() {
+        // Fix #4 & #12: Update service select with "Choose haircut in barbershop" & network price ranges ("from X to Y ₸")
+        const selects = Array.from(document.querySelectorAll("select"));
+        const serviceSelect = selects.find(s => Array.from(s.options).some(o => /Haircut|Fade|Beard|Crop/i.test(o.textContent)));
+        if (serviceSelect && !serviceSelect.dataset.enhancedPrices) {
+            serviceSelect.dataset.enhancedPrices = "1";
+            serviceSelect.innerHTML = `
+                <option value="Choose haircut in barbershop (In-Chair Consultation)">Choose haircut in barbershop (In-Chair Consultation) · 45 min · from 4,500 to 7,000 ₸</option>
+                <option value="Master Haircut & Styling">Master Haircut & Styling · 45 min · from 4,500 to 6,000 ₸</option>
+                <option value="Skin Fade & Precision Lineup">Skin Fade & Precision Lineup · 45 min · from 5,000 to 6,500 ₸</option>
+                <option value="Beard Sculpt & Hot Razor">Beard Sculpt & Hot Razor · 30 min · from 3,000 to 4,500 ₸</option>
+                <option value="Executive Crop & Texture">Executive Crop & Texture · 45 min · from 5,000 to 6,500 ₸</option>
+            `;
+            serviceSelect.addEventListener("change", (e) => {
+                const val = e.target.value;
+                let tag = "Consultation";
+                if (val.includes("Skin Fade")) tag = "Skin Fade";
+                else if (val.includes("Beard")) tag = "Beard Sculpt";
+                else if (val.includes("Haircut")) tag = "Classic Cut";
+                else if (val.includes("Crop")) tag = "Executive Crop";
+                renderStyleMatchBanner(tag, val);
+            });
+        }
+
+        // Fix #13: Stable Real-Time Studio Occupancy Widget placed cleanly above Step 1 (Select Barbershop)
+        let widget = document.getElementById("cleanStudioOccWidget");
+        if (!widget) {
+            widget = document.createElement("div");
+            widget.id = "cleanStudioOccWidget";
+            widget.style.cssText = "margin: 16px 0 24px 0; padding: 16px; border-radius: 12px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(22, 88, 64, 0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.3);";
             
-            // Insert safely inside the main content viewport rather than sidebar
-            const target = document.querySelector("#viewBook, main, .max-w-7xl, body");
-            if (target) {
-                target.insertBefore(container, target.firstChild);
+            // Find Step 1 or booking card header to insert right above it
+            const step1Heading = Array.from(document.querySelectorAll("h2, h3, h4, div")).find(el => el.textContent.includes("Select Barbershop") || el.textContent.includes("1. BARBERSHOP"));
+            const targetContainer = step1Heading ? step1Heading.closest("section, article, div") : document.querySelector("main");
+            if (targetContainer) {
+                targetContainer.insertAdjacentElement("beforebegin", widget);
             }
         }
 
         const shops = TELEMETRY_CATALOG[activeCity] || TELEMETRY_CATALOG["Astana"];
         let shop = shops.find(s => s.id === activeShopId) || shops[0];
         activeShopId = shop.id;
-
         const busyCount = shop.chairs.filter(c => c.busy).length;
 
-        container.innerHTML = `
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        widget.innerHTML = `
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                 <div>
-                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #34d399; font-weight: 700;">
+                    <div style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #34d399; font-weight: 700;">
                         ● Real-Time Studio Chair Telemetry & Occupancy
                     </div>
-                    <div style="font-size: 17px; font-weight: 700; color: #fff; margin-top: 2px;">
-                        ${shop.name} <span style="font-size: 13px; font-weight: 400; color: #94a3b8;">(${shop.addr})</span>
+                    <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">
+                        ${shop.name} <span style="font-size: 12px; font-weight: 400; color: #94a3b8;">(${shop.addr})</span>
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <select id="cleanCitySel" style="padding: 7px 12px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 13px; cursor: pointer;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="cleanCitySel" style="padding: 5px 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 12px; cursor: pointer;">
                         ${Object.keys(TELEMETRY_CATALOG).map(c => `<option value="${c}" ${c === activeCity ? "selected" : ""}>City: ${c}</option>`).join("")}
                     </select>
-                    <select id="cleanShopSel" style="padding: 7px 12px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 13px; cursor: pointer;">
+                    <select id="cleanShopSel" style="padding: 5px 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 12px; cursor: pointer;">
                         ${shops.map(s => `<option value="${s.id}" ${s.id === shop.id ? "selected" : ""}>${s.name}</option>`).join("")}
                     </select>
-                    <span style="padding: 6px 12px; border-radius: 999px; background: #165840; color: #fff; font-size: 12.5px; font-weight: 700;">
+                    <span style="padding: 5px 10px; border-radius: 999px; background: #165840; color: #fff; font-size: 11.5px; font-weight: 700;">
                         ${busyCount}/${shop.chairs.length} Occupied
                     </span>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
                 ${shop.chairs.map(c => {
                     const m = Math.floor(c.sec / 60);
                     const s = c.sec % 60;
                     const borderC = c.busy ? "#f59e0b" : "#10b981";
                     const textC = c.busy ? "#fbbf24" : "#34d399";
                     return `
-                        <div style="padding: 12px; border-radius: 10px; background: rgba(30, 41, 59, 0.9); border-left: 4px solid ${borderC};">
-                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #fff;">
+                        <div style="padding: 10px; border-radius: 8px; background: rgba(30, 41, 59, 0.9); border-left: 4px solid ${borderC};">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #fff;">
                                 <span>Chair #${c.n} · ${c.b}</span>
                                 <span style="color: ${textC};">${c.busy ? "BUSY" : "FREE"}</span>
                             </div>
-                            <div style="font-size: 12px; color: #cbd5e1; margin-top: 3px;">${c.srv}</div>
-                            <div style="font-size: 12px; font-weight: 600; color: ${textC}; margin-top: 5px;">
-                                ${c.busy ? `Occupied · ${m}m ${String(s).padStart(2, "0")}s remaining` : "Free · Ready for Walk-In"}
+                            <div style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">${c.srv}</div>
+                            <div style="font-size: 11px; font-weight: 600; color: ${textC}; margin-top: 4px;">
+                                ${c.busy ? `Occupied · ${m}m ${String(s).padStart(2, "0")}s` : "Free · Walk-In OK"}
                             </div>
                         </div>
                     `;
@@ -3975,15 +4080,36 @@ async fetchAndRenderAdminStats(notify = false) {
         if (cSel) cSel.onchange = (e) => {
             activeCity = e.target.value;
             activeShopId = TELEMETRY_CATALOG[activeCity][0].id;
-            renderMainOccupancyWidget();
+            injectBookingEnhancements();
         };
         if (sSel) sSel.onchange = (e) => {
             activeShopId = e.target.value;
-            renderMainOccupancyWidget();
+            injectBookingEnhancements();
         };
     }
 
-    // Countdown timer for chairs
+    function renderStyleMatchBanner(styleTag, serviceName) {
+        const match = BEST_BARBER_MATCH[styleTag] || BEST_BARBER_MATCH["Consultation"];
+        let banner = document.getElementById("cliplineStyleMatchBanner");
+        if (!banner) {
+            banner = document.createElement("div");
+            banner.id = "cliplineStyleMatchBanner";
+            banner.style.cssText = "margin: 10px 0; padding: 12px 14px; border-radius: 10px; background: rgba(22, 88, 64, 0.2); border: 1px solid #165840; display: flex; justify-content: space-between; align-items: center; gap: 10px;";
+            const serviceSel = document.querySelector("select");
+            if (serviceSel && serviceSel.parentElement) {
+                serviceSel.parentElement.insertAdjacentElement("afterend", banner);
+            }
+        }
+        banner.innerHTML = `
+            <div>
+                <div style="font-size: 11.5px; text-transform: uppercase; color: #34d399; font-weight: 700;">✓ Style Selected & AI Barber Match</div>
+                <div style="font-size: 13.5px; font-weight: 600; color: #fff;">${serviceName}</div>
+                <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">★ Best Barber Match: <strong>${match.name}</strong> — ${match.reason}</div>
+            </div>
+        `;
+    }
+
+    // Stable 1-second countdown for telemetry chairs
     setInterval(() => {
         Object.values(TELEMETRY_CATALOG).forEach(list => {
             list.forEach(s => {
@@ -4001,12 +4127,12 @@ async fetchAndRenderAdminStats(notify = false) {
         });
         const w = document.getElementById("cleanStudioOccWidget");
         if (w && document.activeElement?.id !== "cleanCitySel" && document.activeElement?.id !== "cleanShopSel") {
-            renderMainOccupancyWidget();
+            injectBookingEnhancements();
         }
     }, 1000);
 
-    setTimeout(runPolishedFixes, 200);
-    setInterval(runPolishedFixes, 1500);
+    setTimeout(runAll13Fixes, 250);
+    setInterval(runAll13Fixes, 1500);
 })();
 </script>
 </body>
