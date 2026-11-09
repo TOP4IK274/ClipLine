@@ -3732,11 +3732,11 @@ async fetchAndRenderAdminStats(notify = false) {
       window.app.init();
     }
   </script>
-  <script>
+<script>
 (function() {
     "use strict";
 
-    // 1. Clean up any previous broken injection
+    // Clean up any old floating or overlapping telemetry widgets
     const oldW = document.getElementById("stableIoTOccupancyWidget");
     if (oldW) oldW.remove();
     const oldClean = document.getElementById("cleanStudioOccWidget");
@@ -3798,7 +3798,7 @@ async fetchAndRenderAdminStats(notify = false) {
     let activeShopId = "ast-1";
 
     function runPolishedFixes() {
-        // 1. Date limit 1 month
+        // 1. 1-Month Forward Date Limit
         const now = new Date();
         const minISO = now.toISOString().slice(0, 10);
         const maxISO = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10);
@@ -3902,7 +3902,7 @@ async fetchAndRenderAdminStats(notify = false) {
             cBtn.insertAdjacentElement("beforebegin", rBtn);
         });
 
-        // 7. Render Polished Studio Occupancy Widget inside the main content area (not breaking layout)
+        // 7. Render Polished Studio Occupancy Widget inside the main content area safely
         renderMainOccupancyWidget();
     }
 
@@ -3911,10 +3911,10 @@ async fetchAndRenderAdminStats(notify = false) {
         if (!container) {
             container = document.createElement("div");
             container.id = "cleanStudioOccWidget";
-            container.style.cssText = "margin: 20px 0; padding: 18px; border-radius: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(22, 88, 64, 0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.3);";
+            container.style.cssText = "margin: 20px auto; max-width: 96%; padding: 18px; border-radius: 14px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(22, 88, 64, 0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10; position: relative;";
             
-            // Place it nicely above the booking form steps
-            const target = document.querySelector("main, .container, body");
+            // Insert safely inside the main content viewport rather than sidebar
+            const target = document.querySelector("#viewBook, main, .max-w-7xl, body");
             if (target) {
                 target.insertBefore(container, target.firstChild);
             }
