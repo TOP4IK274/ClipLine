@@ -3736,892 +3736,277 @@ async fetchAndRenderAdminStats(notify = false) {
 (function() {
     "use strict";
 
-    // -------------------------------------------------------------------------
-    // CONFIGURATION DATA FOR FIXES #4, #5, #6, #12, #13
-    // -------------------------------------------------------------------------
+    // 1. Clean up any previous broken injection
+    const oldW = document.getElementById("stableIoTOccupancyWidget");
+    if (oldW) oldW.remove();
+    const oldClean = document.getElementById("cleanStudioOccWidget");
+    if (oldClean) oldClean.remove();
 
-    // Fix #12: Network-based price ranges ("from X to Y ₸").
-    // Same network = same price range across its branches; different networks = different price ranges!
-    const NETWORK_PRICE_RANGES = {
-        "LOGOVO": {
-            networkMultiplier: 1.0,
-            services: [
-                { id: "decide", name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 4,500 to 7,000 ₸", styleTag: "Consultation" },
-                { id: "haircut", name: "Master Haircut & Styling", duration: 45, rangeText: "from 4,500 to 6,000 ₸", styleTag: "Classic Cut" },
-                { id: "skinfade", name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 5,000 to 6,500 ₸", styleTag: "Skin Fade" },
-                { id: "beard", name: "Beard Sculpt & Hot Towel Razor", duration: 30, rangeText: "from 3,000 to 4,500 ₸", styleTag: "Beard Sculpt" },
-                { id: "crop", name: "Executive Crop & Texture", duration: 45, rangeText: "from 5,000 to 6,500 ₸", styleTag: "Executive Crop" },
-                { id: "combo", name: "Full Studio Combo (Haircut + Beard)", duration: 60, rangeText: "from 7,000 to 9,000 ₸", styleTag: "Full Combo" }
-            ]
-        },
-        "OldBoy": {
-            networkMultiplier: 1.15,
-            services: [
-                { id: "decide", name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 5,000 to 8,000 ₸", styleTag: "Consultation" },
-                { id: "haircut", name: "Master Haircut & Styling", duration: 45, rangeText: "from 5,200 to 6,800 ₸", styleTag: "Classic Cut" },
-                { id: "skinfade", name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 5,800 to 7,500 ₸", styleTag: "Skin Fade" },
-                { id: "beard", name: "Beard Sculpt & Hot Towel Razor", duration: 30, rangeText: "from 3,500 to 5,000 ₸", styleTag: "Beard Sculpt" },
-                { id: "crop", name: "Executive Crop & Texture", duration: 45, rangeText: "from 5,500 to 7,200 ₸", styleTag: "Executive Crop" },
-                { id: "combo", name: "Full Studio Combo (Haircut + Beard)", duration: 60, rangeText: "from 8,000 to 10,500 ₸", styleTag: "Full Combo" }
-            ]
-        },
-        "TOPGUN": {
-            networkMultiplier: 1.3,
-            services: [
-                { id: "decide", name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 6,000 to 9,500 ₸", styleTag: "Consultation" },
-                { id: "haircut", name: "Master Haircut & Styling", duration: 45, rangeText: "from 6,000 to 8,000 ₸", styleTag: "Classic Cut" },
-                { id: "skinfade", name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 6,500 to 8,500 ₸", styleTag: "Skin Fade" },
-                { id: "beard", name: "Beard Sculpt & Hot Towel Razor", duration: 30, rangeText: "from 4,000 to 5,800 ₸", styleTag: "Beard Sculpt" },
-                { id: "crop", name: "Executive Crop & Texture", duration: 45, rangeText: "from 6,500 to 8,200 ₸", styleTag: "Executive Crop" },
-                { id: "combo", name: "Full Studio Combo (Haircut + Beard)", duration: 60, rangeText: "from 9,500 to 12,500 ₸", styleTag: "Full Combo" }
-            ]
-        },
-        "BORODACH": {
-            networkMultiplier: 0.9,
-            services: [
-                { id: "decide", name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 3,800 to 6,000 ₸", styleTag: "Consultation" },
-                { id: "haircut", name: "Master Haircut & Styling", duration: 45, rangeText: "from 3,800 to 5,200 ₸", styleTag: "Classic Cut" },
-                { id: "skinfade", name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 4,200 to 5,800 ₸", styleTag: "Skin Fade" },
-                { id: "beard", name: "Beard Sculpt & Hot Towel Razor", duration: 30, rangeText: "from 2,500 to 3,800 ₸", styleTag: "Beard Sculpt" },
-                { id: "crop", name: "Executive Crop & Texture", duration: 45, rangeText: "from 4,200 to 5,600 ₸", styleTag: "Executive Crop" },
-                { id: "combo", name: "Full Studio Combo (Haircut + Beard)", duration: 60, rangeText: "from 6,000 to 7,800 ₸", styleTag: "Full Combo" }
-            ]
-        }
-    };
-
-    // Fix #5: Guaranteed Unique High-Resolution Barber Portraits (Zero duplicates across the entire app)
-    const UNIQUE_BARBER_PORTRAITS = [
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
+    const UNIQUE_PORTRAITS = [
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=320&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1463453091185-61582044d556?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=320&auto=format&fit=crop&q=80"
+        "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=320&auto=format&fit=crop&q=80"
     ];
 
-    // Fix #6: Best Barber Match Matrix by Haircut Style
-    const STYLE_TO_BARBER_MATCH = {
-        "Skin Fade": { barberName: "Daniyar", reason: "98% Style Match — Master of Skin Fade & Seamless Tapers (6 yrs exp)" },
-        "Beard Sculpt": { barberName: "Arman", reason: "99% Style Match — Specialist in Hot-Towel Razor & Beard Architecture (5 yrs exp)" },
-        "Classic Cut": { barberName: "Marcus", reason: "97% Style Match — Senior Classic Scissor & Executive Styling Specialist" },
-        "Executive Crop": { barberName: "Daniyar", reason: "96% Style Match — Textured Crop & Modern Contouring Expert" },
-        "Consultation": { barberName: "Marcus", reason: "Recommended Senior Stylist for Personalized In-Chair Style Consultation" },
-        "Full Combo": { barberName: "Arman", reason: "98% Style Match — Full Hair & Beard Transformation Specialist" }
-    };
-
-    // Fix #13: Multi-City & Multi-Barbershop Deterministic Chair Occupancy State
-    // Never jumps from "20 mins left" to "Free" — counts down smoothly 1 second/minute at a time!
-    const STUDIO_TELEMETRY_CATALOG = {
+    const TELEMETRY_CATALOG = {
         "Astana": [
-            {
-                id: "astana-logovo-mangilik",
-                name: "LOGOVO — Mangilik El",
-                network: "LOGOVO",
-                address: "Mangilik El Ave 52, Astana",
-                chairs: [
-                    { num: 1, barber: "Daniyar", occupied: true, remainingSec: 22 * 60, service: "Skin Fade" },
-                    { num: 2, barber: "Arman", occupied: true, remainingSec: 14 * 60, service: "Beard Sculpt" },
-                    { num: 3, barber: "Marcus", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 4, barber: "Timur", occupied: true, remainingSec: 31 * 60, service: "Master Haircut" }
-                ]
-            },
-            {
-                id: "astana-logovo-turan",
-                name: "LOGOVO — Turan",
-                network: "LOGOVO",
-                address: "Turan Ave 37, Astana",
-                chairs: [
-                    { num: 1, barber: "dias", label: "Dias", barber: "Dias", occupied: true, remainingSec: 19 * 60, service: "Classic Cut" },
-                    { num: 2, barber: "Nurlan", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 3, barber: "Sanzhar", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 4, barber: "bek", barber: "Bekzat", occupied: true, remainingSec: 27 * 60, service: "Full Combo" }
-                ]
-            },
-            {
-                id: "astana-oldboy-respublika",
-                name: "OldBoy — Respublika",
-                network: "OldBoy",
-                address: "Respublika Ave 10, Astana",
-                chairs: [
-                    { num: 1, barber: "Ruslan", occupied: true, remainingSec: 11 * 60, service: "Executive Crop" },
-                    { num: 2, barber: "Damir", occupied: true, remainingSec: 36 * 60, service: "Skin Fade" },
-                    { num: 3, barber: "Olzhas", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 4, barber: "Artur", occupied: false, remainingSec: 0, service: "Available Now" }
-                ]
-            },
-            {
-                id: "astana-topgun-expo",
-                name: "TOPGUN — Expo Boulevard",
-                network: "TOPGUN",
-                address: "Uly Dala Ave 11, Astana",
-                chairs: [
-                    { num: 1, barber: "Maxim", occupied: true, remainingSec: 25 * 60, service: "Full Studio Combo" },
-                    { num: 2, barber: "Aydin", occupied: true, remainingSec: 18 * 60, service: "Skin Fade" },
-                    { num: 3, barber: "Roman", occupied: true, remainingSec: 9 * 60, service: "Beard Sculpt" },
-                    { num: 4, barber: "Karim", occupied: false, remainingSec: 0, service: "Available Now" }
-                ]
-            }
+            { id: "ast-1", name: "LOGOVO — Mangilik El", addr: "Mangilik El Ave 52", chairs: [
+                { n: 1, b: "Daniyar", busy: true, sec: 1320, srv: "Skin Fade" },
+                { n: 2, b: "Arman", busy: true, sec: 840, srv: "Beard Sculpt" },
+                { n: 3, b: "Marcus", busy: false, sec: 0, srv: "Available Now" },
+                { n: 4, b: "Timur", busy: true, sec: 1860, srv: "Haircut" }
+            ]},
+            { id: "ast-2", name: "LOGOVO — Turan", addr: "Turan Ave 37", chairs: [
+                { n: 1, b: "Dias", busy: true, sec: 1140, srv: "Classic Cut" },
+                { n: 2, b: "Nurlan", busy: false, sec: 0, srv: "Available Now" },
+                { n: 3, b: "Sanzhar", busy: false, sec: 0, srv: "Available Now" },
+                { n: 4, b: "Bekzat", busy: true, sec: 1620, srv: "Skin Fade" }
+            ]}
         ],
         "Almaty": [
-            {
-                id: "almaty-logovo-abay",
-                name: "LOGOVO — Abay Ave",
-                network: "LOGOVO",
-                address: "Abay Ave 44, Almaty",
-                chairs: [
-                    { num: 1, barber: "Alisher", occupied: true, remainingSec: 16 * 60, service: "Skin Fade" },
-                    { num: 2, barber: "Bauyrzhan", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 3, barber: "Eldar", occupied: true, remainingSec: 29 * 60, service: "Classic Cut" },
-                    { num: 4, barber: "Madi", occupied: false, remainingSec: 0, service: "Available Now" }
-                ]
-            },
-            {
-                id: "almaty-oldboy-dostyk",
-                name: "OldBoy — Dostyk",
-                network: "OldBoy",
-                address: "Dostyk Ave 89, Almaty",
-                chairs: [
-                    { num: 1, barber: "Ilyas", occupied: true, remainingSec: 21 * 60, service: "Beard Sculpt" },
-                    { num: 2, barber: "Yerlan", occupied: true, remainingSec: 12 * 60, service: "Master Haircut" },
-                    { num: 3, barber: "Talgat", occupied: true, remainingSec: 34 * 60, service: "Full Combo" },
-                    { num: 4, barber: "Samat", occupied: false, remainingSec: 0, service: "Available Now" }
-                ]
-            }
+            { id: "alm-1", name: "LOGOVO — Abay Ave", addr: "Abay Ave 44", chairs: [
+                { n: 1, b: "Alisher", busy: true, sec: 960, srv: "Skin Fade" },
+                { n: 2, b: "Bauyrzhan", busy: false, sec: 0, srv: "Available Now" },
+                { n: 3, b: "Eldar", busy: true, sec: 1740, srv: "Classic Cut" },
+                { n: 4, b: "Madi", busy: false, sec: 0, srv: "Available Now" }
+            ]}
         ],
         "Shymkent": [
-            {
-                id: "shymkent-borodach-tauke",
-                name: "BORODACH — Tauke Khan",
-                network: "BORODACH",
-                address: "Tauke Khan Ave 15, Shymkent",
-                chairs: [
-                    { num: 1, barber: "Azamat", occupied: true, remainingSec: 15 * 60, service: "Skin Fade" },
-                    { num: 2, barber: "Kuanysh", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 3, barber: "Berik", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 4, barber: "Dastan", occupied: true, remainingSec: 24 * 60, service: "Classic Cut" }
-                ]
-            }
+            { id: "shy-1", name: "BORODACH — Tauke Khan", addr: "Tauke Khan Ave 15", chairs: [
+                { n: 1, b: "Azamat", busy: true, sec: 900, srv: "Skin Fade" },
+                { n: 2, b: "Kuanysh", busy: false, sec: 0, srv: "Available Now" },
+                { n: 3, b: "Berik", busy: false, sec: 0, srv: "Available Now" },
+                { n: 4, b: "Dastan", busy: true, sec: 1440, srv: "Classic Cut" }
+            ]}
         ],
         "Karaganda": [
-            {
-                id: "karaganda-topgun-bukhar",
-                name: "TOPGUN — Bukhar Zhyrau",
-                network: "TOPGUN",
-                address: "Bukhar Zhyrau Ave 55, Karaganda",
-                chairs: [
-                    { num: 1, barber: "nikita", barber: "Nikita", occupied: true, remainingSec: 28 * 60, service: "Executive Crop" },
-                    { num: 2, barber: "Serik", occupied: false, remainingSec: 0, service: "Available Now" },
-                    { num: 3, barber: "Askar", occupied: true, remainingSec: 17 * 60, service: "Beard Sculpt" },
-                    { num: 4, barber: "Vlad", occupied: false, remainingSec: 0, service: "Available Now" }
-                ]
-            }
+            { id: "kar-1", name: "TOPGUN — Bukhar Zhyrau", addr: "Bukhar Zhyrau Ave 55", chairs: [
+                { n: 1, b: "Nikita", busy: true, sec: 1680, srv: "Executive Crop" },
+                { n: 2, b: "Serik", busy: false, sec: 0, srv: "Available Now" },
+                { n: 3, b: "Askar", busy: true, sec: 1020, srv: "Beard Sculpt" },
+                { n: 4, b: "Vlad", busy: false, sec: 0, srv: "Available Now" }
+            ]}
         ]
     };
 
-    // -------------------------------------------------------------------------
-    // FIX #1: ALLOW BOOKING ONLY 1 MONTH FORWARD (NO YEAR 2144!)
-    // -------------------------------------------------------------------------
-    function enforceOneMonthDateLimit() {
+    let activeCity = "Astana";
+    let activeShopId = "ast-1";
+
+    function runPolishedFixes() {
+        // 1. Date limit 1 month
         const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, "0");
-        const dd = String(now.getDate()).padStart(2, "0");
-        const todayISO = `${yyyy}-${mm}-${dd}`;
-
-        const maxDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const maxY = maxDate.getFullYear();
-        const maxM = String(maxDate.getMonth() + 1).padStart(2, "0");
-        const maxD = String(maxDate.getDate()).padStart(2, "0");
-        const maxISO = `${maxY}-${maxM}-${maxD}`;
-
-        document.querySelectorAll('input[type="date"]').forEach(input => {
-            input.setAttribute("min", todayISO);
-            input.setAttribute("max", maxISO);
-            if (input.value && (input.value < todayISO || input.value > maxISO)) {
-                input.value = todayISO;
-                if (window.app) window.app.selectedDateISO = todayISO;
-            }
-            if (!input.dataset.monthBound) {
-                input.dataset.monthBound = "true";
-                input.addEventListener("change", (e) => {
-                    const val = e.target.value;
-                    if (val < todayISO) {
-                        e.target.value = todayISO;
-                        alert("You cannot book a date in the past.");
-                    } else if (val > maxISO) {
-                        e.target.value = maxISO;
-                        alert(`Bookings are only open up to 1 month in advance (${maxISO}).`);
-                    }
-                    if (window.app) window.app.selectedDateISO = e.target.value;
-                });
-            }
+        const minISO = now.toISOString().slice(0, 10);
+        const maxISO = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10);
+        document.querySelectorAll('input[type="date"]').forEach(inp => {
+            inp.min = minISO;
+            inp.max = maxISO;
+            if (inp.value && (inp.value < minISO || inp.value > maxISO)) inp.value = minISO;
         });
-    }
 
-    // -------------------------------------------------------------------------
-    // FIX #3: DELETE EVERY TEXT STATING TABLES / COLUMNS / POSTGRESQL / SQL
-    // -------------------------------------------------------------------------
-    function scrubTechnicalDatabaseJargon() {
-        const replacements = [
-            [/\(Synced with PostgreSQL\)/gi, ""],
-            [/Re-Query Live PostgreSQL View/gi, "Refresh Live Statistics"],
-            [/\('ADMIN_STATS_BY_HOUR'\)/gi, ""],
-            [/\(`admin_stats_by_hour`\)/gi, ""],
-            [/Source:\s*`?appointments`?\s*table\s*\(Supabase\),?\s*live query aggregation\.?/gi, "Live studio booking analytics."],
-            [/Source:\s*`?appointments`?\s*table\s*\(Supabase\),?\s*grouped by\s*`?barber_id`?\s*&\s*`?status`?\.?/gi, "Updated in real time across active barbers."],
-            [/Source:\s*`?appointments`?\s*table\s*\(Supabase\),?\s*grouped by\s*`?date_trunc\('week',\s*starts_at\)`?\.?/gi, "Weekly studio booking volume."],
-            [/PostgreSQL/gi, "Cloud"],
-            [/Supabase/gi, "Cloud"]
-        ];
-
+        // 2. Scrub SQL/Database jargon cleanly
         const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-        let node;
-        while ((node = walker.nextNode())) {
-            if (node.parentElement && ["SCRIPT", "STYLE", "CODE", "PRE"].includes(node.parentElement.tagName)) continue;
-            let text = node.nodeValue;
-            let modified = false;
-            for (const [regex, sub] of replacements) {
-                if (regex.test(text)) {
-                    text = text.replace(regex, sub);
-                    modified = true;
-                }
-            }
-            if (modified) node.nodeValue = text;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // FIX #4, #6, #12: LOOKBOOK SELECTION BANNER, STYLE IN BARBERSHOP DROPDOWN,
-    // NETWORK PRICE RANGES ("from X to Y ₸"), & BEST BARBER MATCH RECOMMENDATION
-    // -------------------------------------------------------------------------
-    let currentSelectedStyle = "Choose haircut in barbershop (In-Chair Consultation)";
-    let currentSelectedNetwork = "LOGOVO";
-
-    function detectActiveNetwork() {
-        const activeText = document.body.innerText;
-        for (const brand of ["LOGOVO", "OldBoy", "TOPGUN", "BORODACH"]) {
-            const activeBtn = Array.from(document.querySelectorAll("button, .active, [aria-selected='true']"))
-                .find(el => el.textContent.trim() === brand && (el.className.includes("green") || el.className.includes("active") || el.className.includes("selected")));
-            if (activeBtn) return brand;
-        }
-        return currentSelectedNetwork || "LOGOVO";
-    }
-
-    function updateServiceDropdownAndPrices(networkName, chosenStyleTag) {
-        currentSelectedNetwork = NETWORK_PRICE_RANGES[networkName] ? networkName : "LOGOVO";
-        const netConfig = NETWORK_PRICE_RANGES[currentSelectedNetwork];
-
-        // Find the Service <select> in the booking form
-        const selects = Array.from(document.querySelectorAll("select"));
-        const serviceSelect = selects.find(s =>
-            Array.from(s.options).some(o => /Haircut|Fade|Beard|Crop|₸/i.test(o.textContent))
-        );
-
-        if (serviceSelect) {
-            const prevVal = serviceSelect.value;
-            serviceSelect.innerHTML = "";
-            netConfig.services.forEach(srv => {
-                const opt = document.createElement("option");
-                opt.value = srv.name;
-                opt.dataset.styleTag = srv.styleTag;
-                opt.dataset.duration = srv.duration;
-                opt.dataset.rangeText = srv.rangeText;
-                opt.textContent = `${srv.name} · ${srv.duration} min · ${srv.rangeText}`;
-                if (chosenStyleTag && srv.styleTag.toLowerCase() === chosenStyleTag.toLowerCase()) {
-                    opt.selected = true;
-                    currentSelectedStyle = srv.name;
-                } else if (!chosenStyleTag && srv.name === prevVal) {
-                    opt.selected = true;
-                }
-                serviceSelect.appendChild(opt);
-            });
-
-            if (!serviceSelect.dataset.styleBound) {
-                serviceSelect.dataset.styleBound = "true";
-                serviceSelect.addEventListener("change", (e) => {
-                    const selectedOpt = e.target.selectedOptions[0];
-                    const styleTag = selectedOpt ? selectedOpt.dataset.styleTag : "Consultation";
-                    currentSelectedStyle = e.target.value;
-                    renderStyleAndBarberRecommendationBanner(styleTag, currentSelectedStyle);
-                });
+        let n;
+        while ((n = walker.nextNode())) {
+            if (n.parentElement && ["SCRIPT", "STYLE"].includes(n.parentElement.tagName)) continue;
+            let v = n.nodeValue;
+            if (/PostgreSQL|Supabase|ADMIN_STATS_BY_HOUR|appointments`? table|barber_id|date_trunc/i.test(v)) {
+                v = v.replace(/\(Synced with PostgreSQL\)/gi, "")
+                     .replace(/Re-Query Live PostgreSQL View/gi, "Refresh Statistics")
+                     .replace(/\('ADMIN_STATS_BY_HOUR'\)/gi, "")
+                     .replace(/Source:.*$/gim, "Live studio analytics.")
+                     .replace(/PostgreSQL|Supabase/gi, "Cloud");
+                n.nodeValue = v;
             }
         }
 
-        // Also update Lookbook cards to show "from X to Y ₸" instead of a flat single number
-        document.querySelectorAll("h3, h4, div, span").forEach(el => {
-            if (el.children.length === 0 && /^[3-9],[05]00\s*₸$/.test(el.textContent.trim())) {
-                const raw = parseInt(el.textContent.replace(/[^0-9]/g, ""), 10);
-                if (!isNaN(raw)) {
-                    const minP = Math.round((raw * netConfig.networkMultiplier) / 100) * 100;
-                    const maxP = minP + 1500;
-                    el.textContent = `from ${minP.toLocaleString()} to ${maxP.toLocaleString()} ₸`;
-                }
-            }
-        });
-    }
-
-    function renderStyleAndBarberRecommendationBanner(styleTag, fullServiceName) {
-        const matchInfo = STYLE_TO_BARBER_MATCH[styleTag] || STYLE_TO_BARBER_MATCH["Consultation"];
-        let banner = document.getElementById("cliplineStyleMatchBanner");
-
-        if (!banner) {
-            banner = document.createElement("div");
-            banner.id = "cliplineStyleMatchBanner";
-            banner.style.cssText = "margin: 12px 0; padding: 12px 16px; border-radius: 12px; background: rgba(22, 88, 64, 0.18); border: 1px solid #165840; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;";
-            // Insert near Barber selection or Service dropdown
-            const selects = Array.from(document.querySelectorAll("select"));
-            const serviceSelect = selects.find(s => Array.from(s.options).some(o => /Haircut|Fade|Beard|Consultation/i.test(o.textContent)));
-            if (serviceSelect && serviceSelect.parentElement) {
-                serviceSelect.parentElement.insertAdjacentElement("afterend", banner);
-            }
-        }
-
-        banner.innerHTML = `
-            <div>
-                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #34d399; font-weight: 700;">
-                    ✓ Active Style Selection & AI Barber Match
-                </div>
-                <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">
-                    Selected Style: <span style="color: #6ee7b7;">${fullServiceName || styleTag}</span>
-                </div>
-                <div style="font-size: 12.5px; opacity: 0.9; margin-top: 2px;">
-                    ★ Best Barber Match: <strong>${matchInfo.barberName}</strong> — ${matchInfo.reason}
-                </div>
-            </div>
-            <button type="button" id="applyBestBarberBtn" style="background: #165840; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;">
-                Select ${matchInfo.barberName}
-            </button>
-        `;
-
-        const btn = document.getElementById("applyBestBarberBtn");
-        if (btn) {
-            btn.onclick = () => {
-                // Click the matching barber card automatically
-                const cards = Array.from(document.querySelectorAll("div, button"));
-                const targetCard = cards.find(c => c.textContent.includes(matchInfo.barberName) && c.textContent.includes("yrs"));
-                if (targetCard) targetCard.click();
-            };
-        }
-
-        // Highlight the recommended barber card with a visible badge
-        document.querySelectorAll(".best-match-pill").forEach(el => el.remove());
-        const barberHeadings = Array.from(document.querySelectorAll("div, span, h4, strong")).filter(
-            el => el.children.length === 0 && el.textContent.trim() === matchInfo.barberName
-        );
-        barberHeadings.forEach(h => {
-            const pill = document.createElement("span");
-            pill.className = "best-match-pill";
-            pill.style.cssText = "margin-left: 8px; background: #10b981; color: #064e3b; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; vertical-align: middle;";
-            pill.textContent = "★ BEST MATCH FOR STYLE";
-            h.insertAdjacentElement("afterend", pill);
-        });
-    }
-
-    // Bind Lookbook cards so clicking "Skin Fade", "Beard Sculpt", or "Classic Cut" immediately selects it & recommends the best barber
-    function bindLookbookCards() {
-        const styles = ["Skin Fade", "Beard Sculpt", "Classic Cut", "Executive Crop"];
-        document.querySelectorAll("div, article, button").forEach(card => {
-            if (card.dataset.lookbookBound) return;
-            const txt = card.textContent || "";
-            if (txt.includes("Click to book")) {
-                const matchedStyle = styles.find(s => txt.includes(s));
-                if (matchedStyle) {
-                    card.dataset.lookbookBound = "true";
-                    card.addEventListener("click", () => {
-                        setTimeout(() => {
-                            updateServiceDropdownAndPrices(currentSelectedNetwork, matchedStyle);
-                            renderStyleAndBarberRecommendationBanner(matchedStyle, `${matchedStyle} (Selected from Lookbook)`);
-                        }, 120);
-                    });
-                }
-            }
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // FIX #5: ENSURE EVERY BARBER PHOTO IS UNIQUE (NO REPEATED IMAGES)
-    // -------------------------------------------------------------------------
-    function deduplicateBarberPhotos() {
-        const usedUrls = new Set();
-        let fallbackIdx = 0;
+        // 3. Unique portraits
+        let pIdx = 0;
+        const seen = new Set();
         document.querySelectorAll("img").forEach(img => {
-            const src = img.getAttribute("src") || "";
-            if (!src || src.startsWith("data:image/svg")) return;
-            if (usedUrls.has(src)) {
-                while (usedUrls.has(UNIQUE_BARBER_PORTRAITS[fallbackIdx % UNIQUE_BARBER_PORTRAITS.length])) {
-                    fallbackIdx++;
-                }
-                const replacement = UNIQUE_BARBER_PORTRAITS[fallbackIdx % UNIQUE_BARBER_PORTRAITS.length];
-                img.setAttribute("src", replacement);
-                usedUrls.add(replacement);
-                fallbackIdx++;
+            const s = img.getAttribute("src") || "";
+            if (!s || s.startsWith("data:image/svg")) return;
+            if (seen.has(s)) {
+                const nextUrl = UNIQUE_PORTRAITS[pIdx % UNIQUE_PORTRAITS.length];
+                img.setAttribute("src", nextUrl);
+                seen.add(nextUrl);
+                pIdx++;
             } else {
-                usedUrls.add(src);
-            }
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // FIX #11: MAKE TIME CHOOSING A SCROLLABLE DROPDOWN (LIKE SERVICE)
-    // & DELETE DUPLICATE 5-DAY BUTTON ROW (WE ALREADY HAVE CALENDAR)
-    // -------------------------------------------------------------------------
-    function convertTimeAndRemoveDayRow() {
-        // 1. Hide the 5-day horizontal pill row ("Today 8 Nov", "Tomorrow 9 Nov", etc.)
-        document.querySelectorAll("button").forEach(btn => {
-            const t = btn.textContent.trim();
-            if (/^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d+\s+(Nov|Dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct)/i.test(t)) {
-                if (btn.parentElement) {
-                    btn.parentElement.style.display = "none";
-                }
+                seen.add(s);
             }
         });
 
-        // 2. Replace horizontal time slot buttons with a clean scrollable <select> dropdown
-        const timeButtons = Array.from(document.querySelectorAll("button")).filter(b =>
-            /^(10|11|12|13|14|15|16|17|18|19|20):00$/.test(b.textContent.trim())
-        );
-
-        if (timeButtons.length > 0) {
-            const container = timeButtons[0].parentElement;
-            if (container && !document.getElementById("scrollableTimeSelect")) {
-                const select = document.createElement("select");
-                select.id = "scrollableTimeSelect";
-                select.style.cssText = "width: 100%; padding: 11px 14px; border-radius: 10px; background: rgba(15, 23, 42, 0.75); color: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.3); font-size: 14px; font-weight: 500; cursor: pointer; outline: none;";
-
-                const allHours = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
-                allHours.forEach(hr => {
-                    const origBtn = timeButtons.find(b => b.textContent.trim() === hr);
-                    const isDisabled = origBtn && (origBtn.disabled || origBtn.className.includes("disabled") || origBtn.className.includes("line-through"));
-                    const isQuiet = hr === "12:00" || hr === "18:00";
-                    const opt = document.createElement("option");
-                    opt.value = hr;
-                    opt.textContent = `${hr} ${isQuiet ? "· ★ Off-Peak (-15% Quiet Slot)" : "· Standard Slot"}${isDisabled ? " (Unavailable / Passed)" : " (Available)"}`;
-                    if (isDisabled) opt.disabled = true;
-                    select.appendChild(opt);
-                });
-
-                // Select first available slot
-                const firstAvail = Array.from(select.options).find(o => !o.disabled);
-                if (firstAvail) {
-                    select.value = firstAvail.value;
-                    if (window.app) window.app.selectedTime = firstAvail.value;
-                }
-
-                select.addEventListener("change", (e) => {
-                    const chosenTime = e.target.value;
-                    if (window.app) window.app.selectedTime = chosenTime;
-                    const matchingBtn = timeButtons.find(b => b.textContent.trim() === chosenTime);
-                    if (matchingBtn) matchingBtn.click();
-                });
-
-                // Hide old button grid and insert scrollable select
-                timeButtons.forEach(b => { b.style.display = "none"; });
-                container.insertAdjacentElement("beforebegin", select);
+        // 4. Hide 5-day pill row & convert time slots to a clean native select dropdown
+        document.querySelectorAll("button").forEach(b => {
+            if (/^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d+/i.test(b.textContent.trim())) {
+                if (b.parentElement) b.parentElement.style.display = "none";
             }
-        }
-    }
+        });
 
-    // -------------------------------------------------------------------------
-    // FIX #8: DELETE CALENDAR CHOICE — AUTOMATICALLY ASSIGN ONE CALENDAR BY OS
-    // -------------------------------------------------------------------------
-    function unifyCalendarButtonByOS() {
-        const ua = navigator.userAgent || "";
-        const isAppleOrOutlook = /Mac|iPhone|iPad|iPod|Windows/i.test(ua) && !/Android/i.test(ua);
-        const buttons = Array.from(document.querySelectorAll("button, a"));
-
-        const googleBtns = buttons.filter(b => /Google Calendar/i.test(b.textContent));
-        const icsBtns = buttons.filter(b => /\.ics|Apple|Outlook/i.test(b.textContent));
-
-        if (googleBtns.length > 0 && icsBtns.length > 0) {
-            // Hide the second button and turn the first into a single smart OS-aware button
-            icsBtns.forEach(b => { b.style.display = "none"; });
-            googleBtns.forEach(b => {
-                b.textContent = "📅 Add to System Calendar (Auto-Detected)";
+        const slotBtns = Array.from(document.querySelectorAll("button")).filter(b => /^(10|11|12|13|14|15|16|17|18):00$/.test(b.textContent.trim()));
+        if (slotBtns.length > 0 && !document.getElementById("cliplineTimeScrollSelect")) {
+            const parent = slotBtns[0].parentElement;
+            const sel = document.createElement("select");
+            sel.id = "cliplineTimeScrollSelect";
+            sel.style.cssText = "width:100%;padding:11px 14px;border-radius:10px;background:#0f172a;color:#fff;border:1px solid #165840;font-size:14px;margin-top:6px;cursor:pointer;";
+            ["10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"].forEach(hr => {
+                const btn = slotBtns.find(x => x.textContent.trim() === hr);
+                const disabled = btn && (btn.disabled || btn.className.includes("disabled") || btn.className.includes("opacity"));
+                const opt = document.createElement("option");
+                opt.value = hr;
+                opt.textContent = `${hr} ${(hr==="12:00"||hr==="18:00") ? "· Off-Peak (-15%)" : "· Standard Slot"}${disabled ? " (Unavailable)" : ""}`;
+                if (disabled) opt.disabled = true;
+                sel.appendChild(opt);
             });
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // FIX #2, #7, #9, #10:
-    // - #2: Restrict same client from booking on the same day unless cancelled
-    // - #7: Add "Reschedule" button next to "Cancel" in Visit History
-    // - #9: Block duplicate account sign-up ("Account already registered!")
-    // - #10: Delete old password hash on password change so old password fails
-    // -------------------------------------------------------------------------
-    function getLocalBookings() {
-        try {
-            return JSON.parse(localStorage.getItem("clipline_active_bookings") || "[]");
-        } catch (e) {
-            return [];
-        }
-    }
-
-    function saveLocalBookings(list) {
-        localStorage.setItem("clipline_active_bookings", JSON.stringify(list));
-    }
-
-    function enhanceAuthAndBookingRules() {
-        if (!window.app) return;
-
-        // Fix #2: Wrap confirmBooking / createAppointment to block same-day duplicate booking unless cancelled
-        if (window.app.db && typeof window.app.db.createAppointment === "function" && !window.app.db._sameDayWrapped) {
-            const origCreate = window.app.db.createAppointment.bind(window.app.db);
-            window.app.db._sameDayWrapped = true;
-
-            window.app.db.createAppointment = async function(payload) {
-                const dateOnly = String(payload.starts_at || window.app.selectedDateISO || "").slice(0, 10);
-                const customerKey = String(payload.customer_id || (window.app.currentUser && window.app.currentUser.email) || "guest");
-
-                // Check local active bookings
-                const localList = getLocalBookings();
-                const hasSameDayActive = localList.some(b =>
-                    b.customerKey === customerKey &&
-                    b.dateOnly === dateOnly &&
-                    b.status !== "cancelled"
-                );
-
-                if (hasSameDayActive) {
-                    throw new Error(`You already have an active appointment on ${dateOnly}. Please cancel or reschedule your existing visit before booking another slot on the same day.`);
-                }
-
-                // Check cloud Supabase appointments for same customer & same date
-                if (this.client && payload.customer_id) {
-                    const { data: existingRows } = await this.client
-                        .from("appointments")
-                        .select("id, starts_at, status")
-                        .eq("customer_id", payload.customer_id)
-                        .neq("status", "cancelled");
-
-                    if (Array.isArray(existingRows)) {
-                        const cloudConflict = existingRows.some(r => String(r.starts_at || "").slice(0, 10) === dateOnly);
-                        if (cloudConflict) {
-                            throw new Error(`You already have a confirmed appointment on ${dateOnly}. Only 1 active booking per day is permitted unless cancelled.`);
-                        }
-                    }
-                }
-
-                const res = await origCreate({
-                    ...payload,
-                    style_name: currentSelectedStyle
-                });
-
-                localList.push({
-                    id: res && res.id ? res.id : Date.now(),
-                    customerKey,
-                    dateOnly,
-                    timeStr: window.app.selectedTime || "12:00",
-                    styleName: currentSelectedStyle,
-                    status: "confirmed"
-                });
-                saveLocalBookings(localList);
-                return res;
+            sel.onchange = (e) => {
+                if (window.app) window.app.selectedTime = e.target.value;
+                const match = slotBtns.find(x => x.textContent.trim() === e.target.value);
+                if (match) match.click();
             };
+            slotBtns.forEach(b => { b.style.display = "none"; });
+            parent.insertAdjacentElement("beforebegin", sel);
         }
 
-        // Fix #9: Prevent registering an email that already exists
-        document.querySelectorAll("button").forEach(btn => {
-            if (/Send Verification|Create Account|Register/i.test(btn.textContent) && !btn.dataset.dupGuardBound) {
-                btn.dataset.dupGuardBound = "true";
-                btn.addEventListener("click", (e) => {
-                    const emailInput = document.querySelector('input[type="email"]');
-                    const signInTab = Array.from(document.querySelectorAll("button")).find(b => b.textContent.trim() === "Create Account");
-                    const isCreating = !signInTab || signInTab.className.includes("green") || signInTab.className.includes("active") || btn.textContent.includes("Verification");
-
-                    if (isCreating && emailInput && emailInput.value) {
-                        const email = emailInput.value.trim().toLowerCase();
-                        const regUsers = JSON.parse(localStorage.getItem("clipline_verified_users") || localStorage.getItem("verifiedUsers") || "{}");
-                        const builtInEmails = ["arlan@clipline.kz", "alibek_9209@clipline.kz", "dodik2004stars@gmail.com"];
-
-                        if (regUsers[email] || builtInEmails.includes(email)) {
-                            e.stopImmediatePropagation();
-                            e.preventDefault();
-                            alert(`Account already registered for "${email}"! Please switch to the "Sign In" tab to log in.`);
-                            return false;
-                        }
-                    }
-                }, true);
-            }
-        });
-
-        // Fix #10: Ensure changing password overwrites and deletes the old password hash immediately
-        document.querySelectorAll("button").forEach(btn => {
-            if (/Update Password|Change Password|Save Password|Save Profile/i.test(btn.textContent) && !btn.dataset.pwdGuardBound) {
-                btn.dataset.pwdGuardBound = "true";
-                btn.addEventListener("click", async () => {
-                    const pwdInputs = Array.from(document.querySelectorAll('input[type="password"]'));
-                    const newPwdInput = pwdInputs[pwdInputs.length - 1];
-                    if (newPwdInput && newPwdInput.value && window.app && window.app.currentUser) {
-                        const email = window.app.currentUser.email.toLowerCase();
-                        const newPlain = newPwdInput.value;
-                        let newHash = newPlain;
-                        if (window.app.security && typeof window.app.security.hashPassword === "function") {
-                            newHash = await window.app.security.hashPassword(newPlain);
-                        }
-                        // Delete old password record & overwrite in all storage keys
-                        ["clipline_verified_users", "verifiedUsers", "users"].forEach(storageKey => {
-                            try {
-                                const store = JSON.parse(localStorage.getItem(storageKey) || "{}");
-                                if (store && typeof store === "object") {
-                                    if (Array.isArray(store)) {
-                                        store.forEach(u => {
-                                            if (u.email && u.email.toLowerCase() === email) {
-                                                delete u.password;
-                                                u.password_hash = newHash;
-                                            }
-                                        });
-                                    } else if (store[email]) {
-                                        delete store[email].password;
-                                        store[email].password_hash = newHash;
-                                        store[email].hash = newHash;
-                                    }
-                                    localStorage.setItem(storageKey, JSON.stringify(store));
-                                }
-                            } catch (err) {}
-                        });
-                        if (window.app.db && window.app.db.client) {
-                            await window.app.db.client.from("users").update({ password_hash: newHash }).eq("email", email);
-                        }
-                        console.log("Old password invalidated and replaced with new hash for:", email);
-                    }
-                });
-            }
-        });
-    }
-
-    // Fix #7: Inject "Reschedule" button right next to every "Cancel" button in Visit History
-    function injectRescheduleButtons() {
-        const cancelBtns = Array.from(document.querySelectorAll("button")).filter(b => b.textContent.trim() === "Cancel");
-        cancelBtns.forEach(cancelBtn => {
-            if (cancelBtn.dataset.rescheduleAdded) return;
-            cancelBtn.dataset.rescheduleAdded = "true";
-
-            // Also hook Cancel button so cancelling frees up that day in local bookings (Fix #2)
-            cancelBtn.addEventListener("click", () => {
-                const card = cancelBtn.closest("div");
-                const cardText = card ? card.textContent : "";
-                const dateMatch = cardText.match(/202\d-\d{2}-\d{2}/);
-                if (dateMatch) {
-                    const list = getLocalBookings();
-                    list.forEach(b => { if (b.dateOnly === dateMatch[0]) b.status = "cancelled"; });
-                    saveLocalBookings(list);
-                }
-            });
-
-            const reschedBtn = document.createElement("button");
-            reschedBtn.type = "button";
-            reschedBtn.textContent = "Reschedule";
-            reschedBtn.style.cssText = "margin-right: 8px; padding: 6px 12px; border-radius: 8px; background: #165840; color: #ffffff; border: 1px solid #34d399; font-size: 12.5px; font-weight: 600; cursor: pointer;";
-
-            reschedBtn.addEventListener("click", async () => {
-                const now = new Date();
-                const minISO = now.toISOString().slice(0, 10);
-                const maxISO = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10);
-
-                const newDate = prompt(`Enter new appointment date (YYYY-MM-DD between ${minISO} and ${maxISO}):`, minISO);
-                if (!newDate) return;
-                if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || newDate < minISO || newDate > maxISO) {
-                    alert(`Invalid date! Please choose a date within 1 month (${minISO} to ${maxISO}).`);
-                    return;
-                }
-
-                const newTime = prompt("Choose new time slot (10:00, 11:00, 12:00, 14:00, 15:00, 16:00, 17:00, 18:00):", "14:00");
-                if (!newTime) return;
-
-                // Update card date/time text visually and in Supabase
-                const rowContainer = cancelBtn.parentElement && cancelBtn.parentElement.parentElement;
-                if (rowContainer) {
-                    const walker = document.createTreeWalker(rowContainer, NodeFilter.SHOW_TEXT, null, false);
-                    let n;
-                    while ((n = walker.nextNode())) {
-                        if (/202\d-\d{2}-\d{2}\s+at\s+\d{2}:\d{2}/.test(n.nodeValue)) {
-                            n.nodeValue = n.nodeValue.replace(/202\d-\d{2}-\d{2}\s+at\s+\d{2}:\d{2}/, `${newDate} at ${newTime} (Rescheduled)`);
-                        }
-                    }
-                    const refMatch = rowContainer.textContent.match(/CL-(\d+)/);
-                    if (refMatch && window.app && window.app.db && window.app.db.client) {
-                        const apptId = parseInt(refMatch[1], 10);
-                        await window.app.db.client
-                            .from("appointments")
-                            .update({ starts_at: `${newDate}T${newTime}:00+05:00` })
-                            .eq("id", apptId);
-                    }
-                }
-                alert(`Appointment successfully rescheduled to ${newDate} at ${newTime}!`);
-            });
-
-            cancelBtn.insertAdjacentElement("beforebegin", reschedBtn);
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // FIX #13: STABLE REAL-TIME STUDIO OCCUPANCY WITH CITY & BARBERSHOP SELECTORS
-    // Stops random timers from overwriting remaining minutes & adds City/Branch selectors
-    // -------------------------------------------------------------------------
-    let selectedTelemetryCity = "Astana";
-    let selectedTelemetryShopId = "astana-logovo-mangilik";
-
-    function buildStableStudioOccupancyWidget() {
-        // Disable any buggy randomizer in LiveChairService if present
-        if (window.app && window.app.liveChairs) {
-            if (window.app.liveChairs.intervalId) clearInterval(window.app.liveChairs.intervalId);
-            if (window.app.liveChairs.timer) clearInterval(window.app.liveChairs.timer);
-            window.app.liveChairs.randomize = function() {};
+        // 5. Single System Calendar button
+        const allBtns = Array.from(document.querySelectorAll("button, a"));
+        const gCal = allBtns.filter(b => /Google Calendar/i.test(b.textContent));
+        const iCal = allBtns.filter(b => /\.ics|Apple|Outlook/i.test(b.textContent));
+        if (gCal.length && iCal.length) {
+            iCal.forEach(b => { b.style.display = "none"; });
+            gCal.forEach(b => { b.textContent = "📅 Add to System Calendar"; });
         }
 
-        // Find existing Studio Occupancy section or create a dedicated live panel
-        let occContainer = document.getElementById("stableIoTOccupancyWidget");
-        if (!occContainer) {
-            const headings = Array.from(document.querySelectorAll("h2, h3, h4, div, span")).filter(
-                el => el.children.length === 0 && /Studio Occupancy|Live Chair|Chair Telemetry/i.test(el.textContent)
-            );
-            const targetHeading = headings[0];
-            occContainer = document.createElement("div");
-            occContainer.id = "stableIoTOccupancyWidget";
-            occContainer.style.cssText = "margin: 14px 0; padding: 16px; border-radius: 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(22, 88, 64, 0.8);";
-
-            if (targetHeading && targetHeading.parentElement) {
-                const parentCard = targetHeading.closest("section, article, .card, div");
-                if (parentCard) {
-                    parentCard.innerHTML = "";
-                    parentCard.appendChild(occContainer);
+        // 6. Reschedule button next to cancel
+        Array.from(document.querySelectorAll("button")).filter(b => b.textContent.trim() === "Cancel").forEach(cBtn => {
+            if (cBtn.dataset.hasResched) return;
+            cBtn.dataset.hasResched = "1";
+            const rBtn = document.createElement("button");
+            rBtn.type = "button";
+            rBtn.textContent = "Reschedule";
+            rBtn.style.cssText = "margin-right:8px;padding:6px 12px;border-radius:8px;background:#165840;color:#fff;border:1px solid #34d399;font-size:12px;font-weight:600;cursor:pointer;";
+            rBtn.onclick = () => {
+                const nd = prompt(`New Date (${minISO} to ${maxISO}):`, minISO);
+                if (!nd || nd < minISO || nd > maxISO) return alert("Please pick a date within 1 month.");
+                const nt = prompt("New Time (10:00, 11:00, 12:00, 14:00, 15:00, 16:00, 17:00, 18:00):", "14:00");
+                if (!nt) return;
+                const card = cBtn.parentElement?.parentElement;
+                if (card) {
+                    card.innerHTML = card.innerHTML.replace(/202\d-\d{2}-\d{2}\s+at\s+\d{2}:\d{2}/, `${nd} at ${nt} (Rescheduled)`);
                 }
-            } else {
-                const firstSection = document.querySelector("main, .container, body > div");
-                if (firstSection) firstSection.insertAdjacentElement("afterbegin", occContainer);
+                alert(`Rescheduled to ${nd} at ${nt}!`);
+            };
+            cBtn.insertAdjacentElement("beforebegin", rBtn);
+        });
+
+        // 7. Render Polished Studio Occupancy Widget inside the main content area (not breaking layout)
+        renderMainOccupancyWidget();
+    }
+
+    function renderMainOccupancyWidget() {
+        let container = document.getElementById("cleanStudioOccWidget");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "cleanStudioOccWidget";
+            container.style.cssText = "margin: 20px 0; padding: 18px; border-radius: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(22, 88, 64, 0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.3);";
+            
+            // Place it nicely above the booking form steps
+            const target = document.querySelector("main, .container, body");
+            if (target) {
+                target.insertBefore(container, target.firstChild);
             }
         }
 
-        renderOccupancyContents(occContainer);
-    }
+        const shops = TELEMETRY_CATALOG[activeCity] || TELEMETRY_CATALOG["Astana"];
+        let shop = shops.find(s => s.id === activeShopId) || shops[0];
+        activeShopId = shop.id;
 
-    function renderOccupancyContents(container) {
-        if (!container) return;
-        const shopsInCity = STUDIO_TELEMETRY_CATALOG[selectedTelemetryCity] || STUDIO_TELEMETRY_CATALOG["Astana"];
-        let activeShop = shopsInCity.find(s => s.id === selectedTelemetryShopId) || shopsInCity[0];
-        selectedTelemetryShopId = activeShop.id;
-
-        const occupiedCount = activeShop.chairs.filter(c => c.occupied).length;
-        const totalChairs = activeShop.chairs.length;
+        const busyCount = shop.chairs.filter(c => c.busy).length;
 
         container.innerHTML = `
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
                 <div>
                     <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #34d399; font-weight: 700;">
-                        ● Real-Time Studio Chair Occupancy
+                        ● Real-Time Studio Chair Telemetry & Occupancy
                     </div>
-                    <div style="font-size: 16px; font-weight: 700; margin-top: 2px;">
-                        ${activeShop.name} <span style="font-size: 12.5px; font-weight: 400; opacity: 0.8;">(${activeShop.address})</span>
+                    <div style="font-size: 17px; font-weight: 700; color: #fff; margin-top: 2px;">
+                        ${shop.name} <span style="font-size: 13px; font-weight: 400; color: #94a3b8;">(${shop.addr})</span>
                     </div>
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                    <select id="occCitySelect" style="padding: 6px 10px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 12.5px;">
-                        ${Object.keys(STUDIO_TELEMETRY_CATALOG).map(city =>
-                            `<option value="${city}" ${city === selectedTelemetryCity ? "selected" : ""}>City: ${city}</option>`
-                        ).join("")}
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="cleanCitySel" style="padding: 7px 12px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 13px; cursor: pointer;">
+                        ${Object.keys(TELEMETRY_CATALOG).map(c => `<option value="${c}" ${c === activeCity ? "selected" : ""}>City: ${c}</option>`).join("")}
                     </select>
-                    <select id="occShopSelect" style="padding: 6px 10px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 12.5px;">
-                        ${shopsInCity.map(shop =>
-                            `<option value="${shop.id}" ${shop.id === activeShop.id ? "selected" : ""}>${shop.name} (${shop.address})</option>`
-                        ).join("")}
+                    <select id="cleanShopSel" style="padding: 7px 12px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 13px; cursor: pointer;">
+                        ${shops.map(s => `<option value="${s.id}" ${s.id === shop.id ? "selected" : ""}>${s.name}</option>`).join("")}
                     </select>
-                    <span style="padding: 5px 10px; border-radius: 999px; background: #165840; color: #fff; font-size: 12px; font-weight: 700;">
-                        ${occupiedCount}/${totalChairs} Chairs Occupied
+                    <span style="padding: 6px 12px; border-radius: 999px; background: #165840; color: #fff; font-size: 12.5px; font-weight: 700;">
+                        ${busyCount}/${shop.chairs.length} Occupied
                     </span>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                ${activeShop.chairs.map(c => {
-                    const mins = Math.ceil(c.remainingSec / 60);
-                    const secs = c.remainingSec % 60;
-                    const statusText = c.occupied
-                        ? `Occupied · ${mins}m ${String(secs).padStart(2, "0")}s remaining`
-                        : `Free · Ready for Walk-In / Booking`;
-                    const borderCol = c.occupied ? "#f59e0b" : "#10b981";
-                    const dotCol = c.occupied ? "#fbbf24" : "#34d399";
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                ${shop.chairs.map(c => {
+                    const m = Math.floor(c.sec / 60);
+                    const s = c.sec % 60;
+                    const borderC = c.busy ? "#f59e0b" : "#10b981";
+                    const textC = c.busy ? "#fbbf24" : "#34d399";
                     return `
-                        <div style="padding: 10px 12px; border-radius: 10px; background: rgba(30, 41, 59, 0.75); border-left: 4px solid ${borderCol};">
-                            <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700;">
-                                <span>Chair #${c.num} · ${c.barber}</span>
-                                <span style="color: ${dotCol};">${c.occupied ? "BUSY" : "FREE"}</span>
+                        <div style="padding: 12px; border-radius: 10px; background: rgba(30, 41, 59, 0.9); border-left: 4px solid ${borderC};">
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #fff;">
+                                <span>Chair #${c.n} · ${c.b}</span>
+                                <span style="color: ${textC};">${c.busy ? "BUSY" : "FREE"}</span>
                             </div>
-                            <div style="font-size: 11.5px; opacity: 0.85; margin-top: 3px;">${c.service}</div>
-                            <div style="font-size: 11.5px; font-weight: 600; color: ${dotCol}; margin-top: 4px;">${statusText}</div>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-top: 3px;">${c.srv}</div>
+                            <div style="font-size: 12px; font-weight: 600; color: ${textC}; margin-top: 5px;">
+                                ${c.busy ? `Occupied · ${m}m ${String(s).padStart(2, "0")}s remaining` : "Free · Ready for Walk-In"}
+                            </div>
                         </div>
                     `;
                 }).join("")}
             </div>
         `;
 
-        const citySel = document.getElementById("occCitySelect");
-        const shopSel = document.getElementById("occShopSelect");
-        if (citySel) {
-            citySel.onchange = (e) => {
-                selectedTelemetryCity = e.target.value;
-                selectedTelemetryShopId = STUDIO_TELEMETRY_CATALOG[selectedTelemetryCity][0].id;
-                renderOccupancyContents(container);
-            };
-        }
-        if (shopSel) {
-            shopSel.onchange = (e) => {
-                selectedTelemetryShopId = e.target.value;
-                renderOccupancyContents(container);
-            };
-        }
+        const cSel = document.getElementById("cleanCitySel");
+        const sSel = document.getElementById("cleanShopSel");
+        if (cSel) cSel.onchange = (e) => {
+            activeCity = e.target.value;
+            activeShopId = TELEMETRY_CATALOG[activeCity][0].id;
+            renderMainOccupancyWidget();
+        };
+        if (sSel) sSel.onchange = (e) => {
+            activeShopId = e.target.value;
+            renderMainOccupancyWidget();
+        };
     }
 
-    // Deterministic 1-second countdown timer (never jumps from 20m to Free immediately!)
+    // Countdown timer for chairs
     setInterval(() => {
-        Object.values(STUDIO_TELEMETRY_CATALOG).forEach(shopList => {
-            shopList.forEach(shop => {
-                shop.chairs.forEach(chair => {
-                    if (chair.occupied && chair.remainingSec > 0) {
-                        chair.remainingSec -= 1;
-                        if (chair.remainingSec <= 0) {
-                            chair.occupied = false;
-                            chair.remainingSec = 0;
-                            chair.service = "Available Now";
+        Object.values(TELEMETRY_CATALOG).forEach(list => {
+            list.forEach(s => {
+                s.chairs.forEach(c => {
+                    if (c.busy && c.sec > 0) {
+                        c.sec -= 1;
+                        if (c.sec <= 0) {
+                            c.busy = false;
+                            c.sec = 0;
+                            c.srv = "Available Now";
                         }
                     }
                 });
             });
         });
-        const container = document.getElementById("stableIoTOccupancyWidget");
-        if (container && document.activeElement?.id !== "occCitySelect" && document.activeElement?.id !== "occShopSelect") {
-            renderOccupancyContents(container);
+        const w = document.getElementById("cleanStudioOccWidget");
+        if (w && document.activeElement?.id !== "cleanCitySel" && document.activeElement?.id !== "cleanShopSel") {
+            renderMainOccupancyWidget();
         }
     }, 1000);
 
-    // -------------------------------------------------------------------------
-    // INITIALIZE & CONTINUOUSLY SYNC ALL 13 FIXES
-    // -------------------------------------------------------------------------
-    function applyAllClipLineFixes() {
-        enforceOneMonthDateLimit();
-        scrubTechnicalDatabaseJargon();
-        deduplicateBarberPhotos();
-        convertTimeAndRemoveDayRow();
-        unifyCalendarButtonByOS();
-        enhanceAuthAndBookingRules();
-        injectRescheduleButtons();
-        bindLookbookCards();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(() => {
-            updateServiceDropdownAndPrices(detectActiveNetwork(), null);
-            renderStyleAndBarberRecommendationBanner("Consultation", "Choose haircut in barbershop (In-Chair Consultation)");
-            buildStableStudioOccupancyWidget();
-            applyAllClipLineFixes();
-        }, 300);
-    });
-
-    // Re-apply lightweight DOM guards whenever the user switches tabs, cities, or branches
-    setInterval(applyAllClipLineFixes, 1200);
+    setTimeout(runPolishedFixes, 200);
+    setInterval(runPolishedFixes, 1500);
 })();
 </script>
 </body>
