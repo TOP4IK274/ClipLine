@@ -2900,7 +2900,7 @@ class LiveChairService {
           );
         }
 
-        if (token == this.store.headAdminAccount.token) {
+        if (token === this.store.headAdminAccount.token) {
           this.user.role = "head_admin";
           this.user.full_name = "Arlan Shikibaev";
           this.user.branch_id = null;
