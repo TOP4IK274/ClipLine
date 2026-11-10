@@ -1758,7 +1758,7 @@ async fetchAndRenderAdminStats(notify = false) {
       }
     }
 
-class LiveChairService {
+cclass LiveChairService {
       constructor(app) {
         this.app = app;
         this.simState = {};
@@ -3113,7 +3113,6 @@ selectBranch(branchId) {
         this.updateSummary();
         this.iot.render();
       }
-
       renderBarbers() {
         const container = document.getElementById("barberSelectorCards");
         if (!container) return;
@@ -3577,7 +3576,7 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
         document.getElementById("confTotal").textContent = priceStr;
       }
 
-     async submitBooking(e) {
+    async submitBooking(e) {
         e.preventDefault();
         if (this.bookingInProgress) return;
         if (!this.user) return this.toast("Sign In Required", "Please sign in before booking.", true);
