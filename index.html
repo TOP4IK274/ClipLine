@@ -2941,8 +2941,7 @@ class LiveChairService {
         this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
       }
 
-const headToken = this.store.headAdminAccount.token;
-        if (token == headToken) {
+if (token === this.store.headAdminAccount.token) {
           this.user.role = "head_admin";
           this.user.full_name = "Arlan Shikibaev";
           this.user.branch_id = null;
