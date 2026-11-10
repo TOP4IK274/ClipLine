@@ -2941,13 +2941,14 @@ class LiveChairService {
         this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
       }
 
-if (token === this.store.headAdminAccount.token) {
+const headToken = this.store.headAdminAccount.token;
+        if (token == headToken) {
           this.user.role = "head_admin";
           this.user.full_name = "Arlan Shikibaev";
           this.user.branch_id = null;
           this.user.barber_id = null;
           await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "head_admin", token);
-          return this.saveRoleAndNavigate("Head Admin access activated (Network Analytics & Partner Approvals).");
+          return this.saveRoleAndNavigate("Head Admin access activated.");
         }
         const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
         if (branch) {
