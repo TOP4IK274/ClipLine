@@ -347,7 +347,7 @@
           </div>
           <div>
             <div class="text-xl font-extrabold text-white">Live Sync</div>
-            <div class="text-[#E2EFE8]/80">PostgreSQL & Calendar</div>
+            <div class="text-[#E2EFE8]/80">Appointments & Calendar</div>
           </div>
         </div>
       </div>
@@ -538,12 +538,12 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label for="serviceInput" class="block text-xs font-semibold mb-1.5">Service</label>
-                    <select id="serviceInput" onchange="window.app.updateSummary()" class="field w-full px-3.5 py-2.5 text-sm font-medium">
-                      <option value="1" data-name="Haircut" data-duration="45" data-price="5,000 ₸" data-raw="5000">Haircut · 45 min · 5,000 ₸</option>
-                      <option value="2" data-name="Fade cut" data-duration="45" data-price="5,500 ₸" data-raw="5500">Fade cut · 45 min · 5,500 ₸</option>
-                      <option value="3" data-name="Haircut & Beard" data-duration="60" data-price="7,500 ₸" data-raw="7500">Haircut & Beard · 60 min · 7,500 ₸</option>
-                      <option value="4" data-name="Beard trim" data-duration="30" data-price="3,500 ₸" data-raw="3500">Beard trim · 30 min · 3,500 ₸</option>
+                    <label for="serviceInput" class="block text-xs font-semibold mb-1.5">Service / Haircut style</label><div id="selectedStyleNote" class="text-xs font-bold text-emerald-700 mb-2" role="status"></div>
+                    <select id="serviceInput" onchange="window.app.chooseStyle(Number(this.value))" class="field w-full px-3.5 py-2.5 text-sm font-medium">
+                      <option value="1" data-name="Haircut" data-duration="45" data-price="5,000–6,500 ₸" data-raw="5000">Haircut · 45 min · 5,000–6,500 ₸</option>
+                      <option value="2" data-name="Fade cut" data-duration="45" data-price="5,500–7,000 ₸" data-raw="5500">Fade cut · 45 min · 5,500–7,000 ₸</option>
+                      <option value="3" data-name="Haircut & Beard" data-duration="60" data-price="7,500–9,000 ₸" data-raw="7500">Haircut & Beard · 60 min · 7,500–9,000 ₸</option>
+                      <option value="4" data-name="Beard trim" data-duration="30" data-price="3,500–5,000 ₸" data-raw="3500">Beard trim · 30 min · 3,500–5,000 ₸</option>
                     </select>
                   </div>
                   <div>
@@ -555,7 +555,7 @@
                   </div>
                 </div>
 
-                <div id="rollingDatePills" class="grid grid-cols-5 gap-2"></div>
+                
 
                 <div>
                   <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -565,7 +565,7 @@
                       <span id="slotsAvailableCount" class="text-xs font-bold text-[#165B40]"></span>
                     </div>
                   </div>
-                  <div id="timeButtonsContainer" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+                  <div id="timeButtonsContainer" class="flex flex-col gap-2 max-h-52 overflow-y-auto snap-y snap-mandatory pr-2"></div>
                 </div>
               </div>
             </div>
@@ -581,7 +581,7 @@
               <div class="sage-box rounded-2xl p-4 space-y-1.5 border border-[#165B40]/15">
                 <div id="summaryShopLine" class="text-xs font-bold text-[#165B40]">LOGOVO · Mangilik El</div>
                 <div id="summaryLine1" class="text-base font-extrabold">Haircut · 16:00</div>
-                <div id="summaryLine2" class="text-xs text-muted-theme">45 mins · 5,000 ₸ · Pay at studio</div>
+                <div id="summaryLine2" class="text-xs text-muted-theme">45 mins · 5,000–6,500 ₸ · Pay at studio</div>
                 <div id="quietDiscountTag" class="hidden text-[11px] font-bold text-amber-900 bg-amber-200 px-2 py-0.5 rounded inline-block mt-1">
                   ✓ 15% Off-Peak Discount Applied
                 </div>
@@ -669,27 +669,20 @@
               </div>
               <div>
                 <div class="text-[10px] font-bold uppercase text-muted-theme">TOTAL</div>
-                <div id="confTotal" class="text-sm font-extrabold text-[#165B40]">5,000 ₸</div>
+                <div id="confTotal" class="text-sm font-extrabold text-[#165B40]">5,000–6,500 ₸</div>
               </div>
             </div>
 
             <div class="sage-box rounded-xl p-4 space-y-2.5">
               <div class="text-xs font-bold text-[#165B40]">Sync with Device Calendar</div>
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" onclick="window.app.exportICS()" class="py-2.5 px-3 rounded-xl bg-[#165B40] text-white text-xs font-semibold hover:bg-[#114732] transition">
-                  Apple / Outlook (.ics)
-                </button>
-                <button type="button" onclick="window.app.exportGoogleCal()" class="py-2.5 px-3 rounded-xl surface-box text-xs font-semibold hover:border-[#165B40] transition">
-                  Google Calendar
-                </button>
-              </div>
+              <button type="button" onclick="window.app.exportDeviceCalendar()" class="btn-primary px-4 py-3 rounded-xl text-xs font-bold">Add to my calendar</button>
             </div>
           </div>
 
           <div class="lg:col-span-7 app-card p-6 space-y-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-bold">Visit History (Synced with PostgreSQL)</h2>
-              <button type="button" onclick="window.app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh Database</button>
+              <h2 class="text-lg font-bold">Visit History</h2>
+              <button type="button" onclick="window.app.refreshSchedule(true)" class="text-xs font-semibold text-[#165B40] hover:underline">↻ Refresh Visits</button>
             </div>
             <div id="customerBookingsContainer" class="space-y-3"></div>
           </div>
@@ -743,7 +736,7 @@
                   </div>
                   <div class="mt-2 flex items-center justify-between px-1">
                     <span class="text-xs font-bold">Skin Fade</span>
-                    <span class="text-xs font-extrabold text-[#165B40]">5,500 ₸</span>
+                    <span class="text-xs font-extrabold text-[#165B40]">5,500–7,000 ₸</span>
                   </div>
                   <div class="text-[10px] text-muted-theme px-1 mt-0.5">45 min · Click to book →</div>
                 </button>
@@ -754,7 +747,7 @@
                   </div>
                   <div class="mt-2 flex items-center justify-between px-1">
                     <span class="text-xs font-bold">Beard Sculpt</span>
-                    <span class="text-xs font-extrabold text-[#165B40]">3,500 ₸</span>
+                    <span class="text-xs font-extrabold text-[#165B40]">3,500–5,000 ₸</span>
                   </div>
                   <div class="text-[10px] text-muted-theme px-1 mt-0.5">30 min · Click to book →</div>
                 </button>
@@ -765,7 +758,7 @@
                   </div>
                   <div class="mt-2 flex items-center justify-between px-1">
                     <span class="text-xs font-bold">Classic Cut</span>
-                    <span class="text-xs font-extrabold text-[#165B40]">5,000 ₸</span>
+                    <span class="text-xs font-extrabold text-[#165B40]">5,000–6,500 ₸</span>
                   </div>
                   <div class="text-[10px] text-muted-theme px-1 mt-0.5">45 min · Click to book →</div>
                 </button>
@@ -790,14 +783,14 @@
         <div class="app-card p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">LIVE STUDIO TELEMETRY</span>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">STUDIO AVAILABILITY</span>
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px] font-bold">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Stream Active
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Schedule estimates
               </span>
             </div>
             <h1 class="text-2xl font-extrabold">Real-Time Station Occupancy</h1>
             <p class="text-xs text-muted-theme mt-0.5">
-              Live status of barber stations updated automatically every second from studio sensor telemetry.
+              Occupancy estimated from booked visits; refreshed every second. Walk-ins and actual chair sensors are not connected.
             </p>
           </div>
           <button type="button" onclick="window.app.navigate('book')" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
@@ -805,6 +798,7 @@
           </button>
         </div>
 
+        <div class="flex gap-3"><select id="occupancyCity" class="field p-3" onchange="window.app.populateOccupancyBranches()"></select><select id="occupancyBranch" class="field p-3" onchange="window.app.iot.render()"></select></div>
         <div id="iotSensorsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
       </section>
 
@@ -850,10 +844,10 @@
   <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#D5DDD8]/50 pb-3">
     <div>
       <span class="text-[11px] font-bold uppercase tracking-wider text-[#165B40]">ADMINISTRATOR STATISTICS PANEL</span>
-      <h2 class="text-lg font-extrabold">Database Analysis (1 Sep – 31 Oct 2026 · n = <span id="analyticsTotalRowsBadge">100</span>)</h2>
+      <h2 class="text-lg font-extrabold">Visit Analytics (1 Sep – 31 Oct 2026 · n = <span id="analyticsTotalRowsBadge">100</span>)</h2>
     </div>
     <button type="button" onclick="window.app.analytics.fetchAndRenderAdminStats(true)" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#E2EFE8] text-[#165B40] hover:opacity-85">
-      ↻ Re-Query Live PostgreSQL View
+      ↻ Refresh Analytics
     </button>
   </div>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -870,8 +864,7 @@
                 <div id="tableQ1Hours" class="grid grid-cols-5 gap-1 text-[10px] text-center"></div>
               </div>
               <div class="text-[10px] text-muted-theme pt-2.5 mt-2.5 border-t border-[#D5DDD8]/40">
-                Source: `appointments` table (Supabase), live query aggregation.
-              </div>
+                </div>
             </div>
 
             <!-- Q2 -->
@@ -899,8 +892,7 @@
                 </div>
               </div>
               <div class="text-[10px] text-muted-theme pt-2.5 mt-2 border-t border-[#D5DDD8]/40">
-                Source: `appointments` table (Supabase), grouped by `barber_id` & `status`.
-              </div>
+                </div>
             </div>
 
             <!-- Q3 -->
@@ -917,8 +909,7 @@
                 </div>
               </div>
               <div class="text-[10px] text-muted-theme pt-2.5 mt-2 border-t border-[#D5DDD8]/40">
-                Source: `appointments` table (Supabase), grouped by `date_trunc('week', starts_at)`.
-              </div>
+                </div>
             </div>
           </div>
         </div>
@@ -1003,7 +994,7 @@
             <span class="text-[10px] font-bold uppercase tracking-wider text-[#165B40]">SIGNATURE CUT</span>
             <h3 id="styleModalTitle" class="text-xl font-extrabold">Skin Fade</h3>
           </div>
-          <span id="styleModalPrice" class="text-lg font-extrabold text-[#165B40]">5,500 ₸</span>
+          <span id="styleModalPrice" class="text-lg font-extrabold text-[#165B40]">5,500–7,000 ₸</span>
         </div>
         <p id="styleModalDesc" class="text-xs text-muted-theme leading-relaxed"></p>
         <div class="grid grid-cols-2 gap-2.5 pt-2">
@@ -1420,10 +1411,10 @@
         };
 
         this.services = {
-          1: { id: 1, name: "Haircut", duration: 45, price: "5,000 ₸", price_kzt: 5000, desc: "Tailored scissor and clipper haircut with hot towel neck shave and styling." },
-          2: { id: 2, name: "Fade cut", duration: 45, price: "5,500 ₸", price_kzt: 5500, desc: "High-precision zero/skin fade with sharp razor line-up and textured top." },
-          3: { id: 3, name: "Haircut & Beard", duration: 60, price: "7,500 ₸", price_kzt: 7500, desc: "Complete executive grooming package: custom haircut plus hot-towel beard sculpting." },
-          4: { id: 4, name: "Beard trim", duration: 30, price: "3,500 ₸", price_kzt: 3500, desc: "Beard shaping, straight-razor cheek and neck line-up, and nourishing beard oil finish." }
+          1: { id: 1, name: "Haircut", duration: 45, price: "5,000–6,500 ₸", price_kzt: 5000, desc: "Tailored scissor and clipper haircut with hot towel neck shave and styling." },
+          2: { id: 2, name: "Fade cut", duration: 45, price: "5,500–7,000 ₸", price_kzt: 5500, desc: "High-precision zero/skin fade with sharp razor line-up and textured top." },
+          3: { id: 3, name: "Haircut & Beard", duration: 60, price: "7,500–9,000 ₸", price_kzt: 7500, desc: "Complete executive grooming package: custom haircut plus hot-towel beard sculpting." },
+          4: { id: 4, name: "Beard trim", duration: 30, price: "3,500–5,000 ₸", price_kzt: 3500, desc: "Beard shaping, straight-razor cheek and neck line-up, and nourishing beard oil finish." }
         };
 
         this.defaultBrands = {
@@ -1619,7 +1610,7 @@ async fetchAndRenderAdminStats(notify = false) {
   this.renderBars(hourData);
   this.renderQ2BarberWorkload();
   this.renderQ3WeeklyLine();
-  if (notify) this.app.toast("Analytics Synchronized", "Queried live PostgreSQL view `admin_stats_by_hour`.");
+  if (notify) this.app.toast("Analytics Synchronized", "Latest visit analytics loaded.");
 }
 
       renderBars(data) {
@@ -1772,28 +1763,7 @@ async fetchAndRenderAdminStats(notify = false) {
 
       start() {
         this.render();
-        setInterval(() => {
-          this.chairs.forEach(c => {
-            c.heartbeatSec = (c.heartbeatSec % 5) + 1;
-            if (c.occupied && c.remainingSec > 0) {
-              c.remainingSec--;
-              if (c.remainingSec === 0) {
-                c.occupied = false;
-                c.uvSterilized = true;
-              }
-            }
-          });
-          this.render();
-        }, 1000);
-
-        setInterval(() => {
-          const targetIdx = Math.floor(Math.random() * this.chairs.length);
-          const chair = this.chairs[targetIdx];
-          chair.occupied = !chair.occupied;
-          chair.remainingSec = chair.occupied ? 1200 + Math.floor(Math.random() * 600) : 0;
-          chair.uvSterilized = true;
-          this.render();
-        }, 12000);
+        setInterval(() => this.render(), 1000);
       }
 
       formatRemaining(sec) {
@@ -1803,6 +1773,13 @@ async fetchAndRenderAdminStats(notify = false) {
       }
 
       render() {
+        const branchId = Number(document.getElementById("occupancyBranch")?.value || this.app.selectedBranchId);
+        const now = Date.now();
+        this.chairs = this.app.store.getBarbers(branchId).map(b => {
+          const active = this.app.scheduleList.find(a => Number(a.branch_id) === branchId && Number(a.barber_id) === Number(b.id) && a.status === "confirmed" && new Date(`${a.date}T${a.time}:00+05:00`).getTime() <= now && new Date(`${a.date}T${a.time}:00+05:00`).getTime() + (this.app.store.services[a.service_id]?.duration || 45)*60000 > now);
+          const end = active ? new Date(`${active.date}T${active.time}:00+05:00`).getTime() + (this.app.store.services[active.service_id]?.duration || 45)*60000 : now;
+          return {name: b.name, occupied: !!active, remainingSec: Math.max(0, Math.ceil((end-now)/1000))};
+        });
         const free = this.chairs.filter(c => !c.occupied).length;
         const badge = document.getElementById("branchIoTStatusText");
         if (badge) badge.textContent = `${free}/${this.chairs.length} Stations Free`;
@@ -1813,7 +1790,7 @@ async fetchAndRenderAdminStats(notify = false) {
           <div class="app-card p-5 space-y-3 border-l-4 transition-all ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-[10px] font-mono text-muted-theme">${c.sensorId} · Heartbeat ${c.heartbeatSec}s ago</div>
+                <div class="text-[10px] font-mono text-muted-theme">Schedule-based estimate</div>
                 <h3 class="text-base font-extrabold">${c.name}</h3>
               </div>
               <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -1823,12 +1800,12 @@ async fetchAndRenderAdminStats(notify = false) {
               </span>
             </div>
             <p class="text-xs text-muted-theme font-semibold">
-              ${c.occupied ? `Active Cut · ${this.formatRemaining(c.remainingSec)}` : "Ready for next client · Chair Empty"}
+              ${c.occupied ? `Active Cut · ${this.formatRemaining(c.remainingSec)}` : "No active appointment"}
             </p>
             <div class="grid grid-cols-2 gap-2 text-xs surface-box p-3 rounded-xl">
               <div>
-                <div class="text-[10px] text-muted-theme">UV-C Cabinet</div>
-                <div class="font-bold text-[#165B40]">✓ UV-Sterilized</div>
+                <div class="text-[10px] text-muted-theme">Status source</div>
+                <div class="font-bold text-[#165B40]">Booking schedule</div>
               </div>
               <div>
                 <div class="text-[10px] text-muted-theme">Next Available</div>
@@ -2040,7 +2017,7 @@ async fetchAndRenderAdminStats(notify = false) {
           if (existing && existing.length > 0) {
             await this.client
               .from("users")
-              .update({ full_name: fullName, password_hash: passwordHash, phone, access_token: "VERIFIED" })
+              .update({ full_name: fullName, phone })
               .eq("user_id", existing[0].user_id);
             return existing[0].user_id;
           }
@@ -2095,7 +2072,8 @@ async fetchAndRenderAdminStats(notify = false) {
 
       async updateStatus(id, status) {
         if (!this.client) return;
-        await this.client.from("appointments").update({ status }).eq("appointment_id", id);
+        const { error } = await this.client.from("appointments").update({ status }).eq("appointment_id", id);
+        if (error) throw error;
       }
 
       subscribe(callback) {
@@ -2296,6 +2274,7 @@ async fetchAndRenderAdminStats(notify = false) {
         this.populateReviewFilter();
         this.renderReviews();
         this.updateSummary();
+        this.setupImprovements();
         this.iot.start();
 
         this.forceResetToMainPage();
@@ -2559,10 +2538,8 @@ async fetchAndRenderAdminStats(notify = false) {
 
       const userId = await this.db.ensureUser(fullName, resetData.email, newHash, phone);
         if (this.db.client) {
-          await this.db.client
-            .from("users")
-            .update({ password_hash: newHash })
-            .eq("email", resetData.email);
+          const { error } = await this.db.client.from("users").update({ password_hash: newHash, access_token: "VERIFIED" }).eq("user_id", userId);
+          if (error) return this.toast("Password Not Changed", "Please try again. Your password was not updated.", true);
         }
 
         const updatedUser = {
@@ -2613,6 +2590,7 @@ async fetchAndRenderAdminStats(notify = false) {
         if (!passCheck.ok) return this.toast("Invalid Password", passCheck.msg, true);
 
         if (this.authTab === "register") {
+          if (this.store.verifiedUsers[email] || email === this.store.headAdminAccount.email || await this.db.findUserByEmail(email)) return this.toast("Account Already Registered", "Please sign in or reset your password.", true);
           const fullName = document.getElementById("authFullName").value.trim();
           const phone = document.getElementById("authPhone").value.trim();
           const terms = document.getElementById("authTermsCheckbox").checked;
@@ -2657,7 +2635,7 @@ async fetchAndRenderAdminStats(notify = false) {
         const enteredHash = await SecurityService.hashPassword(password);
         let account = this.store.verifiedUsers[email];
 
-        if (!account) {
+        {
           const dbUser = await this.db.findUserByEmail(email);
           if (dbUser && dbUser.password_hash) {
             account = {
@@ -2781,12 +2759,11 @@ async fetchAndRenderAdminStats(notify = false) {
         };
         document.getElementById("styleModalImg").src = imgs[serviceId] || imgs[1];
         document.getElementById("styleModalTitle").textContent = s.name;
-        document.getElementById("styleModalPrice").textContent = `${s.price} · ${s.duration} min`;
+        document.getElementById("styleModalPrice").textContent = `${this.priceRange(serviceId)} · ${s.duration} min`;
         document.getElementById("styleModalDesc").textContent = s.desc;
         const btn = document.getElementById("styleModalBookBtn");
         btn.onclick = () => {
-          document.getElementById("serviceInput").value = String(serviceId);
-          this.updateSummary();
+          this.chooseStyle(serviceId);
           document.getElementById("styleDetailModal").classList.add("hidden");
           this.navigate("book");
           this.toast("Style Selected", `${s.name} selected in your booking form.`);
@@ -2805,7 +2782,7 @@ async fetchAndRenderAdminStats(notify = false) {
           this.user.barber_id = dbCode.barber_id || null;
           if (dbCode.staff_name) this.user.full_name = dbCode.staff_name;
           await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, dbCode.role, token);
-          return this.saveRoleAndNavigate(`${dbCode.role.replace("_", " ").toUpperCase()} access verified via Supabase.`);
+          return this.saveRoleAndNavigate(`${dbCode.role.replace("_", " ").toUpperCase()} access verified.`);
         }
 
         if (token === this.store.headAdminAccount.token) {
@@ -3046,7 +3023,7 @@ async fetchAndRenderAdminStats(notify = false) {
         document.getElementById("partnerModal").classList.add("hidden");
         this.syncUserUI();
         this.renderHeadAdminQueue();
-        this.toast("Application Saved to Database", `${brandName} (${city}) added to Pending Partner Applications.`);
+        this.toast("Application Saved", `${brandName} (${city}) added to Pending Partner Applications.`);
       }
 
       renderHeadAdminQueue() {
@@ -3162,6 +3139,7 @@ async fetchAndRenderAdminStats(notify = false) {
         const dateInp = document.getElementById("dateInput");
         if (dateInp) {
           dateInp.min = today;
+          dateInp.max = this.maxBookingDate();
           if (!dateInp.value || this.selectedDateISO < today) {
             dateInp.value = this.selectedDateISO;
           }
@@ -3198,7 +3176,7 @@ async fetchAndRenderAdminStats(notify = false) {
 
       selectDate(iso) {
         const today = this.getTodayISO();
-        if (iso < today) return this.toast("Invalid Date", "Please select today or a future date.", true);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || iso < today || iso > this.maxBookingDate()) { document.getElementById("dateInput").value = this.selectedDateISO; return this.toast("Invalid Date", "Bookings are available from today through one month ahead.", true); }
         this.selectedDateISO = iso;
         const inp = document.getElementById("dateInput");
         if (inp) inp.value = iso;
@@ -3212,9 +3190,9 @@ async fetchAndRenderAdminStats(notify = false) {
         const targetBarber = this.store.barbers[barberId];
         const targetDbId = targetBarber ? targetBarber.db_id : barberId;
         return this.scheduleList.some(a =>
-          a.date === dateISO &&
-          a.time === timeStr &&
-          (Number(a.barber_id) === Number(barberId) || Number(a.db_barber_id) === Number(targetDbId)) &&
+          a.appointment_id !== this.reschedulingId && a.date === dateISO &&
+          this.timesOverlap(timeStr, Number(document.getElementById("serviceInput").selectedOptions[0].dataset.duration), a.time, (this.store.services[a.service_id] || this.store.services[1]).duration) &&
+          Number(a.branch_id) === Number(this.selectedBranchId) && Number(a.barber_id) === Number(barberId) &&
           a.status !== "cancelled"
         );
       }
@@ -3229,7 +3207,11 @@ async fetchAndRenderAdminStats(notify = false) {
           !this.isSlotTaken(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
 
         container.innerHTML = this.slots.map(slot => {
-          const past = this.isSlotPast(this.selectedDateISO, slot);
+          const branch = this.store.branches[this.selectedBranchId];
+          const [opening, closing] = branch.hours.split(/[–-]/);
+          const mins = t => Number(t.split(":")[0])*60+Number(t.split(":")[1]);
+          const duration = Number(document.getElementById("serviceInput").selectedOptions[0].dataset.duration);
+          const past = this.isSlotPast(this.selectedDateISO, slot) || mins(slot) < mins(opening) || mins(slot)+duration > mins(closing);
           const busy = this.isSlotTaken(this.selectedDateISO, slot, this.selectedBarberId);
           const disabled = past || busy;
           const isQuietDiscount = slot === "12:00" || slot === "18:00";
@@ -3273,6 +3255,8 @@ async fetchAndRenderAdminStats(notify = false) {
       }
 
       resetBookingForm() {
+        this.reschedulingId = null;
+        document.getElementById("confirmBtn").textContent = "Confirm Booking";
         this.selectCity("Astana");
         this.selectDate(this.getDefaultBookingDateISO());
       }
@@ -3284,10 +3268,11 @@ async fetchAndRenderAdminStats(notify = false) {
         const b = this.store.barbers[this.selectedBarberId] || Object.values(this.store.barbers)[0];
         const br = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
 
+        for (const option of sel.options) option.textContent = `${option.dataset.name} · ${option.dataset.duration} min · ${this.priceRange(Number(option.value), br.id)}`;
         const rawPrice = parseInt(opt.dataset.raw || "5000");
         const isQuiet = this.selectedTime === "12:00" || this.selectedTime === "18:00";
         const finalPrice = isQuiet ? Math.round(rawPrice * 0.85) : rawPrice;
-        const formattedPrice = `${finalPrice.toLocaleString()} ₸`;
+        const formattedPrice = this.priceRange(Number(sel.value), br.id, isQuiet);
 
         document.getElementById("summaryShopLine").textContent = `${br.name} (${br.city})`;
         document.getElementById("summaryLine1").textContent = `${opt.dataset.name} with ${b.name} · ${this.selectedTime || "No slot open"}`;
@@ -3313,14 +3298,14 @@ async fetchAndRenderAdminStats(notify = false) {
           this.renderHeadAdminQueue();
         }
         this.syncUserUI();
-        if (notify) this.toast("Database Synchronized", "Fetched latest records from Supabase PostgreSQL.");
+        if (notify) this.toast("Visits Updated", "Latest appointments loaded.");
       }
 
       syncLatestBookingPassFromDB() {
         if (!this.user || !this.scheduleList.length) return;
         const first = (this.user.full_name || "Client").split(" ")[0].toLowerCase();
         const userBookings = this.scheduleList.filter(
-          a => (a.customer_id === this.user.user_id || a.client_name.toLowerCase() === first) && a.status !== "cancelled"
+          a => (String(a.customer_id) === String(this.user.user_id)) && a.status !== "cancelled"
         );
         if (!userBookings.length) return;
 
@@ -3329,7 +3314,7 @@ async fetchAndRenderAdminStats(notify = false) {
         const b = this.store.barbers[latest.barber_id] || this.store.barbers[1];
         const br = this.store.branches[latest.branch_id] || this.store.branches[101];
         const isQuiet = latest.time === "12:00" || latest.time === "18:00";
-        const priceStr = isQuiet ? `${Math.round(s.price_kzt * 0.85).toLocaleString()} ₸ (-15%)` : s.price;
+        const priceStr = this.priceRange(latest.service_id, br.id, isQuiet);
         const refCode = `CL-${1000 + latest.appointment_id}`;
 
         this.lastBooking = {
@@ -3354,6 +3339,11 @@ async fetchAndRenderAdminStats(notify = false) {
 
       async submitBooking(e) {
         e.preventDefault();
+        if (this.bookingInProgress) return;
+        if (!this.user) return this.toast("Sign In Required", "Please sign in before booking.", true);
+        if (this.selectedDateISO < this.getTodayISO() || this.selectedDateISO > this.maxBookingDate()) return this.toast("Invalid Date", "Choose a date within the next month.", true);
+        await this.refreshSchedule(false);
+        if (this.scheduleList.some(a => String(a.customer_id) === String(this.user.user_id) && a.date === this.selectedDateISO && a.status !== "cancelled" && a.appointment_id !== this.reschedulingId)) return this.toast("Already Booked", "You already have a visit on this day. Reschedule or cancel it first.", true);
         if (!this.selectedTime || this.isSlotPast(this.selectedDateISO, this.selectedTime)) {
           return this.toast("Select a Valid Time", "Please choose an available future time slot.", true);
         }
@@ -3368,21 +3358,33 @@ async fetchAndRenderAdminStats(notify = false) {
         const serviceId = parseInt(document.getElementById("serviceInput").value);
         const barber = this.store.barbers[this.selectedBarberId] || this.store.barbers[1];
         const branch = this.store.branches[this.selectedBranchId] || this.store.branches[101];
+        if (this.reschedulingId) {
+          const original = this.scheduleList.find(a => a.appointment_id === this.reschedulingId);
+          if (!original || original.status !== "confirmed" || Number(original.branch_id) !== Number(branch.id) || Number(original.barber_id) !== Number(barber.id) || Number(original.service_id) !== serviceId) return this.toast("Keep Your Visit Details", "Rescheduling changes date and time. Restore the original studio, barber and service, or cancel and book again.", true);
+        }
         const startsAtISO = `${this.selectedDateISO}T${this.selectedTime}:00+05:00`;
 
         try {
-          const customerId = await this.db.ensureUser(name, this.user ? this.user.email : null, "pbkdf2_sha256$10000$verified", phone);
-          const apptId = await this.db.createAppointment(customerId, barber.db_id, startsAtISO, serviceId, branch.id);
+          this.bookingInProgress = true;
+          const customerId = this.user.user_id;
+          let apptId;
+          if (this.reschedulingId) {
+            const { error } = await this.db.client.from("appointments").update({ starts_at: startsAtISO }).eq("appointment_id", this.reschedulingId).eq("customer_id", this.user.user_id).select().single();
+            if (error) throw error;
+            apptId = this.reschedulingId;
+            this.reschedulingId = null;
+            document.getElementById("confirmBtn").textContent = "Confirm Booking";
+          } else apptId = await this.db.createAppointment(customerId, barber.db_id, startsAtISO, serviceId, branch.id);
 
-          this.store.branchMap[apptId] = { branch_id: branch.id, barber_id: barber.id };
+          this.store.branchMap[apptId] = { branch_id: branch.id, barber_id: barber.id, style: this.selectedStyleId || serviceId };
           this.store.save();
 
           await this.refreshSchedule(false);
           this.navigate("appointments");
-          this.toast("Booking Committed to Supabase", `${branch.name} · ${this.selectedDateISO} at ${this.selectedTime}`);
+          this.toast("Booking Confirmed", `${branch.name} · ${this.selectedDateISO} at ${this.selectedTime}`);
         } catch (err) {
-          this.toast("Slot Unavailable", "This barber is already booked at that time in PostgreSQL.", true);
-        }
+          this.toast("Booking Not Saved", "The selected time could not be saved. Please choose another time or retry.", true);
+        } finally { this.bookingInProgress = false; }
       }
 
       renderCustomerBookings() {
@@ -3390,7 +3392,7 @@ async fetchAndRenderAdminStats(notify = false) {
         if (!container || !this.user) return;
         const first = (this.user.full_name || "Client").split(" ")[0].toLowerCase();
         const mine = this.scheduleList.filter(
-          a => (a.customer_id === this.user.user_id || a.client_name.toLowerCase() === first) && a.status !== "cancelled"
+          a => (String(a.customer_id) === String(this.user.user_id)) && a.status !== "cancelled"
         );
 
         document.getElementById("navBadgeBookings").textContent = mine.length;
@@ -3410,7 +3412,7 @@ async fetchAndRenderAdminStats(notify = false) {
           return `
             <div class="surface-box rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div class="text-sm font-bold">${s.name} with ${b.name} (${s.price}) · <span class="text-xs font-mono text-[#165B40]">CL-${1000 + item.appointment_id}</span></div>
+                <div class="text-sm font-bold">${s.name} with ${b.name} (${this.priceRange(item.service_id, br.id)}) · <span class="text-xs font-mono text-[#165B40]">CL-${1000 + item.appointment_id}</span></div>
                 <div class="text-xs font-semibold text-[#165B40]">📍 ${br.name} · ${br.address}</div>
                 <div class="text-xs text-muted-theme mt-0.5">${item.date} at ${item.time}</div>
               </div>
@@ -3419,7 +3421,7 @@ async fetchAndRenderAdminStats(notify = false) {
                   done && !reviewed
                     ? `<button type="button" onclick="window.app.openReviewModal(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold">★ Rate Visit</button>`
                     : !done
-                    ? `<button type="button" onclick="window.app.confirmCancelBooking(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-600 text-xs font-bold">Cancel</button>`
+                    ? `<button type="button" onclick="window.app.rescheduleBooking(${item.appointment_id})" class="btn-primary px-3 py-2 rounded-xl text-xs font-bold mr-2">Reschedule</button><button type="button" onclick="window.app.confirmCancelBooking(${item.appointment_id})" class="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-600 text-xs font-bold">Cancel</button>`
                     : `<span class="text-xs font-bold text-[#165B40]">✓ Completed</span>`
                 }
               </div>
@@ -3432,7 +3434,7 @@ async fetchAndRenderAdminStats(notify = false) {
         if (!window.confirm("Cancel this appointment?")) return;
         await this.db.updateStatus(id, "cancelled");
         await this.refreshSchedule(false);
-        this.toast("Cancelled", "Your appointment has been cancelled in PostgreSQL.");
+        this.toast("Cancelled", "Your appointment has been cancelled.");
       }
 
       setScheduleFilter(filter) {
@@ -3522,7 +3524,7 @@ async fetchAndRenderAdminStats(notify = false) {
                   <span class="text-[11px] text-muted-theme">${item.date}</span>
                 </div>
                 <div class="text-xs font-bold text-[#165B40]">📍 ${br.name}</div>
-                <div class="text-xs text-muted-theme">✂️ ${s.name} (${s.price}) · ${b.name}</div>
+                <div class="text-xs text-muted-theme">✂️ ${s.name} (${this.priceRange(item.service_id, br.id)}) · ${b.name}</div>
               </div>
               <div class="pt-2 border-t border-[#D5DDD8]/40 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase ${isDone ? "text-[#165B40]" : "text-amber-600"}">● ${item.status}</span>
@@ -3677,6 +3679,73 @@ async fetchAndRenderAdminStats(notify = false) {
         this.toast("Review Submitted", "Thank you for your feedback!");
       }
 
+
+      maxBookingDate() {
+        const d = new Date(this.getTodayISO()+"T12:00:00");
+        const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+1);
+        d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth()+1, 0).getDate()));
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      }
+      timesOverlap(t, duration, other, otherDuration) {
+        const minutes = x => Number(x.split(":")[0])*60+Number(x.split(":")[1]);
+        return minutes(t) < minutes(other)+otherDuration && minutes(other) < minutes(t)+duration;
+      }
+      priceRange(serviceId, branchId = this.selectedBranchId, quiet = false) {
+        const br = this.store.branches[branchId];
+        const factor = ({logovo:1,oldboy:1.2,topgun:1.4,borodach:0.85})[br?.brand_id] || 1.1;
+        const base = this.store.services[serviceId]?.price_kzt || 5000;
+        const low = Math.round(base*factor*(quiet?0.85:1)/100)*100;
+        const high = Math.round((base*factor+1500)*(quiet?0.85:1)/100)*100;
+        return `${low.toLocaleString()}–${high.toLocaleString()} ₸`;
+      }
+      chooseStyle(id) {
+        this.selectedStyleId = id;
+        document.getElementById("serviceInput").value = String(id);
+        const candidates = this.store.getBarbers(this.selectedBranchId);
+        const pattern = id === 2 ? /fade|crop/i : id === 4 || id === 3 ? /beard|razor/i : /scissor|classic|executive/i;
+        const ranked = candidates.slice().sort((a,b) => (Number(pattern.test(b.specialty))*100 + Number(this.store.getRating(b.id).avg)) - (Number(pattern.test(a.specialty))*100 + Number(this.store.getRating(a.id).avg)));
+        if (ranked[0]) this.selectedBarberId = ranked[0].id;
+        this.renderBarbers(); this.renderTimeSlots(); this.updateSummary();
+        const note = document.getElementById("selectedStyleNote");
+        note.textContent = `Selected: ${this.store.services[id].name}` + (ranked[0] ? ` · Suggested barber: ${ranked[0].name} (${pattern.test(ranked[0].specialty)?"specialty match":"best available rating"})` : "");
+      }
+      rescheduleBooking(id) {
+        const a = this.scheduleList.find(x => x.appointment_id === id && String(x.customer_id) === String(this.user.user_id) && x.status === "confirmed");
+        if (!a) return;
+        this.reschedulingId = id;
+        const br = this.store.branches[a.branch_id];
+        this.selectCity(br.city); this.selectBrand(br.brand_id); this.selectBranch(br.id);
+        this.selectedBarberId = a.barber_id;
+        document.getElementById("serviceInput").value = String(a.service_id);
+        this.selectDate(a.date >= this.getTodayISO() && a.date <= this.maxBookingDate() ? a.date : this.getTodayISO());
+        this.navigate("book");
+        document.getElementById("confirmBtn").textContent = "Save New Time";
+        this.toast("Reschedule Visit", "Choose a new date and time. Your current visit stays booked until you save. To change service or studio, cancel and book again.");
+      }
+      exportDeviceCalendar() {
+        if (!this.lastBooking) return this.toast("No Booking", "Book a visit first.", true);
+        if (/Android/i.test(navigator.userAgent)) this.exportGoogleCal(); else this.exportICS();
+      }
+      populateOccupancyBranches() {
+        const city = document.getElementById("occupancyCity").value;
+        const select = document.getElementById("occupancyBranch");
+        select.replaceChildren(...Object.values(this.store.branches).filter(b => b.city === city).map(b => new Option(b.name,b.id)));
+        this.iot.render();
+      }
+      setupImprovements() {
+        // Each barber gets a distinct portrait, including persisted catalog entries.
+        const seen = new Set();
+        for (const b of Object.values(this.store.barbers)) {
+          const key = b.avatar?.split("?")[0];
+          if (!key || seen.has(key)) b.avatar = `https://i.pravatar.cc/200?u=clipline-barber-${b.id}`;
+          seen.add(b.avatar.split("?")[0] + (b.avatar.includes("pravatar")?b.id:""));
+        }
+        const city = document.getElementById("occupancyCity");
+        city.replaceChildren(...this.store.cities.map(c => new Option(c,c)));
+        city.value = this.selectedCity; this.populateOccupancyBranches();
+        this.chooseStyle(Number(document.getElementById("serviceInput").value));
+      }
+
       exportICS() {
         const b = this.lastBooking || {
           refCode: "CL-1025",
@@ -3732,408 +3801,5 @@ async fetchAndRenderAdminStats(notify = false) {
       window.app.init();
     }
   </script>
-<script>
-(function() {
-    "use strict";
-
-    // Clean up any old injected elements
-    const oldW = document.getElementById("stableIoTOccupancyWidget");
-    if (oldW) oldW.remove();
-    const oldClean = document.getElementById("cleanStudioOccWidget");
-    if (oldClean) oldClean.remove();
-    const oldBanner = document.getElementById("cliplineStyleMatchBanner");
-    if (oldBanner) oldBanner.remove();
-
-    // -------------------------------------------------------------------------
-    // DATA CONFIG FOR FIXES #4, #6, #12, #13
-    // -------------------------------------------------------------------------
-    const NETWORK_PRICES = {
-        "LOGOVO": [
-            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 4,500 to 7,000 ₸", tag: "Consultation" },
-            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 4,500 to 6,000 ₸", tag: "Classic Cut" },
-            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 5,000 to 6,500 ₸", tag: "Skin Fade" },
-            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 3,000 to 4,500 ₸", tag: "Beard Sculpt" },
-            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 5,000 to 6,500 ₸", tag: "Executive Crop" }
-        ],
-        "OldBoy": [
-            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 5,000 to 8,000 ₸", tag: "Consultation" },
-            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 5,200 to 6,800 ₸", tag: "Classic Cut" },
-            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 5,800 to 7,500 ₸", tag: "Skin Fade" },
-            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 3,500 to 5,000 ₸", tag: "Beard Sculpt" },
-            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 5,500 to 7,200 ₸", tag: "Executive Crop" }
-        ],
-        "TOPGUN": [
-            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 6,000 to 9,500 ₸", tag: "Consultation" },
-            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 6,000 to 8,000 ₸", tag: "Classic Cut" },
-            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 6,500 to 8,500 ₸", tag: "Skin Fade" },
-            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 4,000 to 5,800 ₸", tag: "Beard Sculpt" },
-            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 6,500 to 8,200 ₸", tag: "Executive Crop" }
-        ],
-        "BORODACH": [
-            { name: "Choose haircut in barbershop (In-Chair Consultation)", duration: 45, rangeText: "from 3,800 to 6,000 ₸", tag: "Consultation" },
-            { name: "Master Haircut & Styling", duration: 45, rangeText: "from 3,800 to 5,200 ₸", tag: "Classic Cut" },
-            { name: "Skin Fade & Precision Lineup", duration: 45, rangeText: "from 4,200 to 5,800 ₸", tag: "Skin Fade" },
-            { name: "Beard Sculpt & Hot Razor", duration: 30, rangeText: "from 2,500 to 3,800 ₸", tag: "Beard Sculpt" },
-            { name: "Executive Crop & Texture", duration: 45, rangeText: "from 4,200 to 5,600 ₸", tag: "Executive Crop" }
-        ]
-    };
-
-    const UNIQUE_PORTRAITS = [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1463453091185-61582044d556?w=320&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=320&auto=format&fit=crop&q=80"
-    ];
-
-    const BEST_BARBER_MATCH = {
-        "Skin Fade": { name: "Daniyar", reason: "98% Match — Master of Skin Fade & Tapers (6 yrs exp)" },
-        "Beard Sculpt": { name: "Arman", reason: "99% Match — Specialist in Hot-Towel Razor & Beard Sculpt" },
-        "Classic Cut": { name: "Marcus", reason: "97% Match — Senior Classic Scissor & Executive Styling" },
-        "Executive Crop": { name: "Daniyar", reason: "96% Match — Textured Crop & Modern Contouring" },
-        "Consultation": { name: "Marcus", reason: "Recommended Senior Stylist for In-Chair Consultation" }
-    };
-
-    const TELEMETRY_CATALOG = {
-        "Astana": [
-            { id: "ast-1", name: "LOGOVO — Mangilik El", addr: "Mangilik El Ave 52", chairs: [
-                { n: 1, b: "Daniyar", busy: true, sec: 1320, srv: "Skin Fade" },
-                { n: 2, b: "Arman", busy: true, sec: 840, srv: "Beard Sculpt" },
-                { n: 3, b: "Marcus", busy: false, sec: 0, srv: "Available Now" },
-                { n: 4, b: "Timur", busy: true, sec: 1860, srv: "Haircut" }
-            ]},
-            { id: "ast-2", name: "LOGOVO — Turan", addr: "Turan Ave 37", chairs: [
-                { n: 1, b: "Dias", busy: true, sec: 1140, srv: "Classic Cut" },
-                { n: 2, b: "Nurlan", busy: false, sec: 0, srv: "Available Now" },
-                { n: 3, b: "Sanzhar", busy: false, sec: 0, srv: "Available Now" },
-                { n: 4, b: "Bekzat", busy: true, sec: 1620, srv: "Skin Fade" }
-            ]}
-        ],
-        "Almaty": [
-            { id: "alm-1", name: "LOGOVO — Abay Ave", addr: "Abay Ave 44", chairs: [
-                { n: 1, b: "Alisher", busy: true, sec: 960, srv: "Skin Fade" },
-                { n: 2, b: "Bauyrzhan", busy: false, sec: 0, srv: "Available Now" },
-                { n: 3, b: "Eldar", busy: true, sec: 1740, srv: "Classic Cut" },
-                { n: 4, b: "Madi", busy: false, sec: 0, srv: "Available Now" }
-            ]}
-        ],
-        "Shymkent": [
-            { id: "shy-1", name: "BORODACH — Tauke Khan", addr: "Tauke Khan Ave 15", chairs: [
-                { n: 1, b: "Azamat", busy: true, sec: 900, srv: "Skin Fade" },
-                { n: 2, b: "Kuanysh", busy: false, sec: 0, srv: "Available Now" },
-                { n: 3, b: "Berik", busy: false, sec: 0, srv: "Available Now" },
-                { n: 4, b: "Dastan", busy: true, sec: 1440, srv: "Classic Cut" }
-            ]}
-        ],
-        "Karaganda": [
-            { id: "kar-1", name: "TOPGUN — Bukhar Zhyrau", addr: "Bukhar Zhyrau Ave 55", chairs: [
-                { n: 1, b: "Nikita", busy: true, sec: 1680, srv: "Executive Crop" },
-                { n: 2, b: "Serik", busy: false, sec: 0, srv: "Available Now" },
-                { n: 3, b: "Askar", busy: true, sec: 1020, srv: "Beard Sculpt" },
-                { n: 4, b: "Vlad", busy: false, sec: 0, srv: "Available Now" }
-            ]}
-        ]
-    };
-
-    let activeCity = "Astana";
-    let activeShopId = "ast-1";
-
-    function runAll13Fixes() {
-        // Fix #1: 1-Month Forward Date Limit
-        const now = new Date();
-        const minISO = now.toISOString().slice(0, 10);
-        const maxISO = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10);
-        document.querySelectorAll('input[type="date"]').forEach(inp => {
-            inp.min = minISO;
-            inp.max = maxISO;
-            if (inp.value && (inp.value < minISO || inp.value > maxISO)) inp.value = minISO;
-        });
-
-        // Fix #3: Scrub technical database jargon from UI text
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-        let n;
-        while ((n = walker.nextNode())) {
-            if (n.parentElement && ["SCRIPT", "STYLE"].includes(n.parentElement.tagName)) continue;
-            let v = n.nodeValue;
-            if (/PostgreSQL|Supabase|ADMIN_STATS_BY_HOUR|appointments`? table|barber_id|date_trunc/i.test(v)) {
-                v = v.replace(/\(Synced with PostgreSQL\)/gi, "")
-                     .replace(/Re-Query Live PostgreSQL View/gi, "Refresh Statistics")
-                     .replace(/\('ADMIN_STATS_BY_HOUR'\)/gi, "")
-                     .replace(/Source:.*$/gim, "Live studio analytics.")
-                     .replace(/PostgreSQL|Supabase/gi, "Cloud");
-                n.nodeValue = v;
-            }
-        }
-
-        // Fix #5: Unique Barber Portraits (Zero duplicates)
-        let pIdx = 0;
-        const seenImgs = new Set();
-        document.querySelectorAll("img").forEach(img => {
-            const s = img.getAttribute("src") || "";
-            if (!s || s.startsWith("data:image/svg")) return;
-            if (seenImgs.has(s)) {
-                const nextUrl = UNIQUE_PORTRAITS[pIdx % UNIQUE_PORTRAITS.length];
-                img.setAttribute("src", nextUrl);
-                seenImgs.add(nextUrl);
-                pIdx++;
-            } else {
-                seenImgs.add(s);
-            }
-        });
-
-        // Fix #8: Single System Calendar button
-        const allBtns = Array.from(document.querySelectorAll("button, a"));
-        const gCal = allBtns.filter(b => /Google Calendar/i.test(b.textContent));
-        const iCal = allBtns.filter(b => /\.ics|Apple|Outlook/i.test(b.textContent));
-        if (gCal.length && iCal.length) {
-            iCal.forEach(b => { b.style.display = "none"; });
-            gCal.forEach(b => { b.textContent = "📅 Add to System Calendar"; });
-        }
-
-        // Fix #7: Reschedule button next to Cancel
-        Array.from(document.querySelectorAll("button")).filter(b => b.textContent.trim() === "Cancel").forEach(cBtn => {
-            if (cBtn.dataset.hasResched) return;
-            cBtn.dataset.hasResched = "1";
-            const rBtn = document.createElement("button");
-            rBtn.type = "button";
-            rBtn.textContent = "Reschedule";
-            rBtn.style.cssText = "margin-right:8px;padding:6px 12px;border-radius:8px;background:#165840;color:#fff;border:1px solid #34d399;font-size:12px;font-weight:600;cursor:pointer;";
-            rBtn.onclick = () => {
-                const nd = prompt(`New Date (${minISO} to ${maxISO}):`, minISO);
-                if (!nd || nd < minISO || nd > maxISO) return alert("Please pick a date within 1 month.");
-                const nt = prompt("New Time (10:00, 11:00, 12:00, 14:00, 15:00, 16:00, 17:00, 18:00):", "14:00");
-                if (!nt) return;
-                const card = cBtn.parentElement?.parentElement;
-                if (card) {
-                    card.innerHTML = card.innerHTML.replace(/202\d-\d{2}-\d{2}\s+at\s+\d{2}:\d{2}/, `${nd} at ${nt} (Rescheduled)`);
-                }
-                alert(`Rescheduled to ${nd} at ${nt}!`);
-            };
-            cBtn.insertAdjacentElement("beforebegin", rBtn);
-        });
-
-        // Fix #11: Hide horizontal day row & convert time slots into scrollable dropdown
-        document.querySelectorAll("button").forEach(btn => {
-            const t = btn.textContent.trim();
-            if (/^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\d+/i.test(t)) {
-                if (btn.parentElement) btn.parentElement.style.display = "none";
-            }
-        });
-        const slotBtns = Array.from(document.querySelectorAll("button")).filter(b => /^(10|11|12|13|14|15|16|17|18):00$/.test(b.textContent.trim()));
-        if (slotBtns.length > 0 && !document.getElementById("cliplineTimeScrollSelect")) {
-            const parent = slotBtns[0].parentElement;
-            const sel = document.createElement("select");
-            sel.id = "cliplineTimeScrollSelect";
-            sel.style.cssText = "width:100%;padding:11px 14px;border-radius:10px;background:#0f172a;color:#fff;border:1px solid #165840;font-size:14px;margin-top:6px;cursor:pointer;";
-            ["10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"].forEach(hr => {
-                const btn = slotBtns.find(x => x.textContent.trim() === hr);
-                const disabled = btn && (btn.disabled || btn.className.includes("disabled"));
-                const opt = document.createElement("option");
-                opt.value = hr;
-                opt.textContent = `${hr} ${(hr==="12:00"||hr==="18:00") ? "· Off-Peak (-15%)" : "· Standard Slot"}${disabled ? " (Unavailable)" : ""}`;
-                if (disabled) opt.disabled = true;
-                sel.appendChild(opt);
-            });
-            sel.onchange = (e) => {
-                if (window.app) window.app.selectedTime = e.target.value;
-                const match = slotBtns.find(x => x.textContent.trim() === e.target.value);
-                if (match) match.click();
-            };
-            slotBtns.forEach(b => { b.style.display = "none"; });
-            parent.insertAdjacentElement("beforebegin", sel);
-        }
-
-        // Fix #2: Same-day booking restriction guard
-        if (window.app && window.app.db && typeof window.app.db.createAppointment === "function" && !window.app.db._sameDayWrapped) {
-            const origCreate = window.app.db.createAppointment.bind(window.app.db);
-            window.app.db._sameDayWrapped = true;
-            window.app.db.createAppointment = async function(payload) {
-                const dateOnly = String(payload.starts_at || window.app.selectedDateISO || "").slice(0, 10);
-                const localBookings = JSON.parse(localStorage.getItem("clipline_active_bookings") || "[]");
-                if (localBookings.some(b => b.dateOnly === dateOnly && b.status !== "cancelled")) {
-                    throw new Error(`You already have an active appointment on ${dateOnly}. Only 1 active booking per day is permitted unless cancelled.`);
-                }
-                const res = await origCreate(payload);
-                localBookings.push({ dateOnly, status: "confirmed" });
-                localStorage.setItem("clipline_active_bookings", JSON.stringify(localBookings));
-                return res;
-            };
-        }
-
-        // Fix #9 & #10: Duplicate sign-up block & password update invalidation
-        document.querySelectorAll("button").forEach(btn => {
-            if (/Send Verification|Create Account|Register/i.test(btn.textContent) && !btn.dataset.dupBound) {
-                btn.dataset.dupBound = "1";
-                btn.addEventListener("click", (e) => {
-                    const emailInput = document.querySelector('input[type="email"]');
-                    if (emailInput && emailInput.value) {
-                        const email = emailInput.value.trim().toLowerCase();
-                        const users = JSON.parse(localStorage.getItem("clipline_verified_users") || localStorage.getItem("verifiedUsers") || "{}");
-                        if (users[email] || email === "arlan@clipline.kz") {
-                            e.stopImmediatePropagation();
-                            e.preventDefault();
-                            alert(`Account already registered for "${email}"! Please sign in instead.`);
-                            return false;
-                        }
-                    }
-                }, true);
-            }
-        });
-
-        // Fix #4, #6, #12 & #13: Inject dropdown options, prices & telemetry widget inside booking step container
-        injectBookingEnhancements();
-    }
-
-    function injectBookingEnhancements() {
-        // Fix #4 & #12: Update service select with "Choose haircut in barbershop" & network price ranges ("from X to Y ₸")
-        const selects = Array.from(document.querySelectorAll("select"));
-        const serviceSelect = selects.find(s => Array.from(s.options).some(o => /Haircut|Fade|Beard|Crop/i.test(o.textContent)));
-        if (serviceSelect && !serviceSelect.dataset.enhancedPrices) {
-            serviceSelect.dataset.enhancedPrices = "1";
-            serviceSelect.innerHTML = `
-                <option value="Choose haircut in barbershop (In-Chair Consultation)">Choose haircut in barbershop (In-Chair Consultation) · 45 min · from 4,500 to 7,000 ₸</option>
-                <option value="Master Haircut & Styling">Master Haircut & Styling · 45 min · from 4,500 to 6,000 ₸</option>
-                <option value="Skin Fade & Precision Lineup">Skin Fade & Precision Lineup · 45 min · from 5,000 to 6,500 ₸</option>
-                <option value="Beard Sculpt & Hot Razor">Beard Sculpt & Hot Razor · 30 min · from 3,000 to 4,500 ₸</option>
-                <option value="Executive Crop & Texture">Executive Crop & Texture · 45 min · from 5,000 to 6,500 ₸</option>
-            `;
-            serviceSelect.addEventListener("change", (e) => {
-                const val = e.target.value;
-                let tag = "Consultation";
-                if (val.includes("Skin Fade")) tag = "Skin Fade";
-                else if (val.includes("Beard")) tag = "Beard Sculpt";
-                else if (val.includes("Haircut")) tag = "Classic Cut";
-                else if (val.includes("Crop")) tag = "Executive Crop";
-                renderStyleMatchBanner(tag, val);
-            });
-        }
-
-        // Fix #13: Stable Real-Time Studio Occupancy Widget placed cleanly above Step 1 (Select Barbershop)
-        let widget = document.getElementById("cleanStudioOccWidget");
-        if (!widget) {
-            widget = document.createElement("div");
-            widget.id = "cleanStudioOccWidget";
-            widget.style.cssText = "margin: 16px 0 24px 0; padding: 16px; border-radius: 12px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(22, 88, 64, 0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.3);";
-            
-            // Find Step 1 or booking card header to insert right above it
-            const step1Heading = Array.from(document.querySelectorAll("h2, h3, h4, div")).find(el => el.textContent.includes("Select Barbershop") || el.textContent.includes("1. BARBERSHOP"));
-            const targetContainer = step1Heading ? step1Heading.closest("section, article, div") : document.querySelector("main");
-            if (targetContainer) {
-                targetContainer.insertAdjacentElement("beforebegin", widget);
-            }
-        }
-
-        const shops = TELEMETRY_CATALOG[activeCity] || TELEMETRY_CATALOG["Astana"];
-        let shop = shops.find(s => s.id === activeShopId) || shops[0];
-        activeShopId = shop.id;
-        const busyCount = shop.chairs.filter(c => c.busy).length;
-
-        widget.innerHTML = `
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-                <div>
-                    <div style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #34d399; font-weight: 700;">
-                        ● Real-Time Studio Chair Telemetry & Occupancy
-                    </div>
-                    <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">
-                        ${shop.name} <span style="font-size: 12px; font-weight: 400; color: #94a3b8;">(${shop.addr})</span>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <select id="cleanCitySel" style="padding: 5px 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 12px; cursor: pointer;">
-                        ${Object.keys(TELEMETRY_CATALOG).map(c => `<option value="${c}" ${c === activeCity ? "selected" : ""}>City: ${c}</option>`).join("")}
-                    </select>
-                    <select id="cleanShopSel" style="padding: 5px 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #165840; font-size: 12px; cursor: pointer;">
-                        ${shops.map(s => `<option value="${s.id}" ${s.id === shop.id ? "selected" : ""}>${s.name}</option>`).join("")}
-                    </select>
-                    <span style="padding: 5px 10px; border-radius: 999px; background: #165840; color: #fff; font-size: 11.5px; font-weight: 700;">
-                        ${busyCount}/${shop.chairs.length} Occupied
-                    </span>
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
-                ${shop.chairs.map(c => {
-                    const m = Math.floor(c.sec / 60);
-                    const s = c.sec % 60;
-                    const borderC = c.busy ? "#f59e0b" : "#10b981";
-                    const textC = c.busy ? "#fbbf24" : "#34d399";
-                    return `
-                        <div style="padding: 10px; border-radius: 8px; background: rgba(30, 41, 59, 0.9); border-left: 4px solid ${borderC};">
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #fff;">
-                                <span>Chair #${c.n} · ${c.b}</span>
-                                <span style="color: ${textC};">${c.busy ? "BUSY" : "FREE"}</span>
-                            </div>
-                            <div style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">${c.srv}</div>
-                            <div style="font-size: 11px; font-weight: 600; color: ${textC}; margin-top: 4px;">
-                                ${c.busy ? `Occupied · ${m}m ${String(s).padStart(2, "0")}s` : "Free · Walk-In OK"}
-                            </div>
-                        </div>
-                    `;
-                }).join("")}
-            </div>
-        `;
-
-        const cSel = document.getElementById("cleanCitySel");
-        const sSel = document.getElementById("cleanShopSel");
-        if (cSel) cSel.onchange = (e) => {
-            activeCity = e.target.value;
-            activeShopId = TELEMETRY_CATALOG[activeCity][0].id;
-            injectBookingEnhancements();
-        };
-        if (sSel) sSel.onchange = (e) => {
-            activeShopId = e.target.value;
-            injectBookingEnhancements();
-        };
-    }
-
-    function renderStyleMatchBanner(styleTag, serviceName) {
-        const match = BEST_BARBER_MATCH[styleTag] || BEST_BARBER_MATCH["Consultation"];
-        let banner = document.getElementById("cliplineStyleMatchBanner");
-        if (!banner) {
-            banner = document.createElement("div");
-            banner.id = "cliplineStyleMatchBanner";
-            banner.style.cssText = "margin: 10px 0; padding: 12px 14px; border-radius: 10px; background: rgba(22, 88, 64, 0.2); border: 1px solid #165840; display: flex; justify-content: space-between; align-items: center; gap: 10px;";
-            const serviceSel = document.querySelector("select");
-            if (serviceSel && serviceSel.parentElement) {
-                serviceSel.parentElement.insertAdjacentElement("afterend", banner);
-            }
-        }
-        banner.innerHTML = `
-            <div>
-                <div style="font-size: 11.5px; text-transform: uppercase; color: #34d399; font-weight: 700;">✓ Style Selected & AI Barber Match</div>
-                <div style="font-size: 13.5px; font-weight: 600; color: #fff;">${serviceName}</div>
-                <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">★ Best Barber Match: <strong>${match.name}</strong> — ${match.reason}</div>
-            </div>
-        `;
-    }
-
-    // Stable 1-second countdown for telemetry chairs
-    setInterval(() => {
-        Object.values(TELEMETRY_CATALOG).forEach(list => {
-            list.forEach(s => {
-                s.chairs.forEach(c => {
-                    if (c.busy && c.sec > 0) {
-                        c.sec -= 1;
-                        if (c.sec <= 0) {
-                            c.busy = false;
-                            c.sec = 0;
-                            c.srv = "Available Now";
-                        }
-                    }
-                });
-            });
-        });
-        const w = document.getElementById("cleanStudioOccWidget");
-        if (w && document.activeElement?.id !== "cleanCitySel" && document.activeElement?.id !== "cleanShopSel") {
-            injectBookingEnhancements();
-        }
-    }, 1000);
-
-    setTimeout(runAll13Fixes, 250);
-    setInterval(runAll13Fixes, 1500);
-})();
-</script>
 </body>
 </html>
