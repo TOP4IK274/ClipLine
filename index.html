@@ -1758,7 +1758,7 @@ async fetchAndRenderAdminStats(notify = false) {
       }
     }
 
-class LiveChairService {
+    class LiveChairService {
       constructor(app) {
         this.app = app;
         this.simState = {};
@@ -1770,154 +1770,147 @@ class LiveChairService {
       }
 
       getBranchChairs(branchId) {
-        const bId = Number(branchId) || 101;
-        if (!this.simState[bId]) {
-          const branchBarbers = this.app.store.getBarbers(bId);
-          const extraNames = [
-            ["Daniyar", "Arman", "Aidar"],
-            ["Marcus", "Sanzhar", "Nurlan"],
-            ["Timur", "Ruslan", "Yerlan"],
-            ["Dias", "Olzhas", "bekzat"],
-            ["Aibek", "Maksat", "Damir"]
-          ];
-          const fallbackPool = extraNames[bId % extraNames.length];
-          const fallbackSpecs = ["Master Skin Fade · 6 yrs", "Beard & Razor Sculpt · 5 yrs", "Executive Scissor Cuts · 7 yrs"];
-          const services = ["Skin Fade · In Progress", "Haircut & Beard · Hot Towel", "Classic Scissor Cut", "Beard Sculpt & Line-Up"];
+        if (!this.simState[branchId]) {
+          const branchBarbers = this.app.store.getBarbers(branchId);
+          const fallbackNames = ["Daniyar", "Arman", "Marcus"];
+          const fallbackSpecs = ["Master Skin Fade", "Beard & Razor Sculpt", "Executive Scissor Cuts"];
           const chairs = [];
 
           for (let i = 0; i < 3; i++) {
             const b = branchBarbers[i];
-            const seed = (bId * 7 + i * 13) % 10;
-            const isBusy = seed < 5;
-            const initialSec = isBusy ? (420 + ((bId * 19 + i * 240) % 1600)) : 0;
-            const nextMin = 10 + ((bId * 3 + i * 11) % 35);
-
             chairs.push({
               chairNum: i + 1,
-              sensorId: "CL-" + bId + "-CH0" + (i + 1),
-              barberId: b ? b.id : (bId * 10 + i + 1),
-              name: "Station 0" + (i + 1) + " · " + (b ? b.name : fallbackPool[i]),
+              sensorId: `ESP32-FSR-0${i + 1}`,
+              barberId: b ? b.id : i + 1,
+              name: `Station 0${i + 1} · ${b ? b.name : fallbackNames[i]}`,
               specialty: b ? b.specialty : fallbackSpecs[i],
-              occupied: isBusy,
-              remainingSec: initialSec,
-              nextBookingMin: nextMin,
-              clientLabel: isBusy ? services[(bId + i) % services.length] : "UV Sterilized · Ready",
-              heartbeatSec: ((bId + i) % 4) + 1
+              occupied: i === 0,
+              remainingSec: i === 0 ? 1420 : (i === 1 ? 0 : 0),
+              nextBookingMin: i === 1 ? 18 : 35,
+              clientLabel: i === 0 ? "Active Haircut & Fade" : "Ready for walk-in",
+              heartbeatSec: i + 1
             });
           }
-          this.simState[bId] = chairs;
+          this.simState[branchId] = chairs;
         }
-        return this.simState[bId];
+        return this.simState[branchId];
       }
 
       tick() {
-        Object.keys(this.simState).forEach(key => {
-          const chairs = this.simState[key];
-          for (let i = 0; i < chairs.length; i++) {
-            const c = chairs[i];
-            c.heartbeatSec = (c.heartbeatSec % 5) + 1;
-            if (c.occupied) {
-              if (c.remainingSec > 0) {
-                c.remainingSec--;
-              } else {
-                c.occupied = false;
-                c.clientLabel = "UV Sterilized · Ready";
-                c.nextBookingMin = 15 + i * 10;
-              }
+        const branchId = Number(document.getElementById("occupancyBranch")?.value || this.app.selectedBranchId || 101);
+        const chairs = this.getBranchChairs(branchId);
+
+        chairs.forEach((c, idx) => {
+          c.heartbeatSec = (c.heartbeatSec % 5) + 1;
+          if (c.occupied) {
+            if (c.remainingSec > 0) {
+              c.remainingSec--;
+            } else {
+              c.occupied = false;
+              c.clientLabel = "UV Sterilized · Ready";
+              c.nextBookingMin = 20 + idx * 10;
             }
           }
         });
+
+        this.render();
+      }
+
+      toggleChairDemo(branchId, chairIdx) {
+        const chairs = this.getBranchChairs(branchId);
+        const c = chairs[chairIdx];
+        if (!c) return;
+        c.occupied = !c.occupied;
+        if (c.occupied) {
+          c.remainingSec = 45 * 60;
+          c.clientLabel = "Walk-in Session · Haircut (45m)";
+        } else {
+          c.remainingSec = 0;
+          c.clientLabel = "Station Sanitized · Ready";
+        }
         this.render();
       }
 
       formatRemaining(sec) {
         const m = Math.floor(sec / 60);
         const s = String(sec % 60).padStart(2, "0");
-        return m + "m " + s + "s left";
-      }
-
-      syncWithBookedSchedule(branchId, chairs) {
-        const now = Date.now();
-        for (let i = 0; i < chairs.length; i++) {
-          const c = chairs[i];
-          const activeAppt = this.app.scheduleList.find(a => {
-            if (Number(a.branch_id) !== Number(branchId) || Number(a.barber_id) !== Number(c.barberId) || a.status !== "confirmed") return false;
-            const startMs = new Date(a.date + "T" + a.time + ":00+05:00").getTime();
-            const serviceObj = this.app.store.services[a.service_id];
-            const durMs = ((serviceObj && serviceObj.duration) || 45) * 60000;
-            return startMs <= now && startMs + durMs > now;
-          });
-
-          if (activeAppt) {
-            const startMs = new Date(activeAppt.date + "T" + activeAppt.time + ":00+05:00").getTime();
-            const serviceObj = this.app.store.services[activeAppt.service_id];
-            const durMs = ((serviceObj && serviceObj.duration) || 45) * 60000;
-            c.occupied = true;
-            c.remainingSec = Math.max(1, Math.ceil((startMs + durMs - now) / 1000));
-            c.clientLabel = "Booked Visit · " + activeAppt.client_name;
-          }
-        }
+        return `${m}m ${s}s remaining`;
       }
 
       render() {
-        const bookingBranchId = Number(this.app.selectedBranchId || 101);
-        const bookingChairs = this.getBranchChairs(bookingBranchId);
-        this.syncWithBookedSchedule(bookingBranchId, bookingChairs);
-        const bookingFree = bookingChairs.filter(c => !c.occupied).length;
-        const badge = document.getElementById("branchIoTStatusText");
-        if (badge) badge.textContent = bookingFree + "/3 Stations Free";
+        const branchId = Number(document.getElementById("occupancyBranch")?.value || this.app.selectedBranchId || 101);
+        const chairs = this.getBranchChairs(branchId);
+        const now = Date.now();
 
-        const branchEl = document.getElementById("occupancyBranch");
-        const viewBranchId = Number((branchEl && branchEl.value) || bookingBranchId);
-        const chairs = this.getBranchChairs(viewBranchId);
-        this.syncWithBookedSchedule(viewBranchId, chairs);
+        chairs.forEach(c => {
+          const activeAppt = this.app.scheduleList.find(a => {
+            if (Number(a.branch_id) !== branchId || Number(a.barber_id) !== Number(c.barberId) || a.status !== "confirmed") return false;
+            const startMs = new Date(`${a.date}T${a.time}:00+05:00`).getTime();
+            const durMs = (this.app.store.services[a.service_id]?.duration || 45) * 60000;
+            return startMs <= now && startMs + durMs > now;
+          });
+          if (activeAppt) {
+            const startMs = new Date(`${activeAppt.date}T${activeAppt.time}:00+05:00`).getTime();
+            const durMs = (this.app.store.services[activeAppt.service_id]?.duration || 45) * 60000;
+            c.occupied = true;
+            c.remainingSec = Math.max(1, Math.ceil((startMs + durMs - now) / 1000));
+            c.clientLabel = `Booked Visit (${activeAppt.client_name})`;
+          }
+        });
+
+        const free = chairs.filter(c => !c.occupied).length;
+        const badge = document.getElementById("branchIoTStatusText");
+        if (badge) badge.textContent = `${free}/3 Stations Free`;
 
         const grid = document.getElementById("iotSensorsGrid");
         if (!grid) return;
 
-        let html = "";
-        for (let idx = 0; idx < chairs.length; idx++) {
-          const c = chairs[idx];
-          const pct = c.occupied ? Math.min(100, Math.max(10, Math.round(((2700 - c.remainingSec) / 2700) * 100))) : 100;
-          const borderCls = c.occupied ? "border-l-amber-500" : "border-l-[#165B40]";
-          const pillCls = c.occupied ? "bg-amber-500/20 text-amber-600" : "bg-[#E2EFE8] text-[#165B40]";
-          const pillTxt = c.occupied ? "● In Session" : "● Available";
-          const timeTxt = c.occupied ? this.formatRemaining(c.remainingSec) : "Chair Open";
-          const timeCol = c.occupied ? "text-amber-600" : "text-[#165B40]";
-          const barCol = c.occupied ? "bg-amber-500" : "bg-[#165B40]";
-          const nextTxt = c.occupied ? ("Free in ~" + Math.ceil(c.remainingSec / 60) + " min") : ("Next slot in " + c.nextBookingMin + " min");
+        grid.innerHTML = chairs.map((c, idx) => {
+          const pct = c.occupied ? Math.min(100, Math.max(8, Math.round(((2700 - c.remainingSec) / 2700) * 100))) : 100;
+          return `
+            <div class="app-card p-5 space-y-3.5 border-l-4 transition-all ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] font-mono text-muted-theme">${c.sensorId} · ping ${c.heartbeatSec}s ago</div>
+                  <h3 class="text-base font-extrabold">${c.name}</h3>
+                  <div class="text-[11px] text-muted-theme">${c.specialty}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
+                  c.occupied ? "bg-amber-500/20 text-amber-600" : "bg-[#E2EFE8] text-[#165B40]"
+                }">
+                  ${c.occupied ? "● Occupied" : "● Available"}
+                </span>
+              </div>
 
-          html += '<div class="app-card p-5 space-y-3.5 border-l-4 transition-all ' + borderCls + '">' +
-            '<div class="flex items-center justify-between">' +
-              '<div>' +
-                '<div class="text-[10px] font-mono text-muted-theme">' + c.sensorId + ' · ping ' + c.heartbeatSec + 's ago</div>' +
-                '<h3 class="text-base font-extrabold">' + c.name + '</h3>' +
-                '<div class="text-[11px] text-muted-theme">' + c.specialty + '</div>' +
-              '</div>' +
-              '<span class="px-2.5 py-1 rounded-full text-xs font-bold ' + pillCls + '">' + pillTxt + '</span>' +
-            '</div>' +
-            '<div class="space-y-1.5">' +
-              '<div class="flex items-center justify-between text-xs font-semibold">' +
-                '<span class="text-muted-theme">' + c.clientLabel + '</span>' +
-                '<span class="font-mono font-bold ' + timeCol + '">' + timeTxt + '</span>' +
-              '</div>' +
-              '<div class="w-full h-2 rounded-full bg-stone-300/50 overflow-hidden">' +
-                '<div class="h-full rounded-full transition-all duration-700 ' + barCol + '" style="width:' + pct + '%"></div>' +
-              '</div>' +
-            '</div>' +
-            '<div class="grid grid-cols-2 gap-2 text-xs surface-box p-3 rounded-xl">' +
-              '<div>' +
-                '<div class="text-[10px] text-muted-theme">Sanitization</div>' +
-                '<div class="font-bold text-[#165B40]">✓ UV-C Sterilized</div>' +
-              '</div>' +
-              '<div>' +
-                '<div class="text-[10px] text-muted-theme">Queue Estimate</div>' +
-                '<div class="font-bold truncate">' + nextTxt + '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-        }
-        grid.innerHTML = html;
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span class="text-muted-theme">${c.clientLabel}</span>
+                  <span class="font-mono font-bold ${c.occupied ? "text-amber-600" : "text-[#165B40]"}">
+                    ${c.occupied ? this.formatRemaining(c.remainingSec) : "Chair Open"}
+                  </span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-stone-300/50 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700 ${c.occupied ? "bg-amber-500" : "bg-[#165B40]"}" style="width: ${pct}%"></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs surface-box p-3 rounded-xl">
+                <div>
+                  <div class="text-[10px] text-muted-theme">Hygiene & Telemetry</div>
+                  <div class="font-bold text-[#165B40]">✓ UV-C Sterilized</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-muted-theme">Wait / Next Slot</div>
+                  <div class="font-bold truncate">${c.occupied ? `Free in ${Math.ceil(c.remainingSec / 60)} min` : `Walk-in (next booking ${c.nextBookingMin}m)`}</div>
+                </div>
+              </div>
+
+              <button type="button" onclick="window.app.iot.toggleChairDemo(${branchId}, ${idx})" class="w-full py-2 rounded-xl surface-box hover:border-[#165B40] text-[11px] font-bold text-muted-theme hover:text-[#165B40] transition">
+                ${c.occupied ? "✓ Mark Session Finished (Free Chair)" : "⚡ Simulate Live Walk-In Client"}
+              </button>
+            </div>
+          `;
+        }).join("");
       }
     }
     class MediaService {
@@ -2945,7 +2938,7 @@ class LiveChairService {
         if (lbl) lbl.textContent = this.selectedCity;
       }
 
-selectCity(city) {
+      selectCity(city) {
         this.selectedCity = city;
         const brands = this.store.getBrandsInCity(city);
         if (brands.length > 0) {
@@ -2956,20 +2949,14 @@ selectCity(city) {
         const barbers = this.store.getBarbers(this.selectedBranchId);
         if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
 
-        const occCity = document.getElementById("occupancyCity");
-        if (occCity) {
-          occCity.value = this.selectedCity;
-          this.populateOccupancyBranches();
-        }
-
         this.renderCities();
         this.renderBrands();
         this.renderBranches();
         this.renderBarbers();
         this.renderTimeSlots();
         this.updateSummary();
-        this.iot.render();
       }
+
       renderBrands() {
         const container = document.getElementById("brandSelectorGrid");
         if (!container) return;
@@ -2991,22 +2978,18 @@ selectCity(city) {
         }).join("");
       }
 
-selectBrand(brandId) {
+      selectBrand(brandId) {
         this.selectedBrandId = brandId;
         const branches = this.store.getBranches(this.selectedCity, brandId);
         if (branches.length > 0) this.selectedBranchId = branches[0].id;
         const barbers = this.store.getBarbers(this.selectedBranchId);
         if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
 
-        const occBranch = document.getElementById("occupancyBranch");
-        if (occBranch) occBranch.value = String(this.selectedBranchId);
-
         this.renderBrands();
         this.renderBranches();
         this.renderBarbers();
         this.renderTimeSlots();
         this.updateSummary();
-        this.iot.render();
       }
 
       renderBranches() {
@@ -3047,19 +3030,14 @@ selectBrand(brandId) {
         document.getElementById("infoCardHours").textContent = `${current.hours} Daily`;
       }
 
-selectBranch(branchId) {
+      selectBranch(branchId) {
         this.selectedBranchId = Number(branchId);
         const barbers = this.store.getBarbers(this.selectedBranchId);
         if (barbers.length > 0) this.selectedBarberId = barbers[0].id;
-
-        const occBranch = document.getElementById("occupancyBranch");
-        if (occBranch) occBranch.value = String(this.selectedBranchId);
-
         this.renderBranches();
         this.renderBarbers();
         this.renderTimeSlots();
         this.updateSummary();
-        this.iot.render();
       }
 
       renderBarbers() {
@@ -3525,27 +3503,13 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
         document.getElementById("confTotal").textContent = priceStr;
       }
 
-     async submitBooking(e) {
+      async submitBooking(e) {
         e.preventDefault();
         if (this.bookingInProgress) return;
         if (!this.user) return this.toast("Sign In Required", "Please sign in before booking.", true);
-        if (this.selectedDateISO < this.getTodayISO() || this.selectedDateISO > this.maxBookingDate()) {
-          return this.toast("Invalid Date", "Choose a date within the next month.", true);
-        }
+        if (this.selectedDateISO < this.getTodayISO() || this.selectedDateISO > this.maxBookingDate()) return this.toast("Invalid Date", "Choose a date within the next month.", true);
         await this.refreshSchedule(false);
-        const existingActive = this.scheduleList.find(
-          a =>
-            String(a.customer_id) === String(this.user.user_id) &&
-            a.status === "confirmed" &&
-            a.appointment_id !== this.reschedulingId
-        );
-        if (existingActive) {
-          return this.toast(
-            "Active Booking Limit (1 Max)",
-            `You already have an active appointment on ${existingActive.date} at ${existingActive.time}. Cancel or reschedule it in 'My Visits' before booking another.`,
-            true
-          );
-        }
+        if (this.scheduleList.some(a => String(a.customer_id) === String(this.user.user_id) && a.date === this.selectedDateISO && a.status !== "cancelled" && a.appointment_id !== this.reschedulingId)) return this.toast("Already Booked", "You already have a visit on this day. Reschedule or cancel it first.", true);
         if (!this.selectedTime || this.isSlotPast(this.selectedDateISO, this.selectedTime)) {
           return this.toast("Select a Valid Time", "Please choose an available future time slot.", true);
         }
@@ -3928,14 +3892,10 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
         if (!this.lastBooking) return this.toast("No Booking", "Book a visit first.", true);
         if (/Android/i.test(navigator.userAgent)) this.exportGoogleCal(); else this.exportICS();
       }
-populateOccupancyBranches() {
+      populateOccupancyBranches() {
         const city = document.getElementById("occupancyCity").value;
         const select = document.getElementById("occupancyBranch");
-        const branches = Object.values(this.store.branches).filter(b => b.city === city);
-        select.replaceChildren(...branches.map(b => new Option(b.name, b.id)));
-        if (branches.some(b => Number(b.id) === Number(this.selectedBranchId))) {
-          select.value = String(this.selectedBranchId);
-        }
+        select.replaceChildren(...Object.values(this.store.branches).filter(b => b.city === city).map(b => new Option(b.name,b.id)));
         this.iot.render();
       }
       setupImprovements() {
