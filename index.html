@@ -818,9 +818,9 @@
             <p id="workspaceDescription" class="text-xs text-muted-theme mt-0.5"></p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-           <button type="button" id="autoCloseVisitsBtn" onclick="window.app.analytics.autoClosePastConfirmed()" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition">
-  ⚡ Auto-Close Past Confirmed Visits
-</button>
+            <button type="button" onclick="window.app.analytics.autoClosePastConfirmed()" class="px-3.5 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition">
+              ⚡ Auto-Close Past Confirmed Visits
+            </button>
             <button type="button" onclick="window.app.openPartnerModal()" class="px-4 py-2 rounded-xl bg-[#E2EFE8] text-[#165B40] text-xs font-bold">
               + Register Branch
             </button>
@@ -831,7 +831,7 @@
         <div id="headAdminApprovalPanel" class="hidden app-card p-6 border-2 border-amber-500/80 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">HEAD ADMINISTRATION</span>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">HEAD ADMINISTRATION (`partner_applications`)</span>
               <h2 class="text-lg font-extrabold">Pending Barbershop Applications</h2>
               <p class="text-xs text-muted-theme">Verify partner BIN and 2GIS address before publishing to the live network.</p>
             </div>
@@ -862,7 +862,7 @@
             <div class="surface-box rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-[10px] font-bold uppercase text-[#165B40]">Q1 · BAR CHART</span>
+                  <span class="text-[10px] font-bold uppercase text-[#165B40]">Q1 · BAR CHART (`admin_stats_by_hour`)</span>
                   <span id="q1TotalLabel" class="text-[10px] font-semibold text-muted-theme">Total: 100</span>
                 </div>
                 <h3 class="text-sm font-bold mb-2">Q1: Appointments by start hour</h3>
@@ -1022,7 +1022,7 @@
       <div>
         <h3 class="text-xl font-bold">Connect Your Barbershop</h3>
         <p class="text-xs text-muted-theme mt-1">
-          Submit your branch details. Once approved by Head Administration, your branch and staff access codes will be activated.
+          Submit your branch details to `partner_applications`. Once approved by Head Administration, your branch and staff access codes will be activated.
         </p>
       </div>
 
@@ -1742,7 +1742,7 @@ async fetchAndRenderAdminStats(notify = false) {
       }
 
       async autoClosePastConfirmed() {
-        if (!this.app.isAuthorizedStaff() || this.app.user.role === "head_admin") return;
+        if (!this.app.isAuthorizedStaff()) return;
         if (this.app.db.client) {
           try {
             await this.app.db.client
@@ -2874,30 +2874,18 @@ class LiveChairService {
         document.getElementById("styleDetailModal").classList.remove("hidden");
       }
 
-    async redeemAccessToken() {
+      async redeemAccessToken() {
         const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
         if (!token) return;
-
-        const localBranch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
-        const localBarber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
 
         const dbCode = await this.db.verifyStaffCodeInDB(token);
         if (dbCode) {
           this.user.role = dbCode.role;
-          this.user.branch_id = dbCode.branch_id || (localBranch ? localBranch.id : (localBarber ? localBarber.branch_id : 101));
-          this.user.barber_id = dbCode.barber_id || (localBarber ? localBarber.id : null);
+          this.user.branch_id = dbCode.branch_id || null;
+          this.user.barber_id = dbCode.barber_id || null;
           if (dbCode.staff_name) this.user.full_name = dbCode.staff_name;
-          if (this.store.verifiedUsers[this.user.email]) {
-            this.store.verifiedUsers[this.user.email].role = this.user.role;
-            this.store.verifiedUsers[this.user.email].branch_id = this.user.branch_id;
-            this.store.verifiedUsers[this.user.email].barber_id = this.user.barber_id;
-            this.store.save();
-          }
           await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, dbCode.role, token);
-          const assignedBr = this.store.branches[this.user.branch_id];
-          return this.saveRoleAndNavigate(
-            assignedBr ? `${dbCode.role.toUpperCase()} access locked to ${assignedBr.name} (${assignedBr.address}).` : `${dbCode.role.toUpperCase()} access verified.`
-          );
+          return this.saveRoleAndNavigate(`${dbCode.role.replace("_", " ").toUpperCase()} access verified.`);
         }
 
         if (token === this.store.headAdminAccount.token) {
@@ -2906,40 +2894,18 @@ class LiveChairService {
           this.user.branch_id = null;
           this.user.barber_id = null;
           await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "head_admin", token);
-          return this.saveRoleAndNavigate("Head Admin access activated (Network Analytics & Partner Approvals).");
+          return this.saveRoleAndNavigate("Head Admin access activated.");
         }
 
-        if (localBranch) {
+        const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
+        if (branch) {
           this.user.role = "admin";
-          this.user.branch_id = localBranch.id;
+          this.user.branch_id = branch.id;
           this.user.barber_id = null;
-          if (this.store.verifiedUsers[this.user.email]) {
-            this.store.verifiedUsers[this.user.email].role = "admin";
-            this.store.verifiedUsers[this.user.email].branch_id = localBranch.id;
-            this.store.verifiedUsers[this.user.email].barber_id = null;
-            this.store.save();
-          }
           await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "admin", token);
-          return this.saveRoleAndNavigate(`Branch Admin access locked to ${localBranch.name} (${localBranch.address}).`);
+          return this.saveRoleAndNavigate(`Branch Admin access activated for ${branch.name}.`);
         }
 
-        if (localBarber) {
-          this.user.role = "barber";
-          this.user.branch_id = localBarber.branch_id;
-          this.user.barber_id = localBarber.id;
-          this.user.full_name = localBarber.name;
-          if (this.store.verifiedUsers[this.user.email]) {
-            this.store.verifiedUsers[this.user.email].role = "barber";
-            this.store.verifiedUsers[this.user.email].branch_id = localBarber.branch_id;
-            this.store.verifiedUsers[this.user.email].barber_id = localBarber.id;
-            this.store.save();
-          }
-          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "barber", token);
-          return this.saveRoleAndNavigate(`Barber access activated for ${localBarber.name}.`);
-        }
-
-        this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
-      }
         const barber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
         if (barber) {
           this.user.role = "barber";
@@ -2950,7 +2916,7 @@ class LiveChairService {
           return this.saveRoleAndNavigate(`Barber access activated for ${barber.name}.`);
         }
 
-        this.toast("Invalid Access Code", "The 12-character code is invalid", true);
+        this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
       }
 
       saveRoleAndNavigate(msg) {
@@ -3694,19 +3660,13 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
 
         const q = (document.getElementById("searchClientInput").value || "").toLowerCase().trim();
         const role = this.user.role;
-        const autoCloseBtn = document.getElementById("autoCloseVisitsBtn");
-        if (autoCloseBtn) {
-          autoCloseBtn.classList.toggle("hidden", role === "head_admin");
-        }
 
         const staffTokensPanel = document.getElementById("branchStaffTokensPanel");
-        if (role === "admin") {
-          const assignedBranchId = Number(this.user.branch_id) || 101;
-          this.user.branch_id = assignedBranchId;
-          const br = this.store.branches[assignedBranchId] || this.store.branches[101];
-          document.getElementById("workspaceRoleOverline").textContent = `SINGLE-BRANCH ADMIN · ${br.city.toUpperCase()}`;
+        if (role === "admin" && this.user.branch_id) {
+          const br = this.store.branches[this.user.branch_id] || this.store.branches[101];
+          document.getElementById("workspaceRoleOverline").textContent = "BRANCH ADMINISTRATION";
           document.getElementById("workspaceTitle").textContent = br.name;
-          document.getElementById("workspaceDescription").textContent = `Restricted to ${br.address}, ${br.city} · Manage branch queue & staff codes`;
+          document.getElementById("workspaceDescription").textContent = `${br.address}, ${br.city}`;
           staffTokensPanel.classList.remove("hidden");
           const branchBarbers = this.store.getBarbers(br.id);
           document.getElementById("branchStaffTokensGrid").innerHTML = branchBarbers.map(b => `
@@ -3715,25 +3675,23 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
               <code class="text-[#165B40] font-extrabold">${b.token}</code>
             </div>
           `).join("");
-        } else if (role === "barber") {
-          const assignedBarberId = Number(this.user.barber_id) || 1;
-          const b = this.store.barbers[assignedBarberId] || this.store.barbers[1];
+        } else if (role === "barber" && this.user.barber_id) {
+          const b = this.store.barbers[this.user.barber_id] || this.store.barbers[1];
           const br = this.store.branches[b.branch_id] || this.store.branches[101];
-          this.user.branch_id = br.id;
           document.getElementById("workspaceRoleOverline").textContent = "BARBER WORKSPACE";
           document.getElementById("workspaceTitle").textContent = `${b.name}'s Queue`;
           document.getElementById("workspaceDescription").textContent = `${br.name} · ${br.address}`;
           staffTokensPanel.classList.add("hidden");
         } else if (role === "head_admin") {
-          document.getElementById("workspaceRoleOverline").textContent = "NETWORK HEADQUARTERS (READ-ONLY QUEUE)";
-          document.getElementById("workspaceTitle").textContent = "Network Statistics & Partner Approvals";
-          document.getElementById("workspaceDescription").textContent = "Head Admin oversight: view network analytics and approve partner applications. Only Branch Admins & Barbers can complete or cancel appointments.";
+          document.getElementById("workspaceRoleOverline").textContent = "NETWORK HEADQUARTERS";
+          document.getElementById("workspaceTitle").textContent = "Administrator Statistics & Queue";
+          document.getElementById("workspaceDescription").textContent = "Full network oversight, partner approvals, and multi-branch statistics.";
           staffTokensPanel.classList.add("hidden");
         }
 
         let list = this.scheduleList.filter(a => a.status !== "cancelled");
         if (role === "barber") {
-          list = list.filter(a => Number(a.barber_id) === Number(this.user.barber_id) && Number(a.branch_id) === Number(this.user.branch_id));
+          list = list.filter(a => Number(a.barber_id) === Number(this.user.barber_id));
         } else if (role === "admin") {
           list = list.filter(a => Number(a.branch_id) === Number(this.user.branch_id));
         }
@@ -3754,8 +3712,6 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
           return;
         }
 
-        const canModifyQueue = role === "admin" || role === "barber";
-
         container.innerHTML = filtered.slice().reverse().map(item => {
           const s = this.store.services[item.service_id] || this.store.services[1];
           const b = this.store.barbers[item.barber_id] || this.store.barbers[1];
@@ -3769,19 +3725,17 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
                   <span class="text-sm font-extrabold"><span class="text-[#165B40]">${item.time}</span> · ${item.client_name}</span>
                   <span class="text-[11px] text-muted-theme">${item.date}</span>
                 </div>
-                <div class="text-xs font-bold text-[#165B40]">📍 ${br.name} · ${br.address}</div>
+                <div class="text-xs font-bold text-[#165B40]">📍 ${br.name}</div>
                 <div class="text-xs text-muted-theme">✂️ ${s.name} (${this.priceRange(item.service_id, br.id)}) · ${b.name}</div>
               </div>
               <div class="pt-2 border-t border-[#D5DDD8]/40 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase ${isDone ? "text-[#165B40]" : "text-amber-600"}">● ${item.status}</span>
                 ${
-                  !isDone && canModifyQueue
+                  !isDone
                     ? `<div class="flex gap-1.5">
                         <button type="button" onclick="window.app.markApptStatus(${item.appointment_id}, 'completed')" class="px-2.5 py-1 rounded-lg bg-[#165B40] text-white text-xs font-bold">✓ Complete</button>
                         <button type="button" onclick="window.app.markApptStatus(${item.appointment_id}, 'cancelled')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-600 text-xs font-bold">✕</button>
                       </div>`
-                    : !isDone && role === "head_admin"
-                    ? `<span class="text-[10px] font-semibold text-muted-theme">View Only (Branch Admin manages)</span>`
                     : ``
                 }
               </div>
@@ -3791,12 +3745,8 @@ validateCustomTimeWindow(dateISO, timeStr, barberId) {
       }
 
       async markApptStatus(id, status) {
-        if (!this.isAuthorizedStaff() || this.user.role === "head_admin") {
-          return this.toast("Action Restricted", "Head Admin is for network analytics and partner approvals. Only the assigned Branch Admin or Barber can complete or cancel appointments.", true);
-        }
-        const targetAppt = this.scheduleList.find(a => Number(a.appointment_id) === Number(id));
-        if (this.user.role === "admin" && targetAppt && Number(targetAppt.branch_id) !== Number(this.user.branch_id)) {
-          return this.toast("Branch Restriction", "You can only manage appointments for your assigned barbershop branch.", true);
+        if (!this.isAuthorizedStaff()) {
+          return this.toast("Access Denied", "Only authorized barbers and administrators can modify queue status.", true);
         }
         await this.db.updateStatus(id, status);
         await this.refreshSchedule(false);
