@@ -1741,7 +1741,7 @@ async fetchAndRenderAdminStats(notify = false) {
         `;
       }
 
-      async autoClosePastConfirmed() {
+     async autoClosePastConfirmed() {
         if (!this.app.isAuthorizedStaff() || this.app.user.role === "head_admin") return;
         if (this.app.db.client) {
           try {
@@ -1758,7 +1758,7 @@ async fetchAndRenderAdminStats(notify = false) {
       }
     }
 
-class LiveChairService {
+    class LiveChairService {
       constructor(app) {
         this.app = app;
         this.simState = {};
