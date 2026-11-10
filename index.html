@@ -1911,6 +1911,7 @@
         }
         grid.innerHTML = html;
       }
+    }
     class MediaService {
       constructor() {
         this.soundEnabled = true;
@@ -2930,36 +2931,6 @@
         }
 
         this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
-      }
-
-if (token === this.store.headAdminAccount.token) {
-          this.user.role = "head_admin";
-          this.user.full_name = "Arlan Shikibaev";
-          this.user.branch_id = null;
-          this.user.barber_id = null;
-          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "head_admin", token);
-          return this.saveRoleAndNavigate("Head Admin access activated (Network Analytics & Partner Approvals).");
-        }
-        const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
-        if (branch) {
-          this.user.role = "admin";
-          this.user.branch_id = branch.id;
-          this.user.barber_id = null;
-          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "admin", token);
-          return this.saveRoleAndNavigate(`Branch Admin access activated for ${branch.name}.`);
-        }
-
-        const barber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
-        if (barber) {
-          this.user.role = "barber";
-          this.user.branch_id = barber.branch_id;
-          this.user.barber_id = barber.id;
-          this.user.full_name = barber.name;
-          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "barber", token);
-          return this.saveRoleAndNavigate(`Barber access activated for ${barber.name}.`);
-        }
-
-        this.toast("Invalid Access Code", "The 12-character code is invalid", true);
       }
 
       saveRoleAndNavigate(msg) {
