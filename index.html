@@ -551,22 +551,29 @@
                       <label for="dateInput" class="text-xs font-semibold">Date</label>
                       <span id="dateStatusLabel" class="text-[11px] font-bold text-[#165B40]">Today</span>
                     </div>
-                    <input id="dateInput" type="date" onchange="window.app.selectDate(this.value)" class="field w-full px-3.5 py-2 text-sm font-medium" required />
+                   <select id="dateInput" onchange="window.app.selectDate(this.value)" class="field w-full px-3.5 py-2.5 text-sm font-medium" required></select>
                   </div>
                 </div>
 
                 
-
-                <div>
-                  <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                    <label class="text-xs font-semibold">Available Start Time</label>
-                    <div class="flex items-center gap-3">
-                      <span class="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">12:00 & 18:00 Off-Peak: -15%</span>
-                      <span id="slotsAvailableCount" class="text-xs font-bold text-[#165B40]"></span>
-                    </div>
-                  </div>
-                  <div id="timeButtonsContainer" class="flex flex-col gap-2 max-h-52 overflow-y-auto snap-y snap-mandatory pr-2"></div>
-                </div>
+<div>
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+    <label for="customTimeInput" class="text-xs font-semibold">Available Start Time (Custom or Quick Slot)</label>
+    <div class="flex items-center gap-3">
+      <span class="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">12:00 & 18:00 Off-Peak: -15%</span>
+      <span id="slotsAvailableCount" class="text-xs font-bold text-[#165B40]"></span>
+    </div>
+  </div>
+  <div class="flex flex-col sm:flex-row gap-2.5 mb-2.5">
+    <div class="sm:w-56 shrink-0">
+      <input id="customTimeInput" type="time" step="300" onchange="window.app.selectCustomTime(this.value)" class="field w-full px-3.5 py-2 text-sm font-bold" />
+    </div>
+    <div id="timeRuleHint" class="flex-1 sage-box rounded-xl px-3.5 py-2 text-xs text-muted-theme flex items-center font-medium border border-[#165B40]/15">
+      Pick any time within studio hours (cut must finish before closing; 13:00–14:00 is break).
+    </div>
+  </div>
+  <div id="timeButtonsContainer" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+</div>
               </div>
             </div>
           </div>
@@ -1754,16 +1761,74 @@ async fetchAndRenderAdminStats(notify = false) {
     class LiveChairService {
       constructor(app) {
         this.app = app;
-        this.chairs = [
-          { id: 1, sensorId: "ESP32-FSR-01", name: "Station 01 · Daniyar", occupied: true, remainingSec: 890, uvSterilized: true, heartbeatSec: 1 },
-          { id: 2, sensorId: "ESP32-FSR-02", name: "Station 02 · Arman", occupied: false, remainingSec: 0, uvSterilized: true, heartbeatSec: 2 },
-          { id: 3, sensorId: "ESP32-FSR-03", name: "Station 03 · Marcus", occupied: false, remainingSec: 0, uvSterilized: true, heartbeatSec: 1 }
-        ];
+        this.simState = {};
       }
 
       start() {
         this.render();
-        setInterval(() => this.render(), 1000);
+        setInterval(() => this.tick(), 1000);
+      }
+
+      getBranchChairs(branchId) {
+        if (!this.simState[branchId]) {
+          const branchBarbers = this.app.store.getBarbers(branchId);
+          const fallbackNames = ["Daniyar", "Arman", "Marcus"];
+          const fallbackSpecs = ["Master Skin Fade", "Beard & Razor Sculpt", "Executive Scissor Cuts"];
+          const chairs = [];
+
+          for (let i = 0; i < 3; i++) {
+            const b = branchBarbers[i];
+            chairs.push({
+              chairNum: i + 1,
+              sensorId: `ESP32-FSR-0${i + 1}`,
+              barberId: b ? b.id : i + 1,
+              name: `Station 0${i + 1} · ${b ? b.name : fallbackNames[i]}`,
+              specialty: b ? b.specialty : fallbackSpecs[i],
+              occupied: i === 0,
+              remainingSec: i === 0 ? 1420 : (i === 1 ? 0 : 0),
+              nextBookingMin: i === 1 ? 18 : 35,
+              clientLabel: i === 0 ? "Active Haircut & Fade" : "Ready for walk-in",
+              heartbeatSec: i + 1
+            });
+          }
+          this.simState[branchId] = chairs;
+        }
+        return this.simState[branchId];
+      }
+
+      tick() {
+        const branchId = Number(document.getElementById("occupancyBranch")?.value || this.app.selectedBranchId || 101);
+        const chairs = this.getBranchChairs(branchId);
+
+        chairs.forEach((c, idx) => {
+          c.heartbeatSec = (c.heartbeatSec % 5) + 1;
+          if (c.occupied) {
+            if (c.remainingSec > 0) {
+              c.remainingSec--;
+            } else {
+              c.occupied = false;
+              c.clientLabel = "UV Sterilized · Ready";
+              c.nextBookingMin = 20 + idx * 10;
+            }
+          }
+        });
+
+        this.render();
+      }
+
+      toggleChairDemo(branchId, chairIdx) {
+        const chairs = this.getBranchChairs(branchId);
+        const c = chairs[chairIdx];
+        if (!c) return;
+        c.occupied = !c.occupied;
+        if (c.occupied) {
+          c.remainingSec = 45 * 60;
+          c.clientLabel = "Walk-in Session · Haircut (45m)";
+        } else {
+          c.remainingSec = 0;
+          c.clientLabel = "Station Sanitized · Ready";
+        }
+        this.render();
       }
 
       formatRemaining(sec) {
@@ -1773,50 +1838,81 @@ async fetchAndRenderAdminStats(notify = false) {
       }
 
       render() {
-        const branchId = Number(document.getElementById("occupancyBranch")?.value || this.app.selectedBranchId);
+        const branchId = Number(document.getElementById("occupancyBranch")?.value || this.app.selectedBranchId || 101);
+        const chairs = this.getBranchChairs(branchId);
         const now = Date.now();
-        this.chairs = this.app.store.getBarbers(branchId).map(b => {
-          const active = this.app.scheduleList.find(a => Number(a.branch_id) === branchId && Number(a.barber_id) === Number(b.id) && a.status === "confirmed" && new Date(`${a.date}T${a.time}:00+05:00`).getTime() <= now && new Date(`${a.date}T${a.time}:00+05:00`).getTime() + (this.app.store.services[a.service_id]?.duration || 45)*60000 > now);
-          const end = active ? new Date(`${active.date}T${active.time}:00+05:00`).getTime() + (this.app.store.services[active.service_id]?.duration || 45)*60000 : now;
-          return {name: b.name, occupied: !!active, remainingSec: Math.max(0, Math.ceil((end-now)/1000))};
+
+        chairs.forEach(c => {
+          const activeAppt = this.app.scheduleList.find(a => {
+            if (Number(a.branch_id) !== branchId || Number(a.barber_id) !== Number(c.barberId) || a.status !== "confirmed") return false;
+            const startMs = new Date(`${a.date}T${a.time}:00+05:00`).getTime();
+            const durMs = (this.app.store.services[a.service_id]?.duration || 45) * 60000;
+            return startMs <= now && startMs + durMs > now;
+          });
+          if (activeAppt) {
+            const startMs = new Date(`${activeAppt.date}T${activeAppt.time}:00+05:00`).getTime();
+            const durMs = (this.app.store.services[activeAppt.service_id]?.duration || 45) * 60000;
+            c.occupied = true;
+            c.remainingSec = Math.max(1, Math.ceil((startMs + durMs - now) / 1000));
+            c.clientLabel = `Booked Visit (${activeAppt.client_name})`;
+          }
         });
-        const free = this.chairs.filter(c => !c.occupied).length;
+
+        const free = chairs.filter(c => !c.occupied).length;
         const badge = document.getElementById("branchIoTStatusText");
-        if (badge) badge.textContent = `${free}/${this.chairs.length} Stations Free`;
+        if (badge) badge.textContent = `${free}/3 Stations Free`;
 
         const grid = document.getElementById("iotSensorsGrid");
         if (!grid) return;
-        grid.innerHTML = this.chairs.map(c => `
-          <div class="app-card p-5 space-y-3 border-l-4 transition-all ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-[10px] font-mono text-muted-theme">Schedule-based estimate</div>
-                <h3 class="text-base font-extrabold">${c.name}</h3>
+
+        grid.innerHTML = chairs.map((c, idx) => {
+          const pct = c.occupied ? Math.min(100, Math.max(8, Math.round(((2700 - c.remainingSec) / 2700) * 100))) : 100;
+          return `
+            <div class="app-card p-5 space-y-3.5 border-l-4 transition-all ${c.occupied ? "border-l-amber-500" : "border-l-[#165B40]"}">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] font-mono text-muted-theme">${c.sensorId} · ping ${c.heartbeatSec}s ago</div>
+                  <h3 class="text-base font-extrabold">${c.name}</h3>
+                  <div class="text-[11px] text-muted-theme">${c.specialty}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
+                  c.occupied ? "bg-amber-500/20 text-amber-600" : "bg-[#E2EFE8] text-[#165B40]"
+                }">
+                  ${c.occupied ? "● Occupied" : "● Available"}
+                </span>
               </div>
-              <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
-                c.occupied ? "bg-amber-500/20 text-amber-600" : "bg-[#E2EFE8] text-[#165B40]"
-              }">
-                ${c.occupied ? "● In Session" : "● Available"}
-              </span>
+
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span class="text-muted-theme">${c.clientLabel}</span>
+                  <span class="font-mono font-bold ${c.occupied ? "text-amber-600" : "text-[#165B40]"}">
+                    ${c.occupied ? this.formatRemaining(c.remainingSec) : "Chair Open"}
+                  </span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-stone-300/50 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700 ${c.occupied ? "bg-amber-500" : "bg-[#165B40]"}" style="width: ${pct}%"></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs surface-box p-3 rounded-xl">
+                <div>
+                  <div class="text-[10px] text-muted-theme">Hygiene & Telemetry</div>
+                  <div class="font-bold text-[#165B40]">✓ UV-C Sterilized</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-muted-theme">Wait / Next Slot</div>
+                  <div class="font-bold truncate">${c.occupied ? `Free in ${Math.ceil(c.remainingSec / 60)} min` : `Walk-in (next booking ${c.nextBookingMin}m)`}</div>
+                </div>
+              </div>
+
+              <button type="button" onclick="window.app.iot.toggleChairDemo(${branchId}, ${idx})" class="w-full py-2 rounded-xl surface-box hover:border-[#165B40] text-[11px] font-bold text-muted-theme hover:text-[#165B40] transition">
+                ${c.occupied ? "✓ Mark Session Finished (Free Chair)" : "⚡ Simulate Live Walk-In Client"}
+              </button>
             </div>
-            <p class="text-xs text-muted-theme font-semibold">
-              ${c.occupied ? `Active Cut · ${this.formatRemaining(c.remainingSec)}` : "No active appointment"}
-            </p>
-            <div class="grid grid-cols-2 gap-2 text-xs surface-box p-3 rounded-xl">
-              <div>
-                <div class="text-[10px] text-muted-theme">Status source</div>
-                <div class="font-bold text-[#165B40]">Booking schedule</div>
-              </div>
-              <div>
-                <div class="text-[10px] text-muted-theme">Next Available</div>
-                <div class="font-bold truncate">${c.occupied ? `In ${Math.ceil(c.remainingSec / 60)} mins` : "Immediate"}</div>
-              </div>
-            </div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       }
     }
-
     class MediaService {
       constructor() {
         this.soundEnabled = true;
@@ -3150,28 +3246,22 @@ async fetchAndRenderAdminStats(notify = false) {
         }
       }
 
-      renderDatePills() {
-        const container = document.getElementById("rollingDatePills");
-        if (!container) return;
-        const today = new Date();
+renderDatePills() {
+        const selectEl = document.getElementById("dateInput");
+        if (!selectEl) return;
+        const base = new Date(this.getTodayISO() + "T12:00:00");
         let html = "";
-        for (let i = 0; i < 5; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
+        for (let i = 0; i <= 30; i++) {
+          const d = new Date(base);
+          d.setDate(base.getDate() + i);
           const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const label = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-GB", { weekday: "short" });
-          const num = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-          const active = iso === this.selectedDateISO;
-          html += `
-            <button type="button" onclick="window.app.selectDate('${iso}')" class="py-2 px-2 rounded-xl border text-center transition ${
-              active ? "bg-[#165B40] text-white border-[#165B40] font-bold" : "surface-box hover:border-[#165B40]"
-            }">
-              <div class="text-[10px] opacity-85">${label}</div>
-              <div class="text-xs font-bold">${num}</div>
-            </button>
-          `;
+          const dayLabel = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-GB", { weekday: "short" });
+          const dateFormatted = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+          const selectedAttr = iso === this.selectedDateISO ? "selected" : "";
+          html += `<option value="${iso}" ${selectedAttr}>${dayLabel} · ${dateFormatted} (${iso})</option>`;
         }
-        container.innerHTML = html;
+        selectEl.innerHTML = html;
+        selectEl.value = this.selectedDateISO;
       }
 
       selectDate(iso) {
@@ -3197,23 +3287,85 @@ async fetchAndRenderAdminStats(notify = false) {
         );
       }
 
+validateCustomTimeWindow(dateISO, timeStr, barberId) {
+        if (!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) {
+          return { ok: false, reason: "Select a valid time (HH:MM)." };
+        }
+        const branch = this.store.branches[this.selectedBranchId] || Object.values(this.store.branches)[0];
+        const [opening, closing] = branch.hours.split(/[–-]/);
+        const toMins = t => Number(t.split(":")[0]) * 60 + Number(t.split(":")[1]);
+        const fmtTime = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+        const startM = toMins(timeStr);
+        const openM = toMins(opening);
+        const closeM = toMins(closing);
+        const sel = document.getElementById("serviceInput");
+        const duration = Number(sel?.selectedOptions[0]?.dataset.duration || 45);
+        const serviceName = sel?.selectedOptions[0]?.dataset.name || "Service";
+        const endM = startM + duration;
+        const latestStart = fmtTime(closeM - duration);
+
+        if (this.isSlotPast(dateISO, timeStr)) {
+          return { ok: false, reason: "That time has already passed today." };
+        }
+        if (startM < openM) {
+          return { ok: false, reason: `Studio opens at ${opening}.` };
+        }
+        if (endM > closeM) {
+          return {
+            ok: false,
+            reason: `${serviceName} (${duration} min) ends at ${fmtTime(endM)}, after ${closing} closing. Latest start is ${latestStart}.`
+          };
+        }
+        if (startM < 14 * 60 && endM > 13 * 60) {
+          return {
+            ok: false,
+            reason: `Overlaps barber break (13:00–14:00). Finish by 13:00 or book from 14:00.`
+          };
+        }
+        if (this.isSlotTaken(dateISO, timeStr, barberId)) {
+          return { ok: false, reason: "Overlaps an existing booking for this barber." };
+        }
+        return {
+          ok: true,
+          reason: `✓ Valid slot: ${timeStr}–${fmtTime(endM)} (${duration} min, closes ${closing})`
+        };
+      }
+
+      selectCustomTime(timeStr) {
+        if (!timeStr) return;
+        const check = this.validateCustomTimeWindow(this.selectedDateISO, timeStr, this.selectedBarberId);
+        const hint = document.getElementById("timeRuleHint");
+        if (!check.ok) {
+          if (hint) {
+            hint.textContent = `✕ ${check.reason}`;
+            hint.className = "flex-1 rounded-xl px-3.5 py-2 text-xs text-rose-700 bg-rose-50 border border-rose-300 flex items-center font-semibold";
+          }
+          this.toast("Unavailable Time", check.reason, true);
+          const customInp = document.getElementById("customTimeInput");
+          if (customInp && this.selectedTime) customInp.value = this.selectedTime;
+          return;
+        }
+        this.selectedTime = timeStr;
+        this.renderTimeSlots();
+        this.updateSummary();
+      }
+
       renderTimeSlots() {
         const container = document.getElementById("timeButtonsContainer");
         if (!container) return;
         let openCount = 0;
         let firstOpen = null;
-        const stillValid = Boolean(this.selectedTime) &&
-          !this.isSlotPast(this.selectedDateISO, this.selectedTime) &&
-          !this.isSlotTaken(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
+
+        const currentCheck = this.selectedTime
+          ? this.validateCustomTimeWindow(this.selectedDateISO, this.selectedTime, this.selectedBarberId)
+          : { ok: false };
+        const stillValid = currentCheck.ok;
 
         container.innerHTML = this.slots.map(slot => {
-          const branch = this.store.branches[this.selectedBranchId];
-          const [opening, closing] = branch.hours.split(/[–-]/);
-          const mins = t => Number(t.split(":")[0])*60+Number(t.split(":")[1]);
-          const duration = Number(document.getElementById("serviceInput").selectedOptions[0].dataset.duration);
-          const past = this.isSlotPast(this.selectedDateISO, slot) || mins(slot) < mins(opening) || mins(slot)+duration > mins(closing);
+          const check = this.validateCustomTimeWindow(this.selectedDateISO, slot, this.selectedBarberId);
           const busy = this.isSlotTaken(this.selectedDateISO, slot, this.selectedBarberId);
-          const disabled = past || busy;
+          const disabled = !check.ok;
           const isQuietDiscount = slot === "12:00" || slot === "18:00";
 
           if (!disabled) {
@@ -3223,11 +3375,11 @@ async fetchAndRenderAdminStats(notify = false) {
           const active = !disabled && (stillValid ? slot === this.selectedTime : slot === firstOpen);
           if (active) this.selectedTime = slot;
 
-          if (past) {
-            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-stone-300/40 opacity-40 line-through cursor-not-allowed">${slot}</button>`;
+          if (disabled && !busy) {
+            return `<button type="button" disabled title="${check.reason}" class="py-2.5 px-2 rounded-xl text-xs border border-stone-300/40 opacity-40 line-through cursor-not-allowed">${slot}</button>`;
           }
           if (busy) {
-            return `<button type="button" disabled class="py-2.5 px-2 rounded-xl text-xs border border-rose-300/40 text-rose-400 cursor-not-allowed">${slot}</button>`;
+            return `<button type="button" disabled title="${check.reason}" class="py-2.5 px-2 rounded-xl text-xs border border-rose-300/40 text-rose-400 cursor-not-allowed">${slot}</button>`;
           }
           return `
             <button type="button" onclick="window.app.selectTime('${slot}')" class="relative py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
@@ -3239,13 +3391,27 @@ async fetchAndRenderAdminStats(notify = false) {
           `;
         }).join("");
 
-        if (openCount === 0) {
+        if (!stillValid && firstOpen) {
+          this.selectedTime = firstOpen;
+        } else if (!stillValid && openCount === 0) {
           this.selectedTime = null;
         }
 
-        document.getElementById("slotsAvailableCount").textContent = `${openCount} slots open`;
+        const customInp = document.getElementById("customTimeInput");
+        if (customInp && this.selectedTime) customInp.value = this.selectedTime;
+
+        const hint = document.getElementById("timeRuleHint");
+        if (hint && this.selectedTime) {
+          const finalCheck = this.validateCustomTimeWindow(this.selectedDateISO, this.selectedTime, this.selectedBarberId);
+          if (finalCheck.ok) {
+            hint.textContent = finalCheck.reason;
+            hint.className = "flex-1 sage-box rounded-xl px-3.5 py-2 text-xs text-[#165B40] flex items-center font-bold border border-[#165B40]/20";
+          }
+        }
+
+        document.getElementById("slotsAvailableCount").textContent = `${openCount} quick slots + custom time`;
         const btn = document.getElementById("confirmBtn");
-        if (btn) btn.disabled = openCount === 0;
+        if (btn) btn.disabled = !this.selectedTime;
       }
 
       selectTime(slot) {
