@@ -2874,7 +2874,7 @@ class LiveChairService {
         document.getElementById("styleDetailModal").classList.remove("hidden");
       }
 
-     async redeemAccessToken() {
+    async redeemAccessToken() {
         const token = document.getElementById("staffInviteKeyInput").value.trim().toUpperCase();
         if (!token) return;
 
@@ -2940,24 +2940,6 @@ class LiveChairService {
 
         this.toast("Invalid Access Code", "The 12-character code was not recognized in `staff_codes`.", true);
       }
-
-if (token === this.store.headAdminAccount.token) {
-          this.user.role = "head_admin";
-          this.user.full_name = "Arlan Shikibaev";
-          this.user.branch_id = null;
-          this.user.barber_id = null;
-          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "head_admin", token);
-          return this.saveRoleAndNavigate("Head Admin access activated.");
-        }
-        const branch = Object.values(this.store.branches).find(b => b.adminToken.toUpperCase() === token);
-        if (branch) {
-          this.user.role = "admin";
-          this.user.branch_id = branch.id;
-          this.user.barber_id = null;
-          await this.db.updateUserRoleInDB(this.user.user_id, this.user.email, "admin", token);
-          return this.saveRoleAndNavigate(`Branch Admin access activated for ${branch.name}.`);
-        }
-
         const barber = Object.values(this.store.barbers).find(b => b.token.toUpperCase() === token);
         if (barber) {
           this.user.role = "barber";
